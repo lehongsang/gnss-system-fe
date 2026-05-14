@@ -1,20 +1,10 @@
-import { useRootControllerGetMetadata } from "@/services/apis/gen/queries";
-import { Navigate, useLocation } from "react-router-dom";
 
 export default function RegisterRoute({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data, isFetched } = useRootControllerGetMetadata();
-  const location = useLocation();
-  const currentPath = location.pathname;
-
-  if (!isFetched) return <></>;
-
-  if (data?.isInit) {
-    return <Navigate to={currentPath} />;
-  }
-
+  // Bỏ qua hook getMetadata vì API này đã bị xóa ở backend.
+  // Mặc định cho phép truy cập trang đăng ký.
   return <>{children}</>;
 }

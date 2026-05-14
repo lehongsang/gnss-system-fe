@@ -6,10 +6,10 @@ import * as path from "path";
 config();
 
 const getInfiniteOverrides = () => {
-  const operations: Record<string, unknown> = {};
+  const operations: Record<string, { query: { useInfinite: boolean; useInfiniteQueryParam: string } }> = {};
   const inputPath = path.resolve(
     process.cwd(),
-    "../tmt-ilupet-api/open-api.json",
+    "../gnss-system/open-api.json",
   );
 
   const fileContent = fs.readFileSync(inputPath, "utf-8");
@@ -69,7 +69,7 @@ export default defineConfig({
     },
     input: {
       validation: false,
-      target: "../tmt-ilupet-api/open-api.json",
+      target: "../gnss-system/open-api.json",
     },
   },
 });

@@ -26,375 +26,454 @@ import type {
 } from "@tanstack/react-query";
 
 import { orvalClient } from "../axios-client";
-export type String = { [key: string]: unknown };
+export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ErrorCode = {
+  INVALID_INPUT: "INVALID_INPUT",
+  MISSING_REQUIRED_FIELD: "MISSING_REQUIRED_FIELD",
+  UNAUTHORIZED: "UNAUTHORIZED",
+  INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
+  SESSION_EXPIRED: "SESSION_EXPIRED",
+  FORBIDDEN: "FORBIDDEN",
+  INSUFFICIENT_PERMISSIONS: "INSUFFICIENT_PERMISSIONS",
+  RESOURCE_NOT_FOUND: "RESOURCE_NOT_FOUND",
+  USER_NOT_FOUND: "USER_NOT_FOUND",
+  RESOURCE_ALREADY_EXISTS: "RESOURCE_ALREADY_EXISTS",
+  DUPLICATE_ENTRY: "DUPLICATE_ENTRY",
+  TOO_MANY_REQUESTS: "TOO_MANY_REQUESTS",
+  INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
+  FAILED_TO_SEND_OTP: "FAILED_TO_SEND_OTP",
+  REGISTRATION_FAILED: "REGISTRATION_FAILED",
+  EMAIL_ALREADY_EXISTS: "EMAIL_ALREADY_EXISTS",
+  PENDING_REGISTRATION_EXISTS: "PENDING_REGISTRATION_EXISTS",
+  INVALID_OTP: "INVALID_OTP",
+  EXPIRED_OTP: "EXPIRED_OTP",
+  OTP_ATTEMPTS_EXCEEDED: "OTP_ATTEMPTS_EXCEEDED",
+  REGISTRATION_SESSION_EXPIRED: "REGISTRATION_SESSION_EXPIRED",
+  ADMIN_ALREADY_EXISTS: "ADMIN_ALREADY_EXISTS",
+  VERIFICATION_FAILED: "VERIFICATION_FAILED",
+  DEVICE_GROUP_NOT_FOUND: "DEVICE_GROUP_NOT_FOUND",
+} as const;
+
+export type ErrorResponseDtoData = { [key: string]: unknown };
+
+export type ErrorResponseDto = {
+  statusCode: number;
+  message: string;
+  code: ErrorCode;
+  data?: ErrorResponseDtoData;
+};
+
+/**
+ * Upload processing status
+ */
+export type MediaStatus = (typeof MediaStatus)[keyof typeof MediaStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MediaStatus = {
+  PENDING: "PENDING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+} as const;
+
+export type MediaDeletedAt = { [key: string]: unknown };
+
+export type Media = {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  /** Stored filename (after processing) */
+  filename: string;
+  /** Original filename uploaded by user */
+  originalName: string;
+  /** MIME type of the file (e.g. image/webp) */
+  mimeType: string;
+  /** File size in bytes */
+  size: number;
+  /** S3 object key for presigned URL generation */
+  s3Key?: string;
+  /** Direct URL (legacy, prefer s3Key + presigned URL) */
+  url?: string;
+  /** Upload processing status */
+  status: MediaStatus;
+  deletedAt?: MediaDeletedAt;
+};
+
+export type Role = (typeof Role)[keyof typeof Role];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const Role = {
+  admin: "admin",
+  user: "user",
+} as const;
+
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const UserStatus = {
+  pending: "pending",
+  active: "active",
+  inactive: "inactive",
+} as const;
+
+/**
+ * Name of the user
+ */
+export type UserName = { [key: string]: unknown };
+
+/**
+ * Phone number of the user
+ */
+export type UserPhoneNumber = { [key: string]: unknown };
+
+/**
+ * ID of the avatar media
+ */
+export type UserMediaId = { [key: string]: unknown };
+
+export type User = {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  /** Name of the user */
+  name?: UserName;
+  /** Phone number of the user */
+  phoneNumber?: UserPhoneNumber;
+  /** Email of the user */
+  email: string;
+  /** ID of the avatar media */
+  mediaId?: UserMediaId;
+  media?: Media;
+  role: Role;
+  status?: UserStatus;
+  /** Whether the user has completed KYC verification */
+  isVerifiedKyc?: boolean;
+};
 
 export type AppResponseSerialization = { [key: string]: unknown };
 
-export type GetMetadataDto = { [key: string]: unknown };
-
-/**
- * Merchant address as JSON
- * @nullable
- */
-export type MerchantAddress = { [key: string]: unknown } | null;
-
-/**
- * Geographic location (PostGIS point)
- * @nullable
- */
-export type MerchantLocation = { [key: string]: unknown } | null;
-
-/**
- * Merchant status
- * @nullable
- */
-export type MerchantStatus =
-  | (typeof MerchantStatus)[keyof typeof MerchantStatus]
-  | null;
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const MerchantStatus = {
-  pending: "pending",
-  active: "active",
-  inactive: "inactive",
-  rejected: "rejected",
-} as const;
-
-export type Merchant = {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  /** Associated user ID (FK, unique) */
-  userId: string;
-  /**
-   * Associated media ID (FK)
-   * @nullable
-   */
-  mediaId: number | null;
-  /** Unique merchant code */
-  code: string;
-  /**
-   * Business license URL
-   * @nullable
-   */
-  businessLicenseUrl: string | null;
-  /** Merchant name */
-  name: string;
-  /**
-   * Merchant phone number
-   * @nullable
-   */
-  phone: string | null;
-  /**
-   * Merchant email address
-   * @nullable
-   */
-  email: string | null;
-  /**
-   * Merchant description
-   * @nullable
-   */
-  description: string | null;
-  /**
-   * Merchant address as JSON
-   * @nullable
-   */
-  address: MerchantAddress;
-  /**
-   * Geographic location (PostGIS point)
-   * @nullable
-   */
-  location: MerchantLocation;
-  /** Bank account number */
-  bankAccountNumber: string;
-  /** Bank account holder name */
-  bankAccountName: string;
-  /** Bank code */
-  bankCode: string;
-  /**
-   * Merchant status
-   * @nullable
-   */
-  status: MerchantStatus;
-  /**
-   * Soft delete timestamp
-   * @nullable
-   */
-  deletedAt: string | null;
+export type DefaultMessageResponseDto = {
+  message: string;
 };
 
-export type GetManyMerchantDto = {
-  data: Merchant[];
-  total: number;
-  page: number;
-  limit: number;
-  hasNextPage: boolean;
-  pageCount: number;
-};
-
-export type LocationDto = {
-  longitude: number;
-  latitude: number;
-};
-
-/**
- * Address JSON
- */
-export type CreateMerchantDtoAddress = { [key: string]: unknown };
-
-export type CreateMerchantDto = {
-  /** Unique merchant code */
-  code: string;
-  /** Merchant name */
-  name: string;
-  /** Business license URL */
-  businessLicenseUrl?: string;
-  /** Merchant phone */
-  phone?: string;
-  /** Merchant email */
+export type UserRegisterDto = {
+  /** User email */
   email: string;
-  /** Account password */
+  /** User full name */
+  name: string;
+  /**
+   * User password
+   * @minLength 8
+   */
   password: string;
-  /** Owner name (User name) */
-  ownerName?: string;
-  /** Merchant description */
-  description?: string;
-  /** Address JSON */
-  address?: CreateMerchantDtoAddress;
-  /** Geographic location */
-  location?: LocationDto;
-  /** Media ID */
-  mediaId?: number;
-  /** Bank account number */
-  bankAccountNumber: string;
-  /** Bank account holder name */
-  bankAccountName: string;
-  /** Bank code */
-  bankCode: string;
 };
 
-/**
- * Address JSON
- */
-export type UpdateMerchantDtoAddress = { [key: string]: unknown };
-
-export type UpdateMerchantDto = {
-  /** Unique merchant code */
-  code?: string;
-  /** Merchant name */
-  name?: string;
-  /** Business license URL */
-  businessLicenseUrl?: string;
-  /** Merchant phone */
-  phone?: string;
-  /** Merchant email */
-  email?: string;
-  /** Account password */
-  password?: string;
-  /** Owner name (User name) */
-  ownerName?: string;
-  /** Merchant description */
-  description?: string;
-  /** Address JSON */
-  address?: UpdateMerchantDtoAddress;
-  /** Geographic location */
-  location?: LocationDto;
-  /** Media ID */
-  mediaId?: number;
-  /** Bank account number */
-  bankAccountNumber?: string;
-  /** Bank account holder name */
-  bankAccountName?: string;
-  /** Bank code */
-  bankCode?: string;
-};
-
-/**
- * New merchant status
- */
-export type UpdateMerchantStatusDtoStatus =
-  (typeof UpdateMerchantStatusDtoStatus)[keyof typeof UpdateMerchantStatusDtoStatus];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const UpdateMerchantStatusDtoStatus = {
-  pending: "pending",
-  active: "active",
-  inactive: "inactive",
-  rejected: "rejected",
-} as const;
-
-export type UpdateMerchantStatusDto = {
-  /** New merchant status */
-  status: UpdateMerchantStatusDtoStatus;
-};
-
-/**
- * Geographic location (PostGIS point)
- * @nullable
- */
-export type ClinicLocation = { [key: string]: unknown } | null;
-
-/**
- * @nullable
- */
-export type ClinicStatus =
-  | (typeof ClinicStatus)[keyof typeof ClinicStatus]
-  | null;
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ClinicStatus = {
-  pending: "pending",
-  active: "active",
-  inactive: "inactive",
-  rejected: "rejected",
-} as const;
-
-export type Clinic = {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  /** Associated user ID (FK, unique) */
-  userId: string;
-  /** Unique clinic code */
-  code: string;
-  /**
-   * Business license URL
-   * @nullable
-   */
-  businessLicenseUrl: string | null;
-  /** Clinic name */
-  name: string;
-  /**
-   * Associated media ID (FK)
-   * @nullable
-   */
-  mediaId: number | null;
-  /**
-   * Clinic phone number
-   * @nullable
-   */
-  phone: string | null;
-  /**
-   * Clinic email address
-   * @nullable
-   */
-  email: string | null;
-  /**
-   * Clinic description
-   * @nullable
-   */
-  description: string | null;
-  /**
-   * Clinic address
-   * @nullable
-   */
-  address: string | null;
-  /**
-   * Geographic location (PostGIS point)
-   * @nullable
-   */
-  location: ClinicLocation;
-  /** @nullable */
-  status: ClinicStatus;
-  /**
-   * Soft delete timestamp
-   * @nullable
-   */
-  deletedAt: string | null;
-};
-
-export type GetManyClinicDto = {
-  data: Clinic[];
-  total: number;
-  page: number;
-  limit: number;
-  hasNextPage: boolean;
-  pageCount: number;
-};
-
-export type CreateClinicDto = {
-  /** Clinic name */
-  name: string;
-  /** Unique clinic code */
-  code: string;
-  /** Business license URL */
-  businessLicenseUrl?: string;
-  /** Clinic phone */
-  phone?: string;
-  /** Clinic email */
+export type UserVerifyOtpDto = {
+  /** User email */
   email: string;
-  /** Account password */
-  password: string;
-  /** Owner name (User name) */
-  ownerName?: string;
-  /** Clinic description */
-  description?: string;
-  /** Clinic address */
-  address?: string;
-  /** Geographic location */
-  location?: LocationDto;
-  /** Media ID */
-  mediaId?: number;
+  /** OTP code */
+  otp: string;
 };
 
-export type UpdateClinicDto = {
-  /** Clinic name */
+export type UserResendOtpDto = {
+  /** User email */
+  email: string;
+};
+
+export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SortOrder = {
+  ASC: "ASC",
+  DESC: "DESC",
+} as const;
+
+export type CreateDeviceDto = {
+  name: string;
+  macAddress?: string;
+  ownerId?: string;
+  /** Ngưỡng tốc độ tối đa (km/h). null = không giám sát tốc độ. */
+  speedLimitKmh?: number;
+};
+
+export type UpdateDeviceDto = {
   name?: string;
-  /** Unique clinic code */
-  code?: string;
-  /** Business license URL */
-  businessLicenseUrl?: string;
-  /** Clinic phone */
-  phone?: string;
-  /** Clinic email */
-  email?: string;
-  /** Account password */
-  password?: string;
-  /** Owner name (User name) */
-  ownerName?: string;
-  /** Clinic description */
-  description?: string;
-  /** Clinic address */
-  address?: string;
-  /** Geographic location */
-  location?: LocationDto;
-  /** Media ID */
-  mediaId?: number;
+  macAddress?: string;
+  ownerId?: string;
+  /** Ngưỡng tốc độ tối đa (km/h). null = không giám sát tốc độ. */
+  speedLimitKmh?: number;
 };
 
 /**
- * New clinic status
+ * GeoJSON Polygon coordinates
  */
-export type UpdateClinicStatusDtoStatus =
-  (typeof UpdateClinicStatusDtoStatus)[keyof typeof UpdateClinicStatusDtoStatus];
+export type CreateGeofenceDtoGeom = { [key: string]: unknown };
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const UpdateClinicStatusDtoStatus = {
-  pending: "pending",
-  active: "active",
-  inactive: "inactive",
-  rejected: "rejected",
-} as const;
-
-export type UpdateClinicStatusDto = {
-  /** New clinic status */
-  status: UpdateClinicStatusDtoStatus;
+export type CreateGeofenceDto = {
+  name: string;
+  color?: string;
+  /** GeoJSON Polygon coordinates */
+  geom: CreateGeofenceDtoGeom;
 };
 
-export type MerchantsControllerGetAllParams = {
+/**
+ * GeoJSON Polygon coordinates
+ */
+export type UpdateGeofenceDtoGeom = { [key: string]: unknown };
+
+export type UpdateGeofenceDto = {
+  name?: string;
+  color?: string;
+  /** GeoJSON Polygon coordinates */
+  geom?: UpdateGeofenceDtoGeom;
+};
+
+export type AssignDeviceDto = {
+  deviceId: string;
+};
+
+export type SystemOverviewResponse = {
+  /** Total number of users */
+  totalUsers: number;
+  /** Number of active users */
+  activeUsers: number;
+  /** Total number of devices */
+  totalDevices: number;
+  /** Number of online devices */
+  onlineDevices: number;
+  /** Total number of geofences */
+  totalGeofences: number;
+  /** Total number of alerts */
+  totalAlerts: number;
+};
+
+export type TelemetryStatResponse = {
+  /** Date (YYYY-MM-DD) */
+  date: string;
+  /** Number of telemetry points recorded */
+  points: number;
+};
+
+export type AlertTypeStatResponse = {
+  /** Type of the alert */
+  name: string;
+  /** Number of occurrences */
+  count: number;
+};
+
+export type MediaStatResponse = {
+  /** Date (YYYY-MM-DD) */
+  date: string;
+  /** Number of image frames uploaded */
+  images: number;
+  /** Number of video chunks uploaded */
+  videos: number;
+};
+
+export type CreateDeviceGroupDto = {
+  /** Tên nhóm thiết bị */
+  name: string;
+  /** Mô tả chi tiết */
+  description?: string;
+};
+
+export type UpdateDeviceGroupDto = {
+  /** Tên nhóm thiết bị */
+  name?: string;
+  /** Mô tả chi tiết */
+  description?: string;
+};
+
+export type AssignDevicesDto = {
+  /** Danh sách ID của các thiết bị cần gán/gỡ */
+  deviceIds: string[];
+};
+
+export type UsersControllerUpdateMeBody = {
+  avatar?: Blob;
+};
+
+export type DevicesControllerFindAllParams = {
   search?: string;
   page?: number;
   limit?: number;
   sortBy?: string;
-  sortOrder?: string;
+  sortOrder?: SortOrder;
 };
 
-export type ClinicsControllerGetAllParams = {
+export type DevicesControllerFindMineParams = {
   search?: string;
   page?: number;
   limit?: number;
   sortBy?: string;
-  sortOrder?: string;
+  sortOrder?: SortOrder;
+};
+
+export type TelemetryControllerGetHistoryParams = {
+  search?: string;
+  page?: number;
+  sortBy?: string;
+  sortOrder?: SortOrder;
+  /**
+   * Giới hạn tối đa 500
+   */
+  limit?: number;
+  from: string;
+  to: string;
+};
+
+export type TelemetryControllerGetNearbyParams = {
+  lat: number;
+  lng: number;
+  /**
+   * Bán kính tính bằng mét
+   */
+  radius: number;
+};
+
+export type AlertsControllerFindAllParams = {
+  search?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: SortOrder;
+  /**
+   * Filter by device UUID
+   */
+  deviceId?: string;
+  /**
+   * Filter by alert type
+   */
+  alertType?: AlertsControllerFindAllAlertType;
+  /**
+   * Filter by resolution status
+   */
+  isResolved?: boolean;
+};
+
+export type AlertsControllerFindAllAlertType =
+  (typeof AlertsControllerFindAllAlertType)[keyof typeof AlertsControllerFindAllAlertType];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AlertsControllerFindAllAlertType = {
+  trajectory_deviation: "trajectory_deviation",
+  dangerous_obstacle: "dangerous_obstacle",
+  signal_lost: "signal_lost",
+  geofence_exit: "geofence_exit",
+  speeding: "speeding",
+} as const;
+
+export type AlertsControllerFindMineParams = {
+  search?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: SortOrder;
+  /**
+   * Filter by device UUID
+   */
+  deviceId?: string;
+  /**
+   * Filter by alert type
+   */
+  alertType?: AlertsControllerFindMineAlertType;
+  /**
+   * Filter by resolution status
+   */
+  isResolved?: boolean;
+};
+
+export type AlertsControllerFindMineAlertType =
+  (typeof AlertsControllerFindMineAlertType)[keyof typeof AlertsControllerFindMineAlertType];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AlertsControllerFindMineAlertType = {
+  trajectory_deviation: "trajectory_deviation",
+  dangerous_obstacle: "dangerous_obstacle",
+  signal_lost: "signal_lost",
+  geofence_exit: "geofence_exit",
+  speeding: "speeding",
+} as const;
+
+export type GeofencesControllerFindAllParams = {
+  search?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: SortOrder;
+};
+
+export type GeofencesControllerFindMineParams = {
+  search?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: SortOrder;
+};
+
+export type MediaLogsControllerFindAllParams = {
+  search?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: SortOrder;
+  deviceId?: string;
+  mediaType?: MediaLogsControllerFindAllMediaType;
+  from?: string;
+  to?: string;
+};
+
+export type MediaLogsControllerFindAllMediaType =
+  (typeof MediaLogsControllerFindAllMediaType)[keyof typeof MediaLogsControllerFindAllMediaType];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MediaLogsControllerFindAllMediaType = {
+  video_chunk: "video_chunk",
+  image_frame: "image_frame",
+} as const;
+
+export type MediaLogsControllerFindMineParams = {
+  search?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: SortOrder;
+  deviceId?: string;
+  mediaType?: MediaLogsControllerFindMineMediaType;
+  from?: string;
+  to?: string;
+};
+
+export type MediaLogsControllerFindMineMediaType =
+  (typeof MediaLogsControllerFindMineMediaType)[keyof typeof MediaLogsControllerFindMineMediaType];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MediaLogsControllerFindMineMediaType = {
+  video_chunk: "video_chunk",
+  image_frame: "image_frame",
+} as const;
+
+export type StatisticsControllerGetTelemetryStats200 =
+  AppResponseSerialization & {
+    data?: TelemetryStatResponse[];
+  };
+
+export type StatisticsControllerGetAlertTypeStats200 =
+  AppResponseSerialization & {
+    data?: AlertTypeStatResponse[];
+  };
+
+export type StatisticsControllerGetMediaStats200 = AppResponseSerialization & {
+  data?: MediaStatResponse[];
+};
+
+export type DeviceGroupsControllerFindAllParams = {
+  search?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: SortOrder;
 };
 
 type AwaitedInput<T> = PromiseLike<T> | T;
@@ -403,15 +482,11 @@ type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-/**
- * Returns health status of the system.
- * @summary Role: No - Get system health.
- */
 export const rootControllerGetHealth = (
   options?: SecondParameter<typeof orvalClient>,
   signal?: AbortSignal,
 ) => {
-  return orvalClient<String>(
+  return orvalClient<void>(
     { url: `/api/health`, method: "GET", signal },
     options,
   );
@@ -525,9 +600,6 @@ export function useRootControllerGetHealth<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-/**
- * @summary Role: No - Get system health.
- */
 
 export function useRootControllerGetHealth<
   TData = Awaited<ReturnType<typeof rootControllerGetHealth>>,
@@ -560,30 +632,1579 @@ export function useRootControllerGetHealth<
 }
 
 /**
- * Returns metadata about the system state, like whether it has been initialized.
- * @summary Role: User - Get system metadata.
+ * Update the profile information of the currently logged in user. Supports updating text fields along with an optional avatar upload.
+ * @summary Role: All - Update current user profile
  */
-export const rootControllerGetMetadata = (
+export const usersControllerUpdateMe = (
+  usersControllerUpdateMeBody?: UsersControllerUpdateMeBody,
   options?: SecondParameter<typeof orvalClient>,
-  signal?: AbortSignal,
 ) => {
-  return orvalClient<GetMetadataDto>(
-    { url: `/api/metadata`, method: "GET", signal },
+  const formData = new FormData();
+  if (usersControllerUpdateMeBody?.avatar !== undefined) {
+    formData.append(`avatar`, usersControllerUpdateMeBody.avatar);
+  }
+
+  return orvalClient<User>(
+    {
+      url: `/api/users/me`,
+      method: "PATCH",
+      headers: { "Content-Type": "multipart/form-data" },
+      data: formData,
+    },
     options,
   );
 };
 
-export const getRootControllerGetMetadataQueryKey = () => {
-  return [`/api/metadata`] as const;
+export const getUsersControllerUpdateMeMutationOptions = <
+  TError = ErrorResponseDto,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof usersControllerUpdateMe>>,
+    TError,
+    { data: UsersControllerUpdateMeBody },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof usersControllerUpdateMe>>,
+  TError,
+  { data: UsersControllerUpdateMeBody },
+  TContext
+> => {
+  const mutationKey = ["usersControllerUpdateMe"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof usersControllerUpdateMe>>,
+    { data: UsersControllerUpdateMeBody }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return usersControllerUpdateMe(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
 };
 
-export const getRootControllerGetMetadataQueryOptions = <
-  TData = Awaited<ReturnType<typeof rootControllerGetMetadata>>,
+export type UsersControllerUpdateMeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof usersControllerUpdateMe>>
+>;
+export type UsersControllerUpdateMeMutationBody = UsersControllerUpdateMeBody;
+export type UsersControllerUpdateMeMutationError = ErrorResponseDto;
+
+/**
+ * @summary Role: All - Update current user profile
+ */
+export const useUsersControllerUpdateMe = <
+  TError = ErrorResponseDto,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof usersControllerUpdateMe>>,
+      TError,
+      { data: UsersControllerUpdateMeBody },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof usersControllerUpdateMe>>,
+  TError,
+  { data: UsersControllerUpdateMeBody },
+  TContext
+> => {
+  const mutationOptions = getUsersControllerUpdateMeMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * Create a pending user registration. User data is stored in Redis until email verification is completed.
+ * @summary Role: None - Register a new user
+ */
+export const usersControllerRegister = (
+  userRegisterDto: UserRegisterDto,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<DefaultMessageResponseDto>(
+    {
+      url: `/api/users/register`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: userRegisterDto,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getUsersControllerRegisterMutationOptions = <
+  TError =
+    | ErrorResponseDto
+    | ErrorResponseDto
+    | ErrorResponseDto
+    | ErrorResponseDto,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof usersControllerRegister>>,
+    TError,
+    { data: UserRegisterDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof usersControllerRegister>>,
+  TError,
+  { data: UserRegisterDto },
+  TContext
+> => {
+  const mutationKey = ["usersControllerRegister"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof usersControllerRegister>>,
+    { data: UserRegisterDto }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return usersControllerRegister(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UsersControllerRegisterMutationResult = NonNullable<
+  Awaited<ReturnType<typeof usersControllerRegister>>
+>;
+export type UsersControllerRegisterMutationBody = UserRegisterDto;
+export type UsersControllerRegisterMutationError =
+  | ErrorResponseDto
+  | ErrorResponseDto
+  | ErrorResponseDto
+  | ErrorResponseDto;
+
+/**
+ * @summary Role: None - Register a new user
+ */
+export const useUsersControllerRegister = <
+  TError =
+    | ErrorResponseDto
+    | ErrorResponseDto
+    | ErrorResponseDto
+    | ErrorResponseDto,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof usersControllerRegister>>,
+      TError,
+      { data: UserRegisterDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof usersControllerRegister>>,
+  TError,
+  { data: UserRegisterDto },
+  TContext
+> => {
+  const mutationOptions = getUsersControllerRegisterMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * Verify the OTP sent to email and create the user account in database.
+ * @summary Role: None - Verify OTP and complete registration
+ */
+export const usersControllerVerifyOtp = (
+  userVerifyOtpDto: UserVerifyOtpDto,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<DefaultMessageResponseDto>(
+    {
+      url: `/api/users/verify-otp`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: userVerifyOtpDto,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getUsersControllerVerifyOtpMutationOptions = <
+  TError = ErrorResponseDto | ErrorResponseDto,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof usersControllerVerifyOtp>>,
+    TError,
+    { data: UserVerifyOtpDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof usersControllerVerifyOtp>>,
+  TError,
+  { data: UserVerifyOtpDto },
+  TContext
+> => {
+  const mutationKey = ["usersControllerVerifyOtp"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof usersControllerVerifyOtp>>,
+    { data: UserVerifyOtpDto }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return usersControllerVerifyOtp(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UsersControllerVerifyOtpMutationResult = NonNullable<
+  Awaited<ReturnType<typeof usersControllerVerifyOtp>>
+>;
+export type UsersControllerVerifyOtpMutationBody = UserVerifyOtpDto;
+export type UsersControllerVerifyOtpMutationError =
+  | ErrorResponseDto
+  | ErrorResponseDto;
+
+/**
+ * @summary Role: None - Verify OTP and complete registration
+ */
+export const useUsersControllerVerifyOtp = <
+  TError = ErrorResponseDto | ErrorResponseDto,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof usersControllerVerifyOtp>>,
+      TError,
+      { data: UserVerifyOtpDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof usersControllerVerifyOtp>>,
+  TError,
+  { data: UserVerifyOtpDto },
+  TContext
+> => {
+  const mutationOptions = getUsersControllerVerifyOtpMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * Resend the verification OTP to the email for pending registration.
+ * @summary Role: None - Resend OTP for pending registration
+ */
+export const usersControllerResendOtp = (
+  userResendOtpDto: UserResendOtpDto,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<DefaultMessageResponseDto>(
+    {
+      url: `/api/users/resend-otp`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: userResendOtpDto,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getUsersControllerResendOtpMutationOptions = <
+  TError = ErrorResponseDto | ErrorResponseDto,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof usersControllerResendOtp>>,
+    TError,
+    { data: UserResendOtpDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof usersControllerResendOtp>>,
+  TError,
+  { data: UserResendOtpDto },
+  TContext
+> => {
+  const mutationKey = ["usersControllerResendOtp"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof usersControllerResendOtp>>,
+    { data: UserResendOtpDto }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return usersControllerResendOtp(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UsersControllerResendOtpMutationResult = NonNullable<
+  Awaited<ReturnType<typeof usersControllerResendOtp>>
+>;
+export type UsersControllerResendOtpMutationBody = UserResendOtpDto;
+export type UsersControllerResendOtpMutationError =
+  | ErrorResponseDto
+  | ErrorResponseDto;
+
+/**
+ * @summary Role: None - Resend OTP for pending registration
+ */
+export const useUsersControllerResendOtp = <
+  TError = ErrorResponseDto | ErrorResponseDto,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof usersControllerResendOtp>>,
+      TError,
+      { data: UserResendOtpDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof usersControllerResendOtp>>,
+  TError,
+  { data: UserResendOtpDto },
+  TContext
+> => {
+  const mutationOptions = getUsersControllerResendOtpMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Role: Admin - Get all devices (paginated)
+ */
+export const devicesControllerFindAll = (
+  params?: DevicesControllerFindAllParams,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/devices`, method: "GET", params, signal },
+    options,
+  );
+};
+
+export const getDevicesControllerFindAllInfiniteQueryKey = (
+  params?: DevicesControllerFindAllParams,
+) => {
+  return ["infinate", `/api/devices`, ...(params ? [params] : [])] as const;
+};
+
+export const getDevicesControllerFindAllQueryKey = (
+  params?: DevicesControllerFindAllParams,
+) => {
+  return [`/api/devices`, ...(params ? [params] : [])] as const;
+};
+
+export const getDevicesControllerFindAllInfiniteQueryOptions = <
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof devicesControllerFindAll>>,
+    DevicesControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        DevicesControllerFindAllParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getDevicesControllerFindAllInfiniteQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof devicesControllerFindAll>>,
+    QueryKey,
+    DevicesControllerFindAllParams["page"]
+  > = ({ signal, pageParam }) =>
+    devicesControllerFindAll(
+      { ...params, page: pageParam || params?.["page"] },
+      requestOptions,
+      signal,
+    );
+
+  return { queryKey, queryFn, ...queryOptions } as UseInfiniteQueryOptions<
+    Awaited<ReturnType<typeof devicesControllerFindAll>>,
+    TError,
+    TData,
+    QueryKey,
+    DevicesControllerFindAllParams["page"]
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type DevicesControllerFindAllInfiniteQueryResult = NonNullable<
+  Awaited<ReturnType<typeof devicesControllerFindAll>>
+>;
+export type DevicesControllerFindAllInfiniteQueryError = unknown;
+
+export function useDevicesControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof devicesControllerFindAll>>,
+    DevicesControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params: undefined | DevicesControllerFindAllParams,
+  options: {
+    query: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        DevicesControllerFindAllParams["page"]
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof devicesControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof devicesControllerFindAll>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDevicesControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof devicesControllerFindAll>>,
+    DevicesControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        DevicesControllerFindAllParams["page"]
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof devicesControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof devicesControllerFindAll>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDevicesControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof devicesControllerFindAll>>,
+    DevicesControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        DevicesControllerFindAllParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: Admin - Get all devices (paginated)
+ */
+
+export function useDevicesControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof devicesControllerFindAll>>,
+    DevicesControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        DevicesControllerFindAllParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getDevicesControllerFindAllInfiniteQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useInfiniteQuery(
+    queryOptions,
+    queryClient,
+  ) as UseInfiniteQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const getDevicesControllerFindAllQueryOptions = <
+  TData = Awaited<ReturnType<typeof devicesControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindAll>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getDevicesControllerFindAllQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof devicesControllerFindAll>>
+  > = ({ signal }) => devicesControllerFindAll(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof devicesControllerFindAll>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type DevicesControllerFindAllQueryResult = NonNullable<
+  Awaited<ReturnType<typeof devicesControllerFindAll>>
+>;
+export type DevicesControllerFindAllQueryError = unknown;
+
+export function useDevicesControllerFindAll<
+  TData = Awaited<ReturnType<typeof devicesControllerFindAll>>,
+  TError = unknown,
+>(
+  params: undefined | DevicesControllerFindAllParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindAll>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof devicesControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof devicesControllerFindAll>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDevicesControllerFindAll<
+  TData = Awaited<ReturnType<typeof devicesControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindAll>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof devicesControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof devicesControllerFindAll>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDevicesControllerFindAll<
+  TData = Awaited<ReturnType<typeof devicesControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindAll>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: Admin - Get all devices (paginated)
+ */
+
+export function useDevicesControllerFindAll<
+  TData = Awaited<ReturnType<typeof devicesControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindAll>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getDevicesControllerFindAllQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Create new device
+ */
+export const devicesControllerCreate = (
+  createDeviceDto: CreateDeviceDto,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    {
+      url: `/api/devices`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: createDeviceDto,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getDevicesControllerCreateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof devicesControllerCreate>>,
+    TError,
+    { data: CreateDeviceDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof devicesControllerCreate>>,
+  TError,
+  { data: CreateDeviceDto },
+  TContext
+> => {
+  const mutationKey = ["devicesControllerCreate"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof devicesControllerCreate>>,
+    { data: CreateDeviceDto }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return devicesControllerCreate(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DevicesControllerCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof devicesControllerCreate>>
+>;
+export type DevicesControllerCreateMutationBody = CreateDeviceDto;
+export type DevicesControllerCreateMutationError = unknown;
+
+/**
+ * @summary Role: All - Create new device
+ */
+export const useDevicesControllerCreate = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof devicesControllerCreate>>,
+      TError,
+      { data: CreateDeviceDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof devicesControllerCreate>>,
+  TError,
+  { data: CreateDeviceDto },
+  TContext
+> => {
+  const mutationOptions = getDevicesControllerCreateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Role: All - Get my devices
+ */
+export const devicesControllerFindMine = (
+  params?: DevicesControllerFindMineParams,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/devices/mine`, method: "GET", params, signal },
+    options,
+  );
+};
+
+export const getDevicesControllerFindMineInfiniteQueryKey = (
+  params?: DevicesControllerFindMineParams,
+) => {
+  return [
+    "infinate",
+    `/api/devices/mine`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getDevicesControllerFindMineQueryKey = (
+  params?: DevicesControllerFindMineParams,
+) => {
+  return [`/api/devices/mine`, ...(params ? [params] : [])] as const;
+};
+
+export const getDevicesControllerFindMineInfiniteQueryOptions = <
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof devicesControllerFindMine>>,
+    DevicesControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        DevicesControllerFindMineParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getDevicesControllerFindMineInfiniteQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof devicesControllerFindMine>>,
+    QueryKey,
+    DevicesControllerFindMineParams["page"]
+  > = ({ signal, pageParam }) =>
+    devicesControllerFindMine(
+      { ...params, page: pageParam || params?.["page"] },
+      requestOptions,
+      signal,
+    );
+
+  return { queryKey, queryFn, ...queryOptions } as UseInfiniteQueryOptions<
+    Awaited<ReturnType<typeof devicesControllerFindMine>>,
+    TError,
+    TData,
+    QueryKey,
+    DevicesControllerFindMineParams["page"]
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type DevicesControllerFindMineInfiniteQueryResult = NonNullable<
+  Awaited<ReturnType<typeof devicesControllerFindMine>>
+>;
+export type DevicesControllerFindMineInfiniteQueryError = unknown;
+
+export function useDevicesControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof devicesControllerFindMine>>,
+    DevicesControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params: undefined | DevicesControllerFindMineParams,
+  options: {
+    query: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        DevicesControllerFindMineParams["page"]
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof devicesControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof devicesControllerFindMine>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDevicesControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof devicesControllerFindMine>>,
+    DevicesControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        DevicesControllerFindMineParams["page"]
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof devicesControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof devicesControllerFindMine>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDevicesControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof devicesControllerFindMine>>,
+    DevicesControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        DevicesControllerFindMineParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get my devices
+ */
+
+export function useDevicesControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof devicesControllerFindMine>>,
+    DevicesControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        DevicesControllerFindMineParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getDevicesControllerFindMineInfiniteQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useInfiniteQuery(
+    queryOptions,
+    queryClient,
+  ) as UseInfiniteQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const getDevicesControllerFindMineQueryOptions = <
+  TData = Awaited<ReturnType<typeof devicesControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindMine>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getDevicesControllerFindMineQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof devicesControllerFindMine>>
+  > = ({ signal }) => devicesControllerFindMine(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof devicesControllerFindMine>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type DevicesControllerFindMineQueryResult = NonNullable<
+  Awaited<ReturnType<typeof devicesControllerFindMine>>
+>;
+export type DevicesControllerFindMineQueryError = unknown;
+
+export function useDevicesControllerFindMine<
+  TData = Awaited<ReturnType<typeof devicesControllerFindMine>>,
+  TError = unknown,
+>(
+  params: undefined | DevicesControllerFindMineParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindMine>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof devicesControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof devicesControllerFindMine>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDevicesControllerFindMine<
+  TData = Awaited<ReturnType<typeof devicesControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindMine>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof devicesControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof devicesControllerFindMine>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDevicesControllerFindMine<
+  TData = Awaited<ReturnType<typeof devicesControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindMine>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get my devices
+ */
+
+export function useDevicesControllerFindMine<
+  TData = Awaited<ReturnType<typeof devicesControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: DevicesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindMine>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getDevicesControllerFindMineQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Get device by id
+ */
+export const devicesControllerFindOne = (
+  id: string,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/devices/${id}`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getDevicesControllerFindOneQueryKey = (id?: string) => {
+  return [`/api/devices/${id}`] as const;
+};
+
+export const getDevicesControllerFindOneQueryOptions = <
+  TData = Awaited<ReturnType<typeof devicesControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindOne>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getDevicesControllerFindOneQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof devicesControllerFindOne>>
+  > = ({ signal }) => devicesControllerFindOne(id, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof devicesControllerFindOne>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type DevicesControllerFindOneQueryResult = NonNullable<
+  Awaited<ReturnType<typeof devicesControllerFindOne>>
+>;
+export type DevicesControllerFindOneQueryError = unknown;
+
+export function useDevicesControllerFindOne<
+  TData = Awaited<ReturnType<typeof devicesControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindOne>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof devicesControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof devicesControllerFindOne>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDevicesControllerFindOne<
+  TData = Awaited<ReturnType<typeof devicesControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindOne>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof devicesControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof devicesControllerFindOne>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDevicesControllerFindOne<
+  TData = Awaited<ReturnType<typeof devicesControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindOne>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get device by id
+ */
+
+export function useDevicesControllerFindOne<
+  TData = Awaited<ReturnType<typeof devicesControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerFindOne>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getDevicesControllerFindOneQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Update device
+ */
+export const devicesControllerUpdate = (
+  id: string,
+  updateDeviceDto: UpdateDeviceDto,
+  options?: SecondParameter<typeof orvalClient>,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    {
+      url: `/api/devices/${id}`,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      data: updateDeviceDto,
+    },
+    options,
+  );
+};
+
+export const getDevicesControllerUpdateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof devicesControllerUpdate>>,
+    TError,
+    { id: string; data: UpdateDeviceDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof devicesControllerUpdate>>,
+  TError,
+  { id: string; data: UpdateDeviceDto },
+  TContext
+> => {
+  const mutationKey = ["devicesControllerUpdate"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof devicesControllerUpdate>>,
+    { id: string; data: UpdateDeviceDto }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return devicesControllerUpdate(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DevicesControllerUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof devicesControllerUpdate>>
+>;
+export type DevicesControllerUpdateMutationBody = UpdateDeviceDto;
+export type DevicesControllerUpdateMutationError = unknown;
+
+/**
+ * @summary Role: All - Update device
+ */
+export const useDevicesControllerUpdate = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof devicesControllerUpdate>>,
+      TError,
+      { id: string; data: UpdateDeviceDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof devicesControllerUpdate>>,
+  TError,
+  { id: string; data: UpdateDeviceDto },
+  TContext
+> => {
+  const mutationOptions = getDevicesControllerUpdateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Role: All - Delete device (ownership validated)
+ */
+export const devicesControllerRemove = (
+  id: string,
+  options?: SecondParameter<typeof orvalClient>,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/devices/${id}`, method: "DELETE" },
+    options,
+  );
+};
+
+export const getDevicesControllerRemoveMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof devicesControllerRemove>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof devicesControllerRemove>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["devicesControllerRemove"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof devicesControllerRemove>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return devicesControllerRemove(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DevicesControllerRemoveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof devicesControllerRemove>>
+>;
+
+export type DevicesControllerRemoveMutationError = unknown;
+
+/**
+ * @summary Role: All - Delete device (ownership validated)
+ */
+export const useDevicesControllerRemove = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof devicesControllerRemove>>,
+      TError,
+      { id: string },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof devicesControllerRemove>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationOptions = getDevicesControllerRemoveMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Role: Admin - Get all device statuses
+ */
+export const deviceStatusControllerGetAllStatuses = (
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/devices/status/all`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getDeviceStatusControllerGetAllStatusesQueryKey = () => {
+  return [`/api/devices/status/all`] as const;
+};
+
+export const getDeviceStatusControllerGetAllStatusesQueryOptions = <
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>,
   TError = unknown,
 >(options?: {
   query?: Partial<
     UseQueryOptions<
-      Awaited<ReturnType<typeof rootControllerGetMetadata>>,
+      Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>,
       TError,
       TData
     >
@@ -593,41 +2214,42 @@ export const getRootControllerGetMetadataQueryOptions = <
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ?? getRootControllerGetMetadataQueryKey();
+    queryOptions?.queryKey ?? getDeviceStatusControllerGetAllStatusesQueryKey();
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof rootControllerGetMetadata>>
-  > = ({ signal }) => rootControllerGetMetadata(requestOptions, signal);
+    Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>
+  > = ({ signal }) =>
+    deviceStatusControllerGetAllStatuses(requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof rootControllerGetMetadata>>,
+    Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type RootControllerGetMetadataQueryResult = NonNullable<
-  Awaited<ReturnType<typeof rootControllerGetMetadata>>
+export type DeviceStatusControllerGetAllStatusesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>
 >;
-export type RootControllerGetMetadataQueryError = unknown;
+export type DeviceStatusControllerGetAllStatusesQueryError = unknown;
 
-export function useRootControllerGetMetadata<
-  TData = Awaited<ReturnType<typeof rootControllerGetMetadata>>,
+export function useDeviceStatusControllerGetAllStatuses<
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>,
   TError = unknown,
 >(
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof rootControllerGetMetadata>>,
+        Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof rootControllerGetMetadata>>,
+          Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>,
           TError,
-          Awaited<ReturnType<typeof rootControllerGetMetadata>>
+          Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>
         >,
         "initialData"
       >;
@@ -637,23 +2259,23 @@ export function useRootControllerGetMetadata<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useRootControllerGetMetadata<
-  TData = Awaited<ReturnType<typeof rootControllerGetMetadata>>,
+export function useDeviceStatusControllerGetAllStatuses<
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>,
   TError = unknown,
 >(
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof rootControllerGetMetadata>>,
+        Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof rootControllerGetMetadata>>,
+          Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>,
           TError,
-          Awaited<ReturnType<typeof rootControllerGetMetadata>>
+          Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>
         >,
         "initialData"
       >;
@@ -663,14 +2285,14 @@ export function useRootControllerGetMetadata<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useRootControllerGetMetadata<
-  TData = Awaited<ReturnType<typeof rootControllerGetMetadata>>,
+export function useDeviceStatusControllerGetAllStatuses<
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>,
   TError = unknown,
 >(
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof rootControllerGetMetadata>>,
+        Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>,
         TError,
         TData
       >
@@ -682,17 +2304,17 @@ export function useRootControllerGetMetadata<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Role: User - Get system metadata.
+ * @summary Role: Admin - Get all device statuses
  */
 
-export function useRootControllerGetMetadata<
-  TData = Awaited<ReturnType<typeof rootControllerGetMetadata>>,
+export function useDeviceStatusControllerGetAllStatuses<
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>,
   TError = unknown,
 >(
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof rootControllerGetMetadata>>,
+        Awaited<ReturnType<typeof deviceStatusControllerGetAllStatuses>>,
         TError,
         TData
       >
@@ -703,7 +2325,8 @@ export function useRootControllerGetMetadata<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getRootControllerGetMetadataQueryOptions(options);
+  const queryOptions =
+    getDeviceStatusControllerGetAllStatusesQueryOptions(options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -716,48 +2339,235 @@ export function useRootControllerGetMetadata<
 }
 
 /**
- * Retrieve a paginated list of merchants.
- * @summary Role: Admin - Get all merchants
+ * @summary Role: All - Get device status
  */
-export const merchantsControllerGetAll = (
-  params?: MerchantsControllerGetAllParams,
+export const deviceStatusControllerGetStatus = (
+  id: string,
   options?: SecondParameter<typeof orvalClient>,
   signal?: AbortSignal,
 ) => {
-  return orvalClient<GetManyMerchantDto>(
-    { url: `/api/merchants`, method: "GET", params, signal },
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/devices/${id}/status`, method: "GET", signal },
     options,
   );
 };
 
-export const getMerchantsControllerGetAllInfiniteQueryKey = (
-  params?: MerchantsControllerGetAllParams,
-) => {
-  return ["infinate", `/api/merchants`, ...(params ? [params] : [])] as const;
+export const getDeviceStatusControllerGetStatusQueryKey = (id?: string) => {
+  return [`/api/devices/${id}/status`] as const;
 };
 
-export const getMerchantsControllerGetAllQueryKey = (
-  params?: MerchantsControllerGetAllParams,
+export const getDeviceStatusControllerGetStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
 ) => {
-  return [`/api/merchants`, ...(params ? [params] : [])] as const;
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getDeviceStatusControllerGetStatusQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>
+  > = ({ signal }) =>
+    deviceStatusControllerGetStatus(id, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export const getMerchantsControllerGetAllInfiniteQueryOptions = <
+export type DeviceStatusControllerGetStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>
+>;
+export type DeviceStatusControllerGetStatusQueryError = unknown;
+
+export function useDeviceStatusControllerGetStatus<
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>,
+  TError = unknown,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>,
+          TError,
+          Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDeviceStatusControllerGetStatus<
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>,
+          TError,
+          Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDeviceStatusControllerGetStatus<
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get device status
+ */
+
+export function useDeviceStatusControllerGetStatus<
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceStatusControllerGetStatus>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getDeviceStatusControllerGetStatusQueryOptions(
+    id,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Get device telemetry history
+ */
+export const telemetryControllerGetHistory = (
+  deviceId: string,
+  params: TelemetryControllerGetHistoryParams,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    {
+      url: `/api/telemetry/${deviceId}/history`,
+      method: "GET",
+      params,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getTelemetryControllerGetHistoryInfiniteQueryKey = (
+  deviceId?: string,
+  params?: TelemetryControllerGetHistoryParams,
+) => {
+  return [
+    "infinate",
+    `/api/telemetry/${deviceId}/history`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getTelemetryControllerGetHistoryQueryKey = (
+  deviceId?: string,
+  params?: TelemetryControllerGetHistoryParams,
+) => {
+  return [
+    `/api/telemetry/${deviceId}/history`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getTelemetryControllerGetHistoryInfiniteQueryOptions = <
   TData = InfiniteData<
-    Awaited<ReturnType<typeof merchantsControllerGetAll>>,
-    MerchantsControllerGetAllParams["page"]
+    Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
+    TelemetryControllerGetHistoryParams["page"]
   >,
   TError = unknown,
 >(
-  params?: MerchantsControllerGetAllParams,
+  deviceId: string,
+  params: TelemetryControllerGetHistoryParams,
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+        Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
         TError,
         TData,
         QueryKey,
-        MerchantsControllerGetAllParams["page"]
+        TelemetryControllerGetHistoryParams["page"]
       >
     >;
     request?: SecondParameter<typeof orvalClient>;
@@ -767,56 +2577,63 @@ export const getMerchantsControllerGetAllInfiniteQueryOptions = <
 
   const queryKey =
     queryOptions?.queryKey ??
-    getMerchantsControllerGetAllInfiniteQueryKey(params);
+    getTelemetryControllerGetHistoryInfiniteQueryKey(deviceId, params);
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+    Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
     QueryKey,
-    MerchantsControllerGetAllParams["page"]
+    TelemetryControllerGetHistoryParams["page"]
   > = ({ signal, pageParam }) =>
-    merchantsControllerGetAll(
+    telemetryControllerGetHistory(
+      deviceId,
       { ...params, page: pageParam || params?.["page"] },
       requestOptions,
       signal,
     );
 
-  return { queryKey, queryFn, ...queryOptions } as UseInfiniteQueryOptions<
-    Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!deviceId,
+    ...queryOptions,
+  } as UseInfiniteQueryOptions<
+    Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
     TError,
     TData,
     QueryKey,
-    MerchantsControllerGetAllParams["page"]
+    TelemetryControllerGetHistoryParams["page"]
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type MerchantsControllerGetAllInfiniteQueryResult = NonNullable<
-  Awaited<ReturnType<typeof merchantsControllerGetAll>>
+export type TelemetryControllerGetHistoryInfiniteQueryResult = NonNullable<
+  Awaited<ReturnType<typeof telemetryControllerGetHistory>>
 >;
-export type MerchantsControllerGetAllInfiniteQueryError = unknown;
+export type TelemetryControllerGetHistoryInfiniteQueryError = unknown;
 
-export function useMerchantsControllerGetAllInfinite<
+export function useTelemetryControllerGetHistoryInfinite<
   TData = InfiniteData<
-    Awaited<ReturnType<typeof merchantsControllerGetAll>>,
-    MerchantsControllerGetAllParams["page"]
+    Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
+    TelemetryControllerGetHistoryParams["page"]
   >,
   TError = unknown,
 >(
-  params: undefined | MerchantsControllerGetAllParams,
+  deviceId: string,
+  params: TelemetryControllerGetHistoryParams,
   options: {
     query: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+        Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
         TError,
         TData,
         QueryKey,
-        MerchantsControllerGetAllParams["page"]
+        TelemetryControllerGetHistoryParams["page"]
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+          Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
           TError,
-          Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+          Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
           QueryKey
         >,
         "initialData"
@@ -827,29 +2644,30 @@ export function useMerchantsControllerGetAllInfinite<
 ): DefinedUseInfiniteQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useMerchantsControllerGetAllInfinite<
+export function useTelemetryControllerGetHistoryInfinite<
   TData = InfiniteData<
-    Awaited<ReturnType<typeof merchantsControllerGetAll>>,
-    MerchantsControllerGetAllParams["page"]
+    Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
+    TelemetryControllerGetHistoryParams["page"]
   >,
   TError = unknown,
 >(
-  params?: MerchantsControllerGetAllParams,
+  deviceId: string,
+  params: TelemetryControllerGetHistoryParams,
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+        Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
         TError,
         TData,
         QueryKey,
-        MerchantsControllerGetAllParams["page"]
+        TelemetryControllerGetHistoryParams["page"]
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+          Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
           TError,
-          Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+          Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
           QueryKey
         >,
         "initialData"
@@ -860,22 +2678,23 @@ export function useMerchantsControllerGetAllInfinite<
 ): UseInfiniteQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useMerchantsControllerGetAllInfinite<
+export function useTelemetryControllerGetHistoryInfinite<
   TData = InfiniteData<
-    Awaited<ReturnType<typeof merchantsControllerGetAll>>,
-    MerchantsControllerGetAllParams["page"]
+    Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
+    TelemetryControllerGetHistoryParams["page"]
   >,
   TError = unknown,
 >(
-  params?: MerchantsControllerGetAllParams,
+  deviceId: string,
+  params: TelemetryControllerGetHistoryParams,
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+        Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
         TError,
         TData,
         QueryKey,
-        MerchantsControllerGetAllParams["page"]
+        TelemetryControllerGetHistoryParams["page"]
       >
     >;
     request?: SecondParameter<typeof orvalClient>;
@@ -885,25 +2704,26 @@ export function useMerchantsControllerGetAllInfinite<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Role: Admin - Get all merchants
+ * @summary Role: All - Get device telemetry history
  */
 
-export function useMerchantsControllerGetAllInfinite<
+export function useTelemetryControllerGetHistoryInfinite<
   TData = InfiniteData<
-    Awaited<ReturnType<typeof merchantsControllerGetAll>>,
-    MerchantsControllerGetAllParams["page"]
+    Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
+    TelemetryControllerGetHistoryParams["page"]
   >,
   TError = unknown,
 >(
-  params?: MerchantsControllerGetAllParams,
+  deviceId: string,
+  params: TelemetryControllerGetHistoryParams,
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+        Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
         TError,
         TData,
         QueryKey,
-        MerchantsControllerGetAllParams["page"]
+        TelemetryControllerGetHistoryParams["page"]
       >
     >;
     request?: SecondParameter<typeof orvalClient>;
@@ -912,7 +2732,8 @@ export function useMerchantsControllerGetAllInfinite<
 ): UseInfiniteQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getMerchantsControllerGetAllInfiniteQueryOptions(
+  const queryOptions = getTelemetryControllerGetHistoryInfiniteQueryOptions(
+    deviceId,
     params,
     options,
   );
@@ -929,15 +2750,16 @@ export function useMerchantsControllerGetAllInfinite<
   return query;
 }
 
-export const getMerchantsControllerGetAllQueryOptions = <
-  TData = Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+export const getTelemetryControllerGetHistoryQueryOptions = <
+  TData = Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
   TError = unknown,
 >(
-  params?: MerchantsControllerGetAllParams,
+  deviceId: string,
+  params: TelemetryControllerGetHistoryParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+        Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
         TError,
         TData
       >
@@ -948,42 +2770,50 @@ export const getMerchantsControllerGetAllQueryOptions = <
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ?? getMerchantsControllerGetAllQueryKey(params);
+    queryOptions?.queryKey ??
+    getTelemetryControllerGetHistoryQueryKey(deviceId, params);
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof merchantsControllerGetAll>>
-  > = ({ signal }) => merchantsControllerGetAll(params, requestOptions, signal);
+    Awaited<ReturnType<typeof telemetryControllerGetHistory>>
+  > = ({ signal }) =>
+    telemetryControllerGetHistory(deviceId, params, requestOptions, signal);
 
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!deviceId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type MerchantsControllerGetAllQueryResult = NonNullable<
-  Awaited<ReturnType<typeof merchantsControllerGetAll>>
+export type TelemetryControllerGetHistoryQueryResult = NonNullable<
+  Awaited<ReturnType<typeof telemetryControllerGetHistory>>
 >;
-export type MerchantsControllerGetAllQueryError = unknown;
+export type TelemetryControllerGetHistoryQueryError = unknown;
 
-export function useMerchantsControllerGetAll<
-  TData = Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+export function useTelemetryControllerGetHistory<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
   TError = unknown,
 >(
-  params: undefined | MerchantsControllerGetAllParams,
+  deviceId: string,
+  params: TelemetryControllerGetHistoryParams,
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+        Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+          Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
           TError,
-          Awaited<ReturnType<typeof merchantsControllerGetAll>>
+          Awaited<ReturnType<typeof telemetryControllerGetHistory>>
         >,
         "initialData"
       >;
@@ -993,24 +2823,25 @@ export function useMerchantsControllerGetAll<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useMerchantsControllerGetAll<
-  TData = Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+export function useTelemetryControllerGetHistory<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
   TError = unknown,
 >(
-  params?: MerchantsControllerGetAllParams,
+  deviceId: string,
+  params: TelemetryControllerGetHistoryParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+        Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+          Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
           TError,
-          Awaited<ReturnType<typeof merchantsControllerGetAll>>
+          Awaited<ReturnType<typeof telemetryControllerGetHistory>>
         >,
         "initialData"
       >;
@@ -1020,15 +2851,16 @@ export function useMerchantsControllerGetAll<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useMerchantsControllerGetAll<
-  TData = Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+export function useTelemetryControllerGetHistory<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
   TError = unknown,
 >(
-  params?: MerchantsControllerGetAllParams,
+  deviceId: string,
+  params: TelemetryControllerGetHistoryParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+        Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
         TError,
         TData
       >
@@ -1040,18 +2872,19 @@ export function useMerchantsControllerGetAll<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Role: Admin - Get all merchants
+ * @summary Role: All - Get device telemetry history
  */
 
-export function useMerchantsControllerGetAll<
-  TData = Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+export function useTelemetryControllerGetHistory<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
   TError = unknown,
 >(
-  params?: MerchantsControllerGetAllParams,
+  deviceId: string,
+  params: TelemetryControllerGetHistoryParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetAll>>,
+        Awaited<ReturnType<typeof telemetryControllerGetHistory>>,
         TError,
         TData
       >
@@ -1062,7 +2895,8 @@ export function useMerchantsControllerGetAll<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getMerchantsControllerGetAllQueryOptions(
+  const queryOptions = getTelemetryControllerGetHistoryQueryOptions(
+    deviceId,
     params,
     options,
   );
@@ -1078,217 +2912,32 @@ export function useMerchantsControllerGetAll<
 }
 
 /**
- * Create a new merchant profile for a user.
- * @summary Role: Admin - Create merchant
+ * @summary Role: All - Get device latest telemetry
  */
-export const merchantsControllerCreate = (
-  createMerchantDto: CreateMerchantDto,
+export const telemetryControllerGetLatest = (
+  deviceId: string,
   options?: SecondParameter<typeof orvalClient>,
   signal?: AbortSignal,
 ) => {
-  return orvalClient<Merchant>(
-    {
-      url: `/api/merchants`,
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      data: createMerchantDto,
-      signal,
-    },
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/telemetry/${deviceId}/latest`, method: "GET", signal },
     options,
   );
 };
 
-export const getMerchantsControllerCreateMutationOptions = <
-  TError = unknown,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof merchantsControllerCreate>>,
-    TError,
-    { data: CreateMerchantDto },
-    TContext
-  >;
-  request?: SecondParameter<typeof orvalClient>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof merchantsControllerCreate>>,
-  TError,
-  { data: CreateMerchantDto },
-  TContext
-> => {
-  const mutationKey = ["merchantsControllerCreate"];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof merchantsControllerCreate>>,
-    { data: CreateMerchantDto }
-  > = (props) => {
-    const { data } = props ?? {};
-
-    return merchantsControllerCreate(data, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
+export const getTelemetryControllerGetLatestQueryKey = (deviceId?: string) => {
+  return [`/api/telemetry/${deviceId}/latest`] as const;
 };
 
-export type MerchantsControllerCreateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof merchantsControllerCreate>>
->;
-export type MerchantsControllerCreateMutationBody = CreateMerchantDto;
-export type MerchantsControllerCreateMutationError = unknown;
-
-/**
- * @summary Role: Admin - Create merchant
- */
-export const useMerchantsControllerCreate = <
-  TError = unknown,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof merchantsControllerCreate>>,
-      TError,
-      { data: CreateMerchantDto },
-      TContext
-    >;
-    request?: SecondParameter<typeof orvalClient>;
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof merchantsControllerCreate>>,
-  TError,
-  { data: CreateMerchantDto },
-  TContext
-> => {
-  const mutationOptions = getMerchantsControllerCreateMutationOptions(options);
-
-  return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * Update the authenticated merchant profile.
- * @summary Role: Merchant - Update own merchant profile
- */
-export const merchantsControllerUpdate = (
-  updateMerchantDto: UpdateMerchantDto,
-  options?: SecondParameter<typeof orvalClient>,
-) => {
-  return orvalClient<Merchant>(
-    {
-      url: `/api/merchants`,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      data: updateMerchantDto,
-    },
-    options,
-  );
-};
-
-export const getMerchantsControllerUpdateMutationOptions = <
-  TError = unknown,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof merchantsControllerUpdate>>,
-    TError,
-    { data: UpdateMerchantDto },
-    TContext
-  >;
-  request?: SecondParameter<typeof orvalClient>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof merchantsControllerUpdate>>,
-  TError,
-  { data: UpdateMerchantDto },
-  TContext
-> => {
-  const mutationKey = ["merchantsControllerUpdate"];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof merchantsControllerUpdate>>,
-    { data: UpdateMerchantDto }
-  > = (props) => {
-    const { data } = props ?? {};
-
-    return merchantsControllerUpdate(data, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type MerchantsControllerUpdateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof merchantsControllerUpdate>>
->;
-export type MerchantsControllerUpdateMutationBody = UpdateMerchantDto;
-export type MerchantsControllerUpdateMutationError = unknown;
-
-/**
- * @summary Role: Merchant - Update own merchant profile
- */
-export const useMerchantsControllerUpdate = <
-  TError = unknown,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof merchantsControllerUpdate>>,
-      TError,
-      { data: UpdateMerchantDto },
-      TContext
-    >;
-    request?: SecondParameter<typeof orvalClient>;
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof merchantsControllerUpdate>>,
-  TError,
-  { data: UpdateMerchantDto },
-  TContext
-> => {
-  const mutationOptions = getMerchantsControllerUpdateMutationOptions(options);
-
-  return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * Retrieve a merchant by ID.
- * @summary Role: All - Get merchant by ID
- */
-export const merchantsControllerGetById = (
-  id: string,
-  options?: SecondParameter<typeof orvalClient>,
-  signal?: AbortSignal,
-) => {
-  return orvalClient<Merchant>(
-    { url: `/api/merchants/${id}`, method: "GET", signal },
-    options,
-  );
-};
-
-export const getMerchantsControllerGetByIdQueryKey = (id?: string) => {
-  return [`/api/merchants/${id}`] as const;
-};
-
-export const getMerchantsControllerGetByIdQueryOptions = <
-  TData = Awaited<ReturnType<typeof merchantsControllerGetById>>,
+export const getTelemetryControllerGetLatestQueryOptions = <
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatest>>,
   TError = unknown,
 >(
-  id: string,
+  deviceId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetById>>,
+        Awaited<ReturnType<typeof telemetryControllerGetLatest>>,
         TError,
         TData
       >
@@ -1299,47 +2948,48 @@ export const getMerchantsControllerGetByIdQueryOptions = <
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ?? getMerchantsControllerGetByIdQueryKey(id);
+    queryOptions?.queryKey ?? getTelemetryControllerGetLatestQueryKey(deviceId);
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof merchantsControllerGetById>>
-  > = ({ signal }) => merchantsControllerGetById(id, requestOptions, signal);
+    Awaited<ReturnType<typeof telemetryControllerGetLatest>>
+  > = ({ signal }) =>
+    telemetryControllerGetLatest(deviceId, requestOptions, signal);
 
   return {
     queryKey,
     queryFn,
-    enabled: !!id,
+    enabled: !!deviceId,
     ...queryOptions,
   } as UseQueryOptions<
-    Awaited<ReturnType<typeof merchantsControllerGetById>>,
+    Awaited<ReturnType<typeof telemetryControllerGetLatest>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type MerchantsControllerGetByIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof merchantsControllerGetById>>
+export type TelemetryControllerGetLatestQueryResult = NonNullable<
+  Awaited<ReturnType<typeof telemetryControllerGetLatest>>
 >;
-export type MerchantsControllerGetByIdQueryError = unknown;
+export type TelemetryControllerGetLatestQueryError = unknown;
 
-export function useMerchantsControllerGetById<
-  TData = Awaited<ReturnType<typeof merchantsControllerGetById>>,
+export function useTelemetryControllerGetLatest<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatest>>,
   TError = unknown,
 >(
-  id: string,
+  deviceId: string,
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetById>>,
+        Awaited<ReturnType<typeof telemetryControllerGetLatest>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof merchantsControllerGetById>>,
+          Awaited<ReturnType<typeof telemetryControllerGetLatest>>,
           TError,
-          Awaited<ReturnType<typeof merchantsControllerGetById>>
+          Awaited<ReturnType<typeof telemetryControllerGetLatest>>
         >,
         "initialData"
       >;
@@ -1349,24 +2999,24 @@ export function useMerchantsControllerGetById<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useMerchantsControllerGetById<
-  TData = Awaited<ReturnType<typeof merchantsControllerGetById>>,
+export function useTelemetryControllerGetLatest<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatest>>,
   TError = unknown,
 >(
-  id: string,
+  deviceId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetById>>,
+        Awaited<ReturnType<typeof telemetryControllerGetLatest>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof merchantsControllerGetById>>,
+          Awaited<ReturnType<typeof telemetryControllerGetLatest>>,
           TError,
-          Awaited<ReturnType<typeof merchantsControllerGetById>>
+          Awaited<ReturnType<typeof telemetryControllerGetLatest>>
         >,
         "initialData"
       >;
@@ -1376,15 +3026,15 @@ export function useMerchantsControllerGetById<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useMerchantsControllerGetById<
-  TData = Awaited<ReturnType<typeof merchantsControllerGetById>>,
+export function useTelemetryControllerGetLatest<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatest>>,
   TError = unknown,
 >(
-  id: string,
+  deviceId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetById>>,
+        Awaited<ReturnType<typeof telemetryControllerGetLatest>>,
         TError,
         TData
       >
@@ -1396,18 +3046,18 @@ export function useMerchantsControllerGetById<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Role: All - Get merchant by ID
+ * @summary Role: All - Get device latest telemetry
  */
 
-export function useMerchantsControllerGetById<
-  TData = Awaited<ReturnType<typeof merchantsControllerGetById>>,
+export function useTelemetryControllerGetLatest<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatest>>,
   TError = unknown,
 >(
-  id: string,
+  deviceId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof merchantsControllerGetById>>,
+        Awaited<ReturnType<typeof telemetryControllerGetLatest>>,
         TError,
         TData
       >
@@ -1418,7 +3068,10 @@ export function useMerchantsControllerGetById<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getMerchantsControllerGetByIdQueryOptions(id, options);
+  const queryOptions = getTelemetryControllerGetLatestQueryOptions(
+    deviceId,
+    options,
+  );
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -1431,313 +3084,371 @@ export function useMerchantsControllerGetById<
 }
 
 /**
- * Soft delete a merchant.
- * @summary Role: Admin - Delete merchant
+ * @summary Role: Admin - Get latest telemetry for all devices
  */
-export const merchantsControllerDelete = (
-  id: string,
-  options?: SecondParameter<typeof orvalClient>,
-) => {
-  return orvalClient<AppResponseSerialization>(
-    { url: `/api/merchants/${id}`, method: "DELETE" },
-    options,
-  );
-};
-
-export const getMerchantsControllerDeleteMutationOptions = <
-  TError = unknown,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof merchantsControllerDelete>>,
-    TError,
-    { id: string },
-    TContext
-  >;
-  request?: SecondParameter<typeof orvalClient>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof merchantsControllerDelete>>,
-  TError,
-  { id: string },
-  TContext
-> => {
-  const mutationKey = ["merchantsControllerDelete"];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof merchantsControllerDelete>>,
-    { id: string }
-  > = (props) => {
-    const { id } = props ?? {};
-
-    return merchantsControllerDelete(id, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type MerchantsControllerDeleteMutationResult = NonNullable<
-  Awaited<ReturnType<typeof merchantsControllerDelete>>
->;
-
-export type MerchantsControllerDeleteMutationError = unknown;
-
-/**
- * @summary Role: Admin - Delete merchant
- */
-export const useMerchantsControllerDelete = <
-  TError = unknown,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof merchantsControllerDelete>>,
-      TError,
-      { id: string },
-      TContext
-    >;
-    request?: SecondParameter<typeof orvalClient>;
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof merchantsControllerDelete>>,
-  TError,
-  { id: string },
-  TContext
-> => {
-  const mutationOptions = getMerchantsControllerDeleteMutationOptions(options);
-
-  return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * @summary Role: Admin - Update merchant status
- */
-export const merchantsControllerUpdateStatus = (
-  id: string,
-  updateMerchantStatusDto: UpdateMerchantStatusDto,
-  options?: SecondParameter<typeof orvalClient>,
-) => {
-  return orvalClient<Merchant>(
-    {
-      url: `/api/merchants/${id}/status`,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      data: updateMerchantStatusDto,
-    },
-    options,
-  );
-};
-
-export const getMerchantsControllerUpdateStatusMutationOptions = <
-  TError = unknown,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof merchantsControllerUpdateStatus>>,
-    TError,
-    { id: string; data: UpdateMerchantStatusDto },
-    TContext
-  >;
-  request?: SecondParameter<typeof orvalClient>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof merchantsControllerUpdateStatus>>,
-  TError,
-  { id: string; data: UpdateMerchantStatusDto },
-  TContext
-> => {
-  const mutationKey = ["merchantsControllerUpdateStatus"];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof merchantsControllerUpdateStatus>>,
-    { id: string; data: UpdateMerchantStatusDto }
-  > = (props) => {
-    const { id, data } = props ?? {};
-
-    return merchantsControllerUpdateStatus(id, data, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type MerchantsControllerUpdateStatusMutationResult = NonNullable<
-  Awaited<ReturnType<typeof merchantsControllerUpdateStatus>>
->;
-export type MerchantsControllerUpdateStatusMutationBody =
-  UpdateMerchantStatusDto;
-export type MerchantsControllerUpdateStatusMutationError = unknown;
-
-/**
- * @summary Role: Admin - Update merchant status
- */
-export const useMerchantsControllerUpdateStatus = <
-  TError = unknown,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof merchantsControllerUpdateStatus>>,
-      TError,
-      { id: string; data: UpdateMerchantStatusDto },
-      TContext
-    >;
-    request?: SecondParameter<typeof orvalClient>;
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof merchantsControllerUpdateStatus>>,
-  TError,
-  { id: string; data: UpdateMerchantStatusDto },
-  TContext
-> => {
-  const mutationOptions =
-    getMerchantsControllerUpdateStatusMutationOptions(options);
-
-  return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * Restore a soft-deleted merchant.
- * @summary Role: Admin - Restore merchant
- */
-export const merchantsControllerRestore = (
-  id: string,
-  options?: SecondParameter<typeof orvalClient>,
-) => {
-  return orvalClient<AppResponseSerialization>(
-    { url: `/api/merchants/${id}/restore`, method: "PATCH" },
-    options,
-  );
-};
-
-export const getMerchantsControllerRestoreMutationOptions = <
-  TError = unknown,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof merchantsControllerRestore>>,
-    TError,
-    { id: string },
-    TContext
-  >;
-  request?: SecondParameter<typeof orvalClient>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof merchantsControllerRestore>>,
-  TError,
-  { id: string },
-  TContext
-> => {
-  const mutationKey = ["merchantsControllerRestore"];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof merchantsControllerRestore>>,
-    { id: string }
-  > = (props) => {
-    const { id } = props ?? {};
-
-    return merchantsControllerRestore(id, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type MerchantsControllerRestoreMutationResult = NonNullable<
-  Awaited<ReturnType<typeof merchantsControllerRestore>>
->;
-
-export type MerchantsControllerRestoreMutationError = unknown;
-
-/**
- * @summary Role: Admin - Restore merchant
- */
-export const useMerchantsControllerRestore = <
-  TError = unknown,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof merchantsControllerRestore>>,
-      TError,
-      { id: string },
-      TContext
-    >;
-    request?: SecondParameter<typeof orvalClient>;
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof merchantsControllerRestore>>,
-  TError,
-  { id: string },
-  TContext
-> => {
-  const mutationOptions = getMerchantsControllerRestoreMutationOptions(options);
-
-  return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * Retrieve a paginated list of clinics.
- * @summary Role: Admin - Get all clinics
- */
-export const clinicsControllerGetAll = (
-  params?: ClinicsControllerGetAllParams,
+export const telemetryControllerGetLatestAll = (
   options?: SecondParameter<typeof orvalClient>,
   signal?: AbortSignal,
 ) => {
-  return orvalClient<GetManyClinicDto>(
-    { url: `/api/clinics`, method: "GET", params, signal },
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/telemetry/latest/all`, method: "GET", signal },
     options,
   );
 };
 
-export const getClinicsControllerGetAllInfiniteQueryKey = (
-  params?: ClinicsControllerGetAllParams,
-) => {
-  return ["infinate", `/api/clinics`, ...(params ? [params] : [])] as const;
+export const getTelemetryControllerGetLatestAllQueryKey = () => {
+  return [`/api/telemetry/latest/all`] as const;
 };
 
-export const getClinicsControllerGetAllQueryKey = (
-  params?: ClinicsControllerGetAllParams,
-) => {
-  return [`/api/clinics`, ...(params ? [params] : [])] as const;
+export const getTelemetryControllerGetLatestAllQueryOptions = <
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getTelemetryControllerGetLatestAllQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>
+  > = ({ signal }) => telemetryControllerGetLatestAll(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export const getClinicsControllerGetAllInfiniteQueryOptions = <
+export type TelemetryControllerGetLatestAllQueryResult = NonNullable<
+  Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>
+>;
+export type TelemetryControllerGetLatestAllQueryError = unknown;
+
+export function useTelemetryControllerGetLatestAll<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>,
+          TError,
+          Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useTelemetryControllerGetLatestAll<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>,
+          TError,
+          Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useTelemetryControllerGetLatestAll<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: Admin - Get latest telemetry for all devices
+ */
+
+export function useTelemetryControllerGetLatestAll<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof telemetryControllerGetLatestAll>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getTelemetryControllerGetLatestAllQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: Admin - Get nearby telemetry points
+ */
+export const telemetryControllerGetNearby = (
+  params: TelemetryControllerGetNearbyParams,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/telemetry/nearby`, method: "GET", params, signal },
+    options,
+  );
+};
+
+export const getTelemetryControllerGetNearbyQueryKey = (
+  params?: TelemetryControllerGetNearbyParams,
+) => {
+  return [`/api/telemetry/nearby`, ...(params ? [params] : [])] as const;
+};
+
+export const getTelemetryControllerGetNearbyQueryOptions = <
+  TData = Awaited<ReturnType<typeof telemetryControllerGetNearby>>,
+  TError = unknown,
+>(
+  params: TelemetryControllerGetNearbyParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof telemetryControllerGetNearby>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getTelemetryControllerGetNearbyQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof telemetryControllerGetNearby>>
+  > = ({ signal }) =>
+    telemetryControllerGetNearby(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof telemetryControllerGetNearby>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type TelemetryControllerGetNearbyQueryResult = NonNullable<
+  Awaited<ReturnType<typeof telemetryControllerGetNearby>>
+>;
+export type TelemetryControllerGetNearbyQueryError = unknown;
+
+export function useTelemetryControllerGetNearby<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetNearby>>,
+  TError = unknown,
+>(
+  params: TelemetryControllerGetNearbyParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof telemetryControllerGetNearby>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof telemetryControllerGetNearby>>,
+          TError,
+          Awaited<ReturnType<typeof telemetryControllerGetNearby>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useTelemetryControllerGetNearby<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetNearby>>,
+  TError = unknown,
+>(
+  params: TelemetryControllerGetNearbyParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof telemetryControllerGetNearby>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof telemetryControllerGetNearby>>,
+          TError,
+          Awaited<ReturnType<typeof telemetryControllerGetNearby>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useTelemetryControllerGetNearby<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetNearby>>,
+  TError = unknown,
+>(
+  params: TelemetryControllerGetNearbyParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof telemetryControllerGetNearby>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: Admin - Get nearby telemetry points
+ */
+
+export function useTelemetryControllerGetNearby<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetNearby>>,
+  TError = unknown,
+>(
+  params: TelemetryControllerGetNearbyParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof telemetryControllerGetNearby>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getTelemetryControllerGetNearbyQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: Admin - Get all alerts
+ */
+export const alertsControllerFindAll = (
+  params?: AlertsControllerFindAllParams,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/alerts`, method: "GET", params, signal },
+    options,
+  );
+};
+
+export const getAlertsControllerFindAllInfiniteQueryKey = (
+  params?: AlertsControllerFindAllParams,
+) => {
+  return ["infinate", `/api/alerts`, ...(params ? [params] : [])] as const;
+};
+
+export const getAlertsControllerFindAllQueryKey = (
+  params?: AlertsControllerFindAllParams,
+) => {
+  return [`/api/alerts`, ...(params ? [params] : [])] as const;
+};
+
+export const getAlertsControllerFindAllInfiniteQueryOptions = <
   TData = InfiniteData<
-    Awaited<ReturnType<typeof clinicsControllerGetAll>>,
-    ClinicsControllerGetAllParams["page"]
+    Awaited<ReturnType<typeof alertsControllerFindAll>>,
+    AlertsControllerFindAllParams["page"]
   >,
   TError = unknown,
 >(
-  params?: ClinicsControllerGetAllParams,
+  params?: AlertsControllerFindAllParams,
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+        Awaited<ReturnType<typeof alertsControllerFindAll>>,
         TError,
         TData,
         QueryKey,
-        ClinicsControllerGetAllParams["page"]
+        AlertsControllerFindAllParams["page"]
       >
     >;
     request?: SecondParameter<typeof orvalClient>;
@@ -1747,56 +3458,56 @@ export const getClinicsControllerGetAllInfiniteQueryOptions = <
 
   const queryKey =
     queryOptions?.queryKey ??
-    getClinicsControllerGetAllInfiniteQueryKey(params);
+    getAlertsControllerFindAllInfiniteQueryKey(params);
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+    Awaited<ReturnType<typeof alertsControllerFindAll>>,
     QueryKey,
-    ClinicsControllerGetAllParams["page"]
+    AlertsControllerFindAllParams["page"]
   > = ({ signal, pageParam }) =>
-    clinicsControllerGetAll(
+    alertsControllerFindAll(
       { ...params, page: pageParam || params?.["page"] },
       requestOptions,
       signal,
     );
 
   return { queryKey, queryFn, ...queryOptions } as UseInfiniteQueryOptions<
-    Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+    Awaited<ReturnType<typeof alertsControllerFindAll>>,
     TError,
     TData,
     QueryKey,
-    ClinicsControllerGetAllParams["page"]
+    AlertsControllerFindAllParams["page"]
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type ClinicsControllerGetAllInfiniteQueryResult = NonNullable<
-  Awaited<ReturnType<typeof clinicsControllerGetAll>>
+export type AlertsControllerFindAllInfiniteQueryResult = NonNullable<
+  Awaited<ReturnType<typeof alertsControllerFindAll>>
 >;
-export type ClinicsControllerGetAllInfiniteQueryError = unknown;
+export type AlertsControllerFindAllInfiniteQueryError = unknown;
 
-export function useClinicsControllerGetAllInfinite<
+export function useAlertsControllerFindAllInfinite<
   TData = InfiniteData<
-    Awaited<ReturnType<typeof clinicsControllerGetAll>>,
-    ClinicsControllerGetAllParams["page"]
+    Awaited<ReturnType<typeof alertsControllerFindAll>>,
+    AlertsControllerFindAllParams["page"]
   >,
   TError = unknown,
 >(
-  params: undefined | ClinicsControllerGetAllParams,
+  params: undefined | AlertsControllerFindAllParams,
   options: {
     query: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+        Awaited<ReturnType<typeof alertsControllerFindAll>>,
         TError,
         TData,
         QueryKey,
-        ClinicsControllerGetAllParams["page"]
+        AlertsControllerFindAllParams["page"]
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+          Awaited<ReturnType<typeof alertsControllerFindAll>>,
           TError,
-          Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+          Awaited<ReturnType<typeof alertsControllerFindAll>>,
           QueryKey
         >,
         "initialData"
@@ -1807,29 +3518,29 @@ export function useClinicsControllerGetAllInfinite<
 ): DefinedUseInfiniteQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useClinicsControllerGetAllInfinite<
+export function useAlertsControllerFindAllInfinite<
   TData = InfiniteData<
-    Awaited<ReturnType<typeof clinicsControllerGetAll>>,
-    ClinicsControllerGetAllParams["page"]
+    Awaited<ReturnType<typeof alertsControllerFindAll>>,
+    AlertsControllerFindAllParams["page"]
   >,
   TError = unknown,
 >(
-  params?: ClinicsControllerGetAllParams,
+  params?: AlertsControllerFindAllParams,
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+        Awaited<ReturnType<typeof alertsControllerFindAll>>,
         TError,
         TData,
         QueryKey,
-        ClinicsControllerGetAllParams["page"]
+        AlertsControllerFindAllParams["page"]
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+          Awaited<ReturnType<typeof alertsControllerFindAll>>,
           TError,
-          Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+          Awaited<ReturnType<typeof alertsControllerFindAll>>,
           QueryKey
         >,
         "initialData"
@@ -1840,22 +3551,22 @@ export function useClinicsControllerGetAllInfinite<
 ): UseInfiniteQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useClinicsControllerGetAllInfinite<
+export function useAlertsControllerFindAllInfinite<
   TData = InfiniteData<
-    Awaited<ReturnType<typeof clinicsControllerGetAll>>,
-    ClinicsControllerGetAllParams["page"]
+    Awaited<ReturnType<typeof alertsControllerFindAll>>,
+    AlertsControllerFindAllParams["page"]
   >,
   TError = unknown,
 >(
-  params?: ClinicsControllerGetAllParams,
+  params?: AlertsControllerFindAllParams,
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+        Awaited<ReturnType<typeof alertsControllerFindAll>>,
         TError,
         TData,
         QueryKey,
-        ClinicsControllerGetAllParams["page"]
+        AlertsControllerFindAllParams["page"]
       >
     >;
     request?: SecondParameter<typeof orvalClient>;
@@ -1865,25 +3576,25 @@ export function useClinicsControllerGetAllInfinite<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Role: Admin - Get all clinics
+ * @summary Role: Admin - Get all alerts
  */
 
-export function useClinicsControllerGetAllInfinite<
+export function useAlertsControllerFindAllInfinite<
   TData = InfiniteData<
-    Awaited<ReturnType<typeof clinicsControllerGetAll>>,
-    ClinicsControllerGetAllParams["page"]
+    Awaited<ReturnType<typeof alertsControllerFindAll>>,
+    AlertsControllerFindAllParams["page"]
   >,
   TError = unknown,
 >(
-  params?: ClinicsControllerGetAllParams,
+  params?: AlertsControllerFindAllParams,
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+        Awaited<ReturnType<typeof alertsControllerFindAll>>,
         TError,
         TData,
         QueryKey,
-        ClinicsControllerGetAllParams["page"]
+        AlertsControllerFindAllParams["page"]
       >
     >;
     request?: SecondParameter<typeof orvalClient>;
@@ -1892,7 +3603,7 @@ export function useClinicsControllerGetAllInfinite<
 ): UseInfiniteQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getClinicsControllerGetAllInfiniteQueryOptions(
+  const queryOptions = getAlertsControllerFindAllInfiniteQueryOptions(
     params,
     options,
   );
@@ -1909,15 +3620,15 @@ export function useClinicsControllerGetAllInfinite<
   return query;
 }
 
-export const getClinicsControllerGetAllQueryOptions = <
-  TData = Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+export const getAlertsControllerFindAllQueryOptions = <
+  TData = Awaited<ReturnType<typeof alertsControllerFindAll>>,
   TError = unknown,
 >(
-  params?: ClinicsControllerGetAllParams,
+  params?: AlertsControllerFindAllParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+        Awaited<ReturnType<typeof alertsControllerFindAll>>,
         TError,
         TData
       >
@@ -1928,42 +3639,42 @@ export const getClinicsControllerGetAllQueryOptions = <
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ?? getClinicsControllerGetAllQueryKey(params);
+    queryOptions?.queryKey ?? getAlertsControllerFindAllQueryKey(params);
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof clinicsControllerGetAll>>
-  > = ({ signal }) => clinicsControllerGetAll(params, requestOptions, signal);
+    Awaited<ReturnType<typeof alertsControllerFindAll>>
+  > = ({ signal }) => alertsControllerFindAll(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+    Awaited<ReturnType<typeof alertsControllerFindAll>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type ClinicsControllerGetAllQueryResult = NonNullable<
-  Awaited<ReturnType<typeof clinicsControllerGetAll>>
+export type AlertsControllerFindAllQueryResult = NonNullable<
+  Awaited<ReturnType<typeof alertsControllerFindAll>>
 >;
-export type ClinicsControllerGetAllQueryError = unknown;
+export type AlertsControllerFindAllQueryError = unknown;
 
-export function useClinicsControllerGetAll<
-  TData = Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+export function useAlertsControllerFindAll<
+  TData = Awaited<ReturnType<typeof alertsControllerFindAll>>,
   TError = unknown,
 >(
-  params: undefined | ClinicsControllerGetAllParams,
+  params: undefined | AlertsControllerFindAllParams,
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+        Awaited<ReturnType<typeof alertsControllerFindAll>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+          Awaited<ReturnType<typeof alertsControllerFindAll>>,
           TError,
-          Awaited<ReturnType<typeof clinicsControllerGetAll>>
+          Awaited<ReturnType<typeof alertsControllerFindAll>>
         >,
         "initialData"
       >;
@@ -1973,24 +3684,24 @@ export function useClinicsControllerGetAll<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useClinicsControllerGetAll<
-  TData = Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+export function useAlertsControllerFindAll<
+  TData = Awaited<ReturnType<typeof alertsControllerFindAll>>,
   TError = unknown,
 >(
-  params?: ClinicsControllerGetAllParams,
+  params?: AlertsControllerFindAllParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+        Awaited<ReturnType<typeof alertsControllerFindAll>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+          Awaited<ReturnType<typeof alertsControllerFindAll>>,
           TError,
-          Awaited<ReturnType<typeof clinicsControllerGetAll>>
+          Awaited<ReturnType<typeof alertsControllerFindAll>>
         >,
         "initialData"
       >;
@@ -2000,15 +3711,15 @@ export function useClinicsControllerGetAll<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useClinicsControllerGetAll<
-  TData = Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+export function useAlertsControllerFindAll<
+  TData = Awaited<ReturnType<typeof alertsControllerFindAll>>,
   TError = unknown,
 >(
-  params?: ClinicsControllerGetAllParams,
+  params?: AlertsControllerFindAllParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+        Awaited<ReturnType<typeof alertsControllerFindAll>>,
         TError,
         TData
       >
@@ -2020,18 +3731,18 @@ export function useClinicsControllerGetAll<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Role: Admin - Get all clinics
+ * @summary Role: Admin - Get all alerts
  */
 
-export function useClinicsControllerGetAll<
-  TData = Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+export function useAlertsControllerFindAll<
+  TData = Awaited<ReturnType<typeof alertsControllerFindAll>>,
   TError = unknown,
 >(
-  params?: ClinicsControllerGetAllParams,
+  params?: AlertsControllerFindAllParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetAll>>,
+        Awaited<ReturnType<typeof alertsControllerFindAll>>,
         TError,
         TData
       >
@@ -2042,7 +3753,7 @@ export function useClinicsControllerGetAll<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getClinicsControllerGetAllQueryOptions(params, options);
+  const queryOptions = getAlertsControllerFindAllQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -2055,216 +3766,227 @@ export function useClinicsControllerGetAll<
 }
 
 /**
- * Create a new clinic profile.
- * @summary Role: Admin - Create clinic
+ * @summary Role: All - Get alerts for my devices
  */
-export const clinicsControllerCreate = (
-  createClinicDto: CreateClinicDto,
+export const alertsControllerFindMine = (
+  params?: AlertsControllerFindMineParams,
   options?: SecondParameter<typeof orvalClient>,
   signal?: AbortSignal,
 ) => {
-  return orvalClient<Clinic>(
-    {
-      url: `/api/clinics`,
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      data: createClinicDto,
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/alerts/mine`, method: "GET", params, signal },
+    options,
+  );
+};
+
+export const getAlertsControllerFindMineInfiniteQueryKey = (
+  params?: AlertsControllerFindMineParams,
+) => {
+  return ["infinate", `/api/alerts/mine`, ...(params ? [params] : [])] as const;
+};
+
+export const getAlertsControllerFindMineQueryKey = (
+  params?: AlertsControllerFindMineParams,
+) => {
+  return [`/api/alerts/mine`, ...(params ? [params] : [])] as const;
+};
+
+export const getAlertsControllerFindMineInfiniteQueryOptions = <
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof alertsControllerFindMine>>,
+    AlertsControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: AlertsControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof alertsControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        AlertsControllerFindMineParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getAlertsControllerFindMineInfiniteQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof alertsControllerFindMine>>,
+    QueryKey,
+    AlertsControllerFindMineParams["page"]
+  > = ({ signal, pageParam }) =>
+    alertsControllerFindMine(
+      { ...params, page: pageParam || params?.["page"] },
+      requestOptions,
       signal,
-    },
-    options,
-  );
-};
+    );
 
-export const getClinicsControllerCreateMutationOptions = <
-  TError = unknown,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof clinicsControllerCreate>>,
+  return { queryKey, queryFn, ...queryOptions } as UseInfiniteQueryOptions<
+    Awaited<ReturnType<typeof alertsControllerFindMine>>,
     TError,
-    { data: CreateClinicDto },
-    TContext
-  >;
-  request?: SecondParameter<typeof orvalClient>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof clinicsControllerCreate>>,
-  TError,
-  { data: CreateClinicDto },
-  TContext
-> => {
-  const mutationKey = ["clinicsControllerCreate"];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof clinicsControllerCreate>>,
-    { data: CreateClinicDto }
-  > = (props) => {
-    const { data } = props ?? {};
-
-    return clinicsControllerCreate(data, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
+    TData,
+    QueryKey,
+    AlertsControllerFindMineParams["page"]
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type ClinicsControllerCreateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof clinicsControllerCreate>>
+export type AlertsControllerFindMineInfiniteQueryResult = NonNullable<
+  Awaited<ReturnType<typeof alertsControllerFindMine>>
 >;
-export type ClinicsControllerCreateMutationBody = CreateClinicDto;
-export type ClinicsControllerCreateMutationError = unknown;
+export type AlertsControllerFindMineInfiniteQueryError = unknown;
 
-/**
- * @summary Role: Admin - Create clinic
- */
-export const useClinicsControllerCreate = <
+export function useAlertsControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof alertsControllerFindMine>>,
+    AlertsControllerFindMineParams["page"]
+  >,
   TError = unknown,
-  TContext = unknown,
 >(
+  params: undefined | AlertsControllerFindMineParams,
+  options: {
+    query: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof alertsControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        AlertsControllerFindMineParams["page"]
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof alertsControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof alertsControllerFindMine>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useAlertsControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof alertsControllerFindMine>>,
+    AlertsControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: AlertsControllerFindMineParams,
   options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof clinicsControllerCreate>>,
-      TError,
-      { data: CreateClinicDto },
-      TContext
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof alertsControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        AlertsControllerFindMineParams["page"]
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof alertsControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof alertsControllerFindMine>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useAlertsControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof alertsControllerFindMine>>,
+    AlertsControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: AlertsControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof alertsControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        AlertsControllerFindMineParams["page"]
+      >
     >;
     request?: SecondParameter<typeof orvalClient>;
   },
   queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof clinicsControllerCreate>>,
-  TError,
-  { data: CreateClinicDto },
-  TContext
-> => {
-  const mutationOptions = getClinicsControllerCreateMutationOptions(options);
-
-  return useMutation(mutationOptions, queryClient);
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
 };
-
 /**
- * Update the authenticated clinic profile.
- * @summary Role: Clinic - Update clinic
+ * @summary Role: All - Get alerts for my devices
  */
-export const clinicsControllerUpdate = (
-  updateClinicDto: UpdateClinicDto,
-  options?: SecondParameter<typeof orvalClient>,
-) => {
-  return orvalClient<Clinic>(
-    {
-      url: `/api/clinics`,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      data: updateClinicDto,
-    },
-    options,
-  );
-};
 
-export const getClinicsControllerUpdateMutationOptions = <
+export function useAlertsControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof alertsControllerFindMine>>,
+    AlertsControllerFindMineParams["page"]
+  >,
   TError = unknown,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof clinicsControllerUpdate>>,
-    TError,
-    { data: UpdateClinicDto },
-    TContext
-  >;
-  request?: SecondParameter<typeof orvalClient>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof clinicsControllerUpdate>>,
-  TError,
-  { data: UpdateClinicDto },
-  TContext
-> => {
-  const mutationKey = ["clinicsControllerUpdate"];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof clinicsControllerUpdate>>,
-    { data: UpdateClinicDto }
-  > = (props) => {
-    const { data } = props ?? {};
-
-    return clinicsControllerUpdate(data, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type ClinicsControllerUpdateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof clinicsControllerUpdate>>
->;
-export type ClinicsControllerUpdateMutationBody = UpdateClinicDto;
-export type ClinicsControllerUpdateMutationError = unknown;
-
-/**
- * @summary Role: Clinic - Update clinic
- */
-export const useClinicsControllerUpdate = <
-  TError = unknown,
-  TContext = unknown,
 >(
+  params?: AlertsControllerFindMineParams,
   options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof clinicsControllerUpdate>>,
-      TError,
-      { data: UpdateClinicDto },
-      TContext
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof alertsControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        AlertsControllerFindMineParams["page"]
+      >
     >;
     request?: SecondParameter<typeof orvalClient>;
   },
   queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof clinicsControllerUpdate>>,
-  TError,
-  { data: UpdateClinicDto },
-  TContext
-> => {
-  const mutationOptions = getClinicsControllerUpdateMutationOptions(options);
-
-  return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * @summary Role: All - Get clinic by ID
- */
-export const clinicsControllerGetById = (
-  id: string,
-  options?: SecondParameter<typeof orvalClient>,
-  signal?: AbortSignal,
-) => {
-  return orvalClient<Clinic>(
-    { url: `/api/clinics/${id}`, method: "GET", signal },
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getAlertsControllerFindMineInfiniteQueryOptions(
+    params,
     options,
   );
-};
 
-export const getClinicsControllerGetByIdQueryKey = (id?: string) => {
-  return [`/api/clinics/${id}`] as const;
-};
+  const query = useInfiniteQuery(
+    queryOptions,
+    queryClient,
+  ) as UseInfiniteQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
-export const getClinicsControllerGetByIdQueryOptions = <
-  TData = Awaited<ReturnType<typeof clinicsControllerGetById>>,
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const getAlertsControllerFindMineQueryOptions = <
+  TData = Awaited<ReturnType<typeof alertsControllerFindMine>>,
   TError = unknown,
 >(
-  id: string,
+  params?: AlertsControllerFindMineParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetById>>,
+        Awaited<ReturnType<typeof alertsControllerFindMine>>,
         TError,
         TData
       >
@@ -2275,11 +3997,174 @@ export const getClinicsControllerGetByIdQueryOptions = <
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ?? getClinicsControllerGetByIdQueryKey(id);
+    queryOptions?.queryKey ?? getAlertsControllerFindMineQueryKey(params);
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof clinicsControllerGetById>>
-  > = ({ signal }) => clinicsControllerGetById(id, requestOptions, signal);
+    Awaited<ReturnType<typeof alertsControllerFindMine>>
+  > = ({ signal }) => alertsControllerFindMine(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof alertsControllerFindMine>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type AlertsControllerFindMineQueryResult = NonNullable<
+  Awaited<ReturnType<typeof alertsControllerFindMine>>
+>;
+export type AlertsControllerFindMineQueryError = unknown;
+
+export function useAlertsControllerFindMine<
+  TData = Awaited<ReturnType<typeof alertsControllerFindMine>>,
+  TError = unknown,
+>(
+  params: undefined | AlertsControllerFindMineParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof alertsControllerFindMine>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof alertsControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof alertsControllerFindMine>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useAlertsControllerFindMine<
+  TData = Awaited<ReturnType<typeof alertsControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: AlertsControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof alertsControllerFindMine>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof alertsControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof alertsControllerFindMine>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useAlertsControllerFindMine<
+  TData = Awaited<ReturnType<typeof alertsControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: AlertsControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof alertsControllerFindMine>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get alerts for my devices
+ */
+
+export function useAlertsControllerFindMine<
+  TData = Awaited<ReturnType<typeof alertsControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: AlertsControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof alertsControllerFindMine>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getAlertsControllerFindMineQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Get alert by id
+ */
+export const alertsControllerFindOne = (
+  id: string,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/alerts/${id}`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getAlertsControllerFindOneQueryKey = (id?: string) => {
+  return [`/api/alerts/${id}`] as const;
+};
+
+export const getAlertsControllerFindOneQueryOptions = <
+  TData = Awaited<ReturnType<typeof alertsControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof alertsControllerFindOne>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getAlertsControllerFindOneQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof alertsControllerFindOne>>
+  > = ({ signal }) => alertsControllerFindOne(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -2287,35 +4172,35 @@ export const getClinicsControllerGetByIdQueryOptions = <
     enabled: !!id,
     ...queryOptions,
   } as UseQueryOptions<
-    Awaited<ReturnType<typeof clinicsControllerGetById>>,
+    Awaited<ReturnType<typeof alertsControllerFindOne>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type ClinicsControllerGetByIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof clinicsControllerGetById>>
+export type AlertsControllerFindOneQueryResult = NonNullable<
+  Awaited<ReturnType<typeof alertsControllerFindOne>>
 >;
-export type ClinicsControllerGetByIdQueryError = unknown;
+export type AlertsControllerFindOneQueryError = unknown;
 
-export function useClinicsControllerGetById<
-  TData = Awaited<ReturnType<typeof clinicsControllerGetById>>,
+export function useAlertsControllerFindOne<
+  TData = Awaited<ReturnType<typeof alertsControllerFindOne>>,
   TError = unknown,
 >(
   id: string,
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetById>>,
+        Awaited<ReturnType<typeof alertsControllerFindOne>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof clinicsControllerGetById>>,
+          Awaited<ReturnType<typeof alertsControllerFindOne>>,
           TError,
-          Awaited<ReturnType<typeof clinicsControllerGetById>>
+          Awaited<ReturnType<typeof alertsControllerFindOne>>
         >,
         "initialData"
       >;
@@ -2325,24 +4210,24 @@ export function useClinicsControllerGetById<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useClinicsControllerGetById<
-  TData = Awaited<ReturnType<typeof clinicsControllerGetById>>,
+export function useAlertsControllerFindOne<
+  TData = Awaited<ReturnType<typeof alertsControllerFindOne>>,
   TError = unknown,
 >(
   id: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetById>>,
+        Awaited<ReturnType<typeof alertsControllerFindOne>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof clinicsControllerGetById>>,
+          Awaited<ReturnType<typeof alertsControllerFindOne>>,
           TError,
-          Awaited<ReturnType<typeof clinicsControllerGetById>>
+          Awaited<ReturnType<typeof alertsControllerFindOne>>
         >,
         "initialData"
       >;
@@ -2352,15 +4237,15 @@ export function useClinicsControllerGetById<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useClinicsControllerGetById<
-  TData = Awaited<ReturnType<typeof clinicsControllerGetById>>,
+export function useAlertsControllerFindOne<
+  TData = Awaited<ReturnType<typeof alertsControllerFindOne>>,
   TError = unknown,
 >(
   id: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetById>>,
+        Awaited<ReturnType<typeof alertsControllerFindOne>>,
         TError,
         TData
       >
@@ -2372,18 +4257,18 @@ export function useClinicsControllerGetById<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Role: All - Get clinic by ID
+ * @summary Role: All - Get alert by id
  */
 
-export function useClinicsControllerGetById<
-  TData = Awaited<ReturnType<typeof clinicsControllerGetById>>,
+export function useAlertsControllerFindOne<
+  TData = Awaited<ReturnType<typeof alertsControllerFindOne>>,
   TError = unknown,
 >(
   id: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof clinicsControllerGetById>>,
+        Awaited<ReturnType<typeof alertsControllerFindOne>>,
         TError,
         TData
       >
@@ -2394,7 +4279,7 @@ export function useClinicsControllerGetById<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getClinicsControllerGetByIdQueryOptions(id, options);
+  const queryOptions = getAlertsControllerFindOneQueryOptions(id, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -2407,36 +4292,36 @@ export function useClinicsControllerGetById<
 }
 
 /**
- * @summary Role: Admin - Delete clinic
+ * @summary Role: All - Resolve alert
  */
-export const clinicsControllerDelete = (
+export const alertsControllerResolve = (
   id: string,
   options?: SecondParameter<typeof orvalClient>,
 ) => {
   return orvalClient<AppResponseSerialization>(
-    { url: `/api/clinics/${id}`, method: "DELETE" },
+    { url: `/api/alerts/${id}/resolve`, method: "PATCH" },
     options,
   );
 };
 
-export const getClinicsControllerDeleteMutationOptions = <
+export const getAlertsControllerResolveMutationOptions = <
   TError = unknown,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof clinicsControllerDelete>>,
+    Awaited<ReturnType<typeof alertsControllerResolve>>,
     TError,
     { id: string },
     TContext
   >;
   request?: SecondParameter<typeof orvalClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof clinicsControllerDelete>>,
+  Awaited<ReturnType<typeof alertsControllerResolve>>,
   TError,
   { id: string },
   TContext
 > => {
-  const mutationKey = ["clinicsControllerDelete"];
+  const mutationKey = ["alertsControllerResolve"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -2446,33 +4331,33 @@ export const getClinicsControllerDeleteMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof clinicsControllerDelete>>,
+    Awaited<ReturnType<typeof alertsControllerResolve>>,
     { id: string }
   > = (props) => {
     const { id } = props ?? {};
 
-    return clinicsControllerDelete(id, requestOptions);
+    return alertsControllerResolve(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type ClinicsControllerDeleteMutationResult = NonNullable<
-  Awaited<ReturnType<typeof clinicsControllerDelete>>
+export type AlertsControllerResolveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof alertsControllerResolve>>
 >;
 
-export type ClinicsControllerDeleteMutationError = unknown;
+export type AlertsControllerResolveMutationError = unknown;
 
 /**
- * @summary Role: Admin - Delete clinic
+ * @summary Role: All - Resolve alert
  */
-export const useClinicsControllerDelete = <
+export const useAlertsControllerResolve = <
   TError = unknown,
   TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof clinicsControllerDelete>>,
+      Awaited<ReturnType<typeof alertsControllerResolve>>,
       TError,
       { id: string },
       TContext
@@ -2481,53 +4366,416 @@ export const useClinicsControllerDelete = <
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof clinicsControllerDelete>>,
+  Awaited<ReturnType<typeof alertsControllerResolve>>,
   TError,
   { id: string },
   TContext
 > => {
-  const mutationOptions = getClinicsControllerDeleteMutationOptions(options);
+  const mutationOptions = getAlertsControllerResolveMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
 
 /**
- * @summary Role: Admin - Update clinic status
+ * @summary Role: Admin - Get all geofences
  */
-export const clinicsControllerUpdateStatus = (
-  id: string,
-  updateClinicStatusDto: UpdateClinicStatusDto,
+export const geofencesControllerFindAll = (
+  params?: GeofencesControllerFindAllParams,
   options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
 ) => {
-  return orvalClient<Clinic>(
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/geofences`, method: "GET", params, signal },
+    options,
+  );
+};
+
+export const getGeofencesControllerFindAllInfiniteQueryKey = (
+  params?: GeofencesControllerFindAllParams,
+) => {
+  return ["infinate", `/api/geofences`, ...(params ? [params] : [])] as const;
+};
+
+export const getGeofencesControllerFindAllQueryKey = (
+  params?: GeofencesControllerFindAllParams,
+) => {
+  return [`/api/geofences`, ...(params ? [params] : [])] as const;
+};
+
+export const getGeofencesControllerFindAllInfiniteQueryOptions = <
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+    GeofencesControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        GeofencesControllerFindAllParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getGeofencesControllerFindAllInfiniteQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+    QueryKey,
+    GeofencesControllerFindAllParams["page"]
+  > = ({ signal, pageParam }) =>
+    geofencesControllerFindAll(
+      { ...params, page: pageParam || params?.["page"] },
+      requestOptions,
+      signal,
+    );
+
+  return { queryKey, queryFn, ...queryOptions } as UseInfiniteQueryOptions<
+    Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+    TError,
+    TData,
+    QueryKey,
+    GeofencesControllerFindAllParams["page"]
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GeofencesControllerFindAllInfiniteQueryResult = NonNullable<
+  Awaited<ReturnType<typeof geofencesControllerFindAll>>
+>;
+export type GeofencesControllerFindAllInfiniteQueryError = unknown;
+
+export function useGeofencesControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+    GeofencesControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params: undefined | GeofencesControllerFindAllParams,
+  options: {
+    query: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        GeofencesControllerFindAllParams["page"]
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGeofencesControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+    GeofencesControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        GeofencesControllerFindAllParams["page"]
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGeofencesControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+    GeofencesControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        GeofencesControllerFindAllParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: Admin - Get all geofences
+ */
+
+export function useGeofencesControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+    GeofencesControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        GeofencesControllerFindAllParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGeofencesControllerFindAllInfiniteQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useInfiniteQuery(
+    queryOptions,
+    queryClient,
+  ) as UseInfiniteQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const getGeofencesControllerFindAllQueryOptions = <
+  TData = Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGeofencesControllerFindAllQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof geofencesControllerFindAll>>
+  > = ({ signal }) =>
+    geofencesControllerFindAll(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GeofencesControllerFindAllQueryResult = NonNullable<
+  Awaited<ReturnType<typeof geofencesControllerFindAll>>
+>;
+export type GeofencesControllerFindAllQueryError = unknown;
+
+export function useGeofencesControllerFindAll<
+  TData = Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+  TError = unknown,
+>(
+  params: undefined | GeofencesControllerFindAllParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof geofencesControllerFindAll>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGeofencesControllerFindAll<
+  TData = Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof geofencesControllerFindAll>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGeofencesControllerFindAll<
+  TData = Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: Admin - Get all geofences
+ */
+
+export function useGeofencesControllerFindAll<
+  TData = Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindAll>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGeofencesControllerFindAllQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Create a geofence
+ */
+export const geofencesControllerCreate = (
+  createGeofenceDto: CreateGeofenceDto,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
     {
-      url: `/api/clinics/${id}/status`,
-      method: "PATCH",
+      url: `/api/geofences`,
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      data: updateClinicStatusDto,
+      data: createGeofenceDto,
+      signal,
     },
     options,
   );
 };
 
-export const getClinicsControllerUpdateStatusMutationOptions = <
+export const getGeofencesControllerCreateMutationOptions = <
   TError = unknown,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof clinicsControllerUpdateStatus>>,
+    Awaited<ReturnType<typeof geofencesControllerCreate>>,
     TError,
-    { id: string; data: UpdateClinicStatusDto },
+    { data: CreateGeofenceDto },
     TContext
   >;
   request?: SecondParameter<typeof orvalClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof clinicsControllerUpdateStatus>>,
+  Awaited<ReturnType<typeof geofencesControllerCreate>>,
   TError,
-  { id: string; data: UpdateClinicStatusDto },
+  { data: CreateGeofenceDto },
   TContext
 > => {
-  const mutationKey = ["clinicsControllerUpdateStatus"];
+  const mutationKey = ["geofencesControllerCreate"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -2537,84 +4785,622 @@ export const getClinicsControllerUpdateStatusMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof clinicsControllerUpdateStatus>>,
-    { id: string; data: UpdateClinicStatusDto }
+    Awaited<ReturnType<typeof geofencesControllerCreate>>,
+    { data: CreateGeofenceDto }
   > = (props) => {
-    const { id, data } = props ?? {};
+    const { data } = props ?? {};
 
-    return clinicsControllerUpdateStatus(id, data, requestOptions);
+    return geofencesControllerCreate(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type ClinicsControllerUpdateStatusMutationResult = NonNullable<
-  Awaited<ReturnType<typeof clinicsControllerUpdateStatus>>
+export type GeofencesControllerCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof geofencesControllerCreate>>
 >;
-export type ClinicsControllerUpdateStatusMutationBody = UpdateClinicStatusDto;
-export type ClinicsControllerUpdateStatusMutationError = unknown;
+export type GeofencesControllerCreateMutationBody = CreateGeofenceDto;
+export type GeofencesControllerCreateMutationError = unknown;
 
 /**
- * @summary Role: Admin - Update clinic status
+ * @summary Role: All - Create a geofence
  */
-export const useClinicsControllerUpdateStatus = <
+export const useGeofencesControllerCreate = <
   TError = unknown,
   TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof clinicsControllerUpdateStatus>>,
+      Awaited<ReturnType<typeof geofencesControllerCreate>>,
       TError,
-      { id: string; data: UpdateClinicStatusDto },
+      { data: CreateGeofenceDto },
       TContext
     >;
     request?: SecondParameter<typeof orvalClient>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof clinicsControllerUpdateStatus>>,
+  Awaited<ReturnType<typeof geofencesControllerCreate>>,
   TError,
-  { id: string; data: UpdateClinicStatusDto },
+  { data: CreateGeofenceDto },
   TContext
 > => {
-  const mutationOptions =
-    getClinicsControllerUpdateStatusMutationOptions(options);
+  const mutationOptions = getGeofencesControllerCreateMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
 
 /**
- * Restore a soft-deleted clinic.
- * @summary Role: Admin - Restore clinic
+ * @summary Role: All - Get my geofences
  */
-export const clinicsControllerRestore = (
-  id: string,
+export const geofencesControllerFindMine = (
+  params?: GeofencesControllerFindMineParams,
   options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
 ) => {
   return orvalClient<AppResponseSerialization>(
-    { url: `/api/clinics/${id}/restore`, method: "PATCH" },
+    { url: `/api/geofences/mine`, method: "GET", params, signal },
     options,
   );
 };
 
-export const getClinicsControllerRestoreMutationOptions = <
+export const getGeofencesControllerFindMineInfiniteQueryKey = (
+  params?: GeofencesControllerFindMineParams,
+) => {
+  return [
+    "infinate",
+    `/api/geofences/mine`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getGeofencesControllerFindMineQueryKey = (
+  params?: GeofencesControllerFindMineParams,
+) => {
+  return [`/api/geofences/mine`, ...(params ? [params] : [])] as const;
+};
+
+export const getGeofencesControllerFindMineInfiniteQueryOptions = <
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+    GeofencesControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        GeofencesControllerFindMineParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getGeofencesControllerFindMineInfiniteQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+    QueryKey,
+    GeofencesControllerFindMineParams["page"]
+  > = ({ signal, pageParam }) =>
+    geofencesControllerFindMine(
+      { ...params, page: pageParam || params?.["page"] },
+      requestOptions,
+      signal,
+    );
+
+  return { queryKey, queryFn, ...queryOptions } as UseInfiniteQueryOptions<
+    Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+    TError,
+    TData,
+    QueryKey,
+    GeofencesControllerFindMineParams["page"]
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GeofencesControllerFindMineInfiniteQueryResult = NonNullable<
+  Awaited<ReturnType<typeof geofencesControllerFindMine>>
+>;
+export type GeofencesControllerFindMineInfiniteQueryError = unknown;
+
+export function useGeofencesControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+    GeofencesControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params: undefined | GeofencesControllerFindMineParams,
+  options: {
+    query: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        GeofencesControllerFindMineParams["page"]
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGeofencesControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+    GeofencesControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        GeofencesControllerFindMineParams["page"]
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGeofencesControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+    GeofencesControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        GeofencesControllerFindMineParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get my geofences
+ */
+
+export function useGeofencesControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+    GeofencesControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        GeofencesControllerFindMineParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGeofencesControllerFindMineInfiniteQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useInfiniteQuery(
+    queryOptions,
+    queryClient,
+  ) as UseInfiniteQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const getGeofencesControllerFindMineQueryOptions = <
+  TData = Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGeofencesControllerFindMineQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof geofencesControllerFindMine>>
+  > = ({ signal }) =>
+    geofencesControllerFindMine(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GeofencesControllerFindMineQueryResult = NonNullable<
+  Awaited<ReturnType<typeof geofencesControllerFindMine>>
+>;
+export type GeofencesControllerFindMineQueryError = unknown;
+
+export function useGeofencesControllerFindMine<
+  TData = Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+  TError = unknown,
+>(
+  params: undefined | GeofencesControllerFindMineParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof geofencesControllerFindMine>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGeofencesControllerFindMine<
+  TData = Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof geofencesControllerFindMine>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGeofencesControllerFindMine<
+  TData = Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get my geofences
+ */
+
+export function useGeofencesControllerFindMine<
+  TData = Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: GeofencesControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindMine>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGeofencesControllerFindMineQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Get geofence by id
+ */
+export const geofencesControllerFindOne = (
+  id: string,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/geofences/${id}`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getGeofencesControllerFindOneQueryKey = (id?: string) => {
+  return [`/api/geofences/${id}`] as const;
+};
+
+export const getGeofencesControllerFindOneQueryOptions = <
+  TData = Awaited<ReturnType<typeof geofencesControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindOne>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGeofencesControllerFindOneQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof geofencesControllerFindOne>>
+  > = ({ signal }) => geofencesControllerFindOne(id, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof geofencesControllerFindOne>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GeofencesControllerFindOneQueryResult = NonNullable<
+  Awaited<ReturnType<typeof geofencesControllerFindOne>>
+>;
+export type GeofencesControllerFindOneQueryError = unknown;
+
+export function useGeofencesControllerFindOne<
+  TData = Awaited<ReturnType<typeof geofencesControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindOne>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof geofencesControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof geofencesControllerFindOne>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGeofencesControllerFindOne<
+  TData = Awaited<ReturnType<typeof geofencesControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindOne>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof geofencesControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof geofencesControllerFindOne>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGeofencesControllerFindOne<
+  TData = Awaited<ReturnType<typeof geofencesControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindOne>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get geofence by id
+ */
+
+export function useGeofencesControllerFindOne<
+  TData = Awaited<ReturnType<typeof geofencesControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof geofencesControllerFindOne>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGeofencesControllerFindOneQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Update geofence
+ */
+export const geofencesControllerUpdate = (
+  id: string,
+  updateGeofenceDto: UpdateGeofenceDto,
+  options?: SecondParameter<typeof orvalClient>,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    {
+      url: `/api/geofences/${id}`,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      data: updateGeofenceDto,
+    },
+    options,
+  );
+};
+
+export const getGeofencesControllerUpdateMutationOptions = <
   TError = unknown,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof clinicsControllerRestore>>,
+    Awaited<ReturnType<typeof geofencesControllerUpdate>>,
     TError,
-    { id: string },
+    { id: string; data: UpdateGeofenceDto },
     TContext
   >;
   request?: SecondParameter<typeof orvalClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof clinicsControllerRestore>>,
+  Awaited<ReturnType<typeof geofencesControllerUpdate>>,
   TError,
-  { id: string },
+  { id: string; data: UpdateGeofenceDto },
   TContext
 > => {
-  const mutationKey = ["clinicsControllerRestore"];
+  const mutationKey = ["geofencesControllerUpdate"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -2624,33 +5410,118 @@ export const getClinicsControllerRestoreMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof clinicsControllerRestore>>,
-    { id: string }
+    Awaited<ReturnType<typeof geofencesControllerUpdate>>,
+    { id: string; data: UpdateGeofenceDto }
   > = (props) => {
-    const { id } = props ?? {};
+    const { id, data } = props ?? {};
 
-    return clinicsControllerRestore(id, requestOptions);
+    return geofencesControllerUpdate(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type ClinicsControllerRestoreMutationResult = NonNullable<
-  Awaited<ReturnType<typeof clinicsControllerRestore>>
+export type GeofencesControllerUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof geofencesControllerUpdate>>
 >;
-
-export type ClinicsControllerRestoreMutationError = unknown;
+export type GeofencesControllerUpdateMutationBody = UpdateGeofenceDto;
+export type GeofencesControllerUpdateMutationError = unknown;
 
 /**
- * @summary Role: Admin - Restore clinic
+ * @summary Role: All - Update geofence
  */
-export const useClinicsControllerRestore = <
+export const useGeofencesControllerUpdate = <
   TError = unknown,
   TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof clinicsControllerRestore>>,
+      Awaited<ReturnType<typeof geofencesControllerUpdate>>,
+      TError,
+      { id: string; data: UpdateGeofenceDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof geofencesControllerUpdate>>,
+  TError,
+  { id: string; data: UpdateGeofenceDto },
+  TContext
+> => {
+  const mutationOptions = getGeofencesControllerUpdateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Role: All - Delete geofence
+ */
+export const geofencesControllerRemove = (
+  id: string,
+  options?: SecondParameter<typeof orvalClient>,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/geofences/${id}`, method: "DELETE" },
+    options,
+  );
+};
+
+export const getGeofencesControllerRemoveMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof geofencesControllerRemove>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof geofencesControllerRemove>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["geofencesControllerRemove"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof geofencesControllerRemove>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return geofencesControllerRemove(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GeofencesControllerRemoveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof geofencesControllerRemove>>
+>;
+
+export type GeofencesControllerRemoveMutationError = unknown;
+
+/**
+ * @summary Role: All - Delete geofence
+ */
+export const useGeofencesControllerRemove = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof geofencesControllerRemove>>,
       TError,
       { id: string },
       TContext
@@ -2659,12 +5530,2886 @@ export const useClinicsControllerRestore = <
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof clinicsControllerRestore>>,
+  Awaited<ReturnType<typeof geofencesControllerRemove>>,
   TError,
   { id: string },
   TContext
 > => {
-  const mutationOptions = getClinicsControllerRestoreMutationOptions(options);
+  const mutationOptions = getGeofencesControllerRemoveMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Role: All - Assign device to geofence
+ */
+export const geofencesControllerAssignDevice = (
+  id: string,
+  assignDeviceDto: AssignDeviceDto,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    {
+      url: `/api/geofences/${id}/devices`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: assignDeviceDto,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getGeofencesControllerAssignDeviceMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof geofencesControllerAssignDevice>>,
+    TError,
+    { id: string; data: AssignDeviceDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof geofencesControllerAssignDevice>>,
+  TError,
+  { id: string; data: AssignDeviceDto },
+  TContext
+> => {
+  const mutationKey = ["geofencesControllerAssignDevice"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof geofencesControllerAssignDevice>>,
+    { id: string; data: AssignDeviceDto }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return geofencesControllerAssignDevice(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GeofencesControllerAssignDeviceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof geofencesControllerAssignDevice>>
+>;
+export type GeofencesControllerAssignDeviceMutationBody = AssignDeviceDto;
+export type GeofencesControllerAssignDeviceMutationError = unknown;
+
+/**
+ * @summary Role: All - Assign device to geofence
+ */
+export const useGeofencesControllerAssignDevice = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof geofencesControllerAssignDevice>>,
+      TError,
+      { id: string; data: AssignDeviceDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof geofencesControllerAssignDevice>>,
+  TError,
+  { id: string; data: AssignDeviceDto },
+  TContext
+> => {
+  const mutationOptions =
+    getGeofencesControllerAssignDeviceMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Role: All - Remove device from geofence
+ */
+export const geofencesControllerRemoveDevice = (
+  id: string,
+  deviceId: string,
+  options?: SecondParameter<typeof orvalClient>,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/geofences/${id}/devices/${deviceId}`, method: "DELETE" },
+    options,
+  );
+};
+
+export const getGeofencesControllerRemoveDeviceMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof geofencesControllerRemoveDevice>>,
+    TError,
+    { id: string; deviceId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof geofencesControllerRemoveDevice>>,
+  TError,
+  { id: string; deviceId: string },
+  TContext
+> => {
+  const mutationKey = ["geofencesControllerRemoveDevice"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof geofencesControllerRemoveDevice>>,
+    { id: string; deviceId: string }
+  > = (props) => {
+    const { id, deviceId } = props ?? {};
+
+    return geofencesControllerRemoveDevice(id, deviceId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GeofencesControllerRemoveDeviceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof geofencesControllerRemoveDevice>>
+>;
+
+export type GeofencesControllerRemoveDeviceMutationError = unknown;
+
+/**
+ * @summary Role: All - Remove device from geofence
+ */
+export const useGeofencesControllerRemoveDevice = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof geofencesControllerRemoveDevice>>,
+      TError,
+      { id: string; deviceId: string },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof geofencesControllerRemoveDevice>>,
+  TError,
+  { id: string; deviceId: string },
+  TContext
+> => {
+  const mutationOptions =
+    getGeofencesControllerRemoveDeviceMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Role: Admin - Get all media logs
+ */
+export const mediaLogsControllerFindAll = (
+  params?: MediaLogsControllerFindAllParams,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/media-logs`, method: "GET", params, signal },
+    options,
+  );
+};
+
+export const getMediaLogsControllerFindAllInfiniteQueryKey = (
+  params?: MediaLogsControllerFindAllParams,
+) => {
+  return ["infinate", `/api/media-logs`, ...(params ? [params] : [])] as const;
+};
+
+export const getMediaLogsControllerFindAllQueryKey = (
+  params?: MediaLogsControllerFindAllParams,
+) => {
+  return [`/api/media-logs`, ...(params ? [params] : [])] as const;
+};
+
+export const getMediaLogsControllerFindAllInfiniteQueryOptions = <
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+    MediaLogsControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        MediaLogsControllerFindAllParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getMediaLogsControllerFindAllInfiniteQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+    QueryKey,
+    MediaLogsControllerFindAllParams["page"]
+  > = ({ signal, pageParam }) =>
+    mediaLogsControllerFindAll(
+      { ...params, page: pageParam || params?.["page"] },
+      requestOptions,
+      signal,
+    );
+
+  return { queryKey, queryFn, ...queryOptions } as UseInfiniteQueryOptions<
+    Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+    TError,
+    TData,
+    QueryKey,
+    MediaLogsControllerFindAllParams["page"]
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type MediaLogsControllerFindAllInfiniteQueryResult = NonNullable<
+  Awaited<ReturnType<typeof mediaLogsControllerFindAll>>
+>;
+export type MediaLogsControllerFindAllInfiniteQueryError = unknown;
+
+export function useMediaLogsControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+    MediaLogsControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params: undefined | MediaLogsControllerFindAllParams,
+  options: {
+    query: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        MediaLogsControllerFindAllParams["page"]
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMediaLogsControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+    MediaLogsControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        MediaLogsControllerFindAllParams["page"]
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMediaLogsControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+    MediaLogsControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        MediaLogsControllerFindAllParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: Admin - Get all media logs
+ */
+
+export function useMediaLogsControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+    MediaLogsControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        MediaLogsControllerFindAllParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getMediaLogsControllerFindAllInfiniteQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useInfiniteQuery(
+    queryOptions,
+    queryClient,
+  ) as UseInfiniteQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const getMediaLogsControllerFindAllQueryOptions = <
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getMediaLogsControllerFindAllQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof mediaLogsControllerFindAll>>
+  > = ({ signal }) =>
+    mediaLogsControllerFindAll(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type MediaLogsControllerFindAllQueryResult = NonNullable<
+  Awaited<ReturnType<typeof mediaLogsControllerFindAll>>
+>;
+export type MediaLogsControllerFindAllQueryError = unknown;
+
+export function useMediaLogsControllerFindAll<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+  TError = unknown,
+>(
+  params: undefined | MediaLogsControllerFindAllParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof mediaLogsControllerFindAll>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMediaLogsControllerFindAll<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof mediaLogsControllerFindAll>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMediaLogsControllerFindAll<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: Admin - Get all media logs
+ */
+
+export function useMediaLogsControllerFindAll<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindAll>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getMediaLogsControllerFindAllQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Get media logs for my devices
+ */
+export const mediaLogsControllerFindMine = (
+  params?: MediaLogsControllerFindMineParams,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/media-logs/mine`, method: "GET", params, signal },
+    options,
+  );
+};
+
+export const getMediaLogsControllerFindMineInfiniteQueryKey = (
+  params?: MediaLogsControllerFindMineParams,
+) => {
+  return [
+    "infinate",
+    `/api/media-logs/mine`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getMediaLogsControllerFindMineQueryKey = (
+  params?: MediaLogsControllerFindMineParams,
+) => {
+  return [`/api/media-logs/mine`, ...(params ? [params] : [])] as const;
+};
+
+export const getMediaLogsControllerFindMineInfiniteQueryOptions = <
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+    MediaLogsControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        MediaLogsControllerFindMineParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getMediaLogsControllerFindMineInfiniteQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+    QueryKey,
+    MediaLogsControllerFindMineParams["page"]
+  > = ({ signal, pageParam }) =>
+    mediaLogsControllerFindMine(
+      { ...params, page: pageParam || params?.["page"] },
+      requestOptions,
+      signal,
+    );
+
+  return { queryKey, queryFn, ...queryOptions } as UseInfiniteQueryOptions<
+    Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+    TError,
+    TData,
+    QueryKey,
+    MediaLogsControllerFindMineParams["page"]
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type MediaLogsControllerFindMineInfiniteQueryResult = NonNullable<
+  Awaited<ReturnType<typeof mediaLogsControllerFindMine>>
+>;
+export type MediaLogsControllerFindMineInfiniteQueryError = unknown;
+
+export function useMediaLogsControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+    MediaLogsControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params: undefined | MediaLogsControllerFindMineParams,
+  options: {
+    query: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        MediaLogsControllerFindMineParams["page"]
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMediaLogsControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+    MediaLogsControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        MediaLogsControllerFindMineParams["page"]
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMediaLogsControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+    MediaLogsControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        MediaLogsControllerFindMineParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get media logs for my devices
+ */
+
+export function useMediaLogsControllerFindMineInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+    MediaLogsControllerFindMineParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+        TError,
+        TData,
+        QueryKey,
+        MediaLogsControllerFindMineParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getMediaLogsControllerFindMineInfiniteQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useInfiniteQuery(
+    queryOptions,
+    queryClient,
+  ) as UseInfiniteQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const getMediaLogsControllerFindMineQueryOptions = <
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getMediaLogsControllerFindMineQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof mediaLogsControllerFindMine>>
+  > = ({ signal }) =>
+    mediaLogsControllerFindMine(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type MediaLogsControllerFindMineQueryResult = NonNullable<
+  Awaited<ReturnType<typeof mediaLogsControllerFindMine>>
+>;
+export type MediaLogsControllerFindMineQueryError = unknown;
+
+export function useMediaLogsControllerFindMine<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+  TError = unknown,
+>(
+  params: undefined | MediaLogsControllerFindMineParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof mediaLogsControllerFindMine>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMediaLogsControllerFindMine<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+          TError,
+          Awaited<ReturnType<typeof mediaLogsControllerFindMine>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMediaLogsControllerFindMine<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get media logs for my devices
+ */
+
+export function useMediaLogsControllerFindMine<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerFindMineParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindMine>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getMediaLogsControllerFindMineQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Get media log by id
+ */
+export const mediaLogsControllerFindOne = (
+  id: string,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/media-logs/${id}`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getMediaLogsControllerFindOneQueryKey = (id?: string) => {
+  return [`/api/media-logs/${id}`] as const;
+};
+
+export const getMediaLogsControllerFindOneQueryOptions = <
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindOne>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getMediaLogsControllerFindOneQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof mediaLogsControllerFindOne>>
+  > = ({ signal }) => mediaLogsControllerFindOne(id, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof mediaLogsControllerFindOne>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type MediaLogsControllerFindOneQueryResult = NonNullable<
+  Awaited<ReturnType<typeof mediaLogsControllerFindOne>>
+>;
+export type MediaLogsControllerFindOneQueryError = unknown;
+
+export function useMediaLogsControllerFindOne<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindOne>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaLogsControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof mediaLogsControllerFindOne>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMediaLogsControllerFindOne<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindOne>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaLogsControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof mediaLogsControllerFindOne>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMediaLogsControllerFindOne<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindOne>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get media log by id
+ */
+
+export function useMediaLogsControllerFindOne<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerFindOne>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerFindOne>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getMediaLogsControllerFindOneQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Get medial log stream url
+ */
+export const mediaLogsControllerGetStreamUrl = (
+  id: string,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/media-logs/${id}/stream`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getMediaLogsControllerGetStreamUrlQueryKey = (id?: string) => {
+  return [`/api/media-logs/${id}/stream`] as const;
+};
+
+export const getMediaLogsControllerGetStreamUrlQueryOptions = <
+  TData = Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getMediaLogsControllerGetStreamUrlQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>
+  > = ({ signal }) =>
+    mediaLogsControllerGetStreamUrl(id, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type MediaLogsControllerGetStreamUrlQueryResult = NonNullable<
+  Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>
+>;
+export type MediaLogsControllerGetStreamUrlQueryError = unknown;
+
+export function useMediaLogsControllerGetStreamUrl<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>,
+  TError = unknown,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>,
+          TError,
+          Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMediaLogsControllerGetStreamUrl<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>,
+          TError,
+          Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMediaLogsControllerGetStreamUrl<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get medial log stream url
+ */
+
+export function useMediaLogsControllerGetStreamUrl<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerGetStreamUrl>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getMediaLogsControllerGetStreamUrlQueryOptions(
+    id,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: Admin - Get system overview statistics
+ */
+export const statisticsControllerGetOverview = (
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<SystemOverviewResponse>(
+    { url: `/api/admin/statistics/overview`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getStatisticsControllerGetOverviewQueryKey = () => {
+  return [`/api/admin/statistics/overview`] as const;
+};
+
+export const getStatisticsControllerGetOverviewQueryOptions = <
+  TData = Awaited<ReturnType<typeof statisticsControllerGetOverview>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof statisticsControllerGetOverview>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getStatisticsControllerGetOverviewQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof statisticsControllerGetOverview>>
+  > = ({ signal }) => statisticsControllerGetOverview(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof statisticsControllerGetOverview>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type StatisticsControllerGetOverviewQueryResult = NonNullable<
+  Awaited<ReturnType<typeof statisticsControllerGetOverview>>
+>;
+export type StatisticsControllerGetOverviewQueryError = unknown;
+
+export function useStatisticsControllerGetOverview<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetOverview>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetOverview>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof statisticsControllerGetOverview>>,
+          TError,
+          Awaited<ReturnType<typeof statisticsControllerGetOverview>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStatisticsControllerGetOverview<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetOverview>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetOverview>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof statisticsControllerGetOverview>>,
+          TError,
+          Awaited<ReturnType<typeof statisticsControllerGetOverview>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStatisticsControllerGetOverview<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetOverview>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetOverview>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: Admin - Get system overview statistics
+ */
+
+export function useStatisticsControllerGetOverview<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetOverview>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetOverview>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getStatisticsControllerGetOverviewQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: Admin - Get telemetry time-series stats (last 7 days)
+ */
+export const statisticsControllerGetTelemetryStats = (
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<StatisticsControllerGetTelemetryStats200>(
+    { url: `/api/admin/statistics/telemetry`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getStatisticsControllerGetTelemetryStatsQueryKey = () => {
+  return [`/api/admin/statistics/telemetry`] as const;
+};
+
+export const getStatisticsControllerGetTelemetryStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getStatisticsControllerGetTelemetryStatsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>
+  > = ({ signal }) =>
+    statisticsControllerGetTelemetryStats(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type StatisticsControllerGetTelemetryStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>
+>;
+export type StatisticsControllerGetTelemetryStatsQueryError = unknown;
+
+export function useStatisticsControllerGetTelemetryStats<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>,
+          TError,
+          Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStatisticsControllerGetTelemetryStats<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>,
+          TError,
+          Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStatisticsControllerGetTelemetryStats<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: Admin - Get telemetry time-series stats (last 7 days)
+ */
+
+export function useStatisticsControllerGetTelemetryStats<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetTelemetryStats>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions =
+    getStatisticsControllerGetTelemetryStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: Admin - Get alert type distribution stats
+ */
+export const statisticsControllerGetAlertTypeStats = (
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<StatisticsControllerGetAlertTypeStats200>(
+    { url: `/api/admin/statistics/alerts`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getStatisticsControllerGetAlertTypeStatsQueryKey = () => {
+  return [`/api/admin/statistics/alerts`] as const;
+};
+
+export const getStatisticsControllerGetAlertTypeStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getStatisticsControllerGetAlertTypeStatsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>
+  > = ({ signal }) =>
+    statisticsControllerGetAlertTypeStats(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type StatisticsControllerGetAlertTypeStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>
+>;
+export type StatisticsControllerGetAlertTypeStatsQueryError = unknown;
+
+export function useStatisticsControllerGetAlertTypeStats<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>,
+          TError,
+          Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStatisticsControllerGetAlertTypeStats<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>,
+          TError,
+          Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStatisticsControllerGetAlertTypeStats<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: Admin - Get alert type distribution stats
+ */
+
+export function useStatisticsControllerGetAlertTypeStats<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetAlertTypeStats>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions =
+    getStatisticsControllerGetAlertTypeStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: Admin - Get media upload stats (last 7 days)
+ */
+export const statisticsControllerGetMediaStats = (
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<StatisticsControllerGetMediaStats200>(
+    { url: `/api/admin/statistics/media`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getStatisticsControllerGetMediaStatsQueryKey = () => {
+  return [`/api/admin/statistics/media`] as const;
+};
+
+export const getStatisticsControllerGetMediaStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getStatisticsControllerGetMediaStatsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>
+  > = ({ signal }) => statisticsControllerGetMediaStats(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type StatisticsControllerGetMediaStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>
+>;
+export type StatisticsControllerGetMediaStatsQueryError = unknown;
+
+export function useStatisticsControllerGetMediaStats<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>,
+          TError,
+          Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStatisticsControllerGetMediaStats<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>,
+          TError,
+          Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStatisticsControllerGetMediaStats<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: Admin - Get media upload stats (last 7 days)
+ */
+
+export function useStatisticsControllerGetMediaStats<
+  TData = Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statisticsControllerGetMediaStats>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions =
+    getStatisticsControllerGetMediaStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * Tạo một nhóm thiết bị mới cho user đang đăng nhập
+ * @summary Role: All - Tạo nhóm thiết bị
+ */
+export const deviceGroupsControllerCreate = (
+  createDeviceGroupDto: CreateDeviceGroupDto,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    {
+      url: `/api/device-groups`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: createDeviceGroupDto,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getDeviceGroupsControllerCreateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deviceGroupsControllerCreate>>,
+    TError,
+    { data: CreateDeviceGroupDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deviceGroupsControllerCreate>>,
+  TError,
+  { data: CreateDeviceGroupDto },
+  TContext
+> => {
+  const mutationKey = ["deviceGroupsControllerCreate"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deviceGroupsControllerCreate>>,
+    { data: CreateDeviceGroupDto }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return deviceGroupsControllerCreate(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeviceGroupsControllerCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deviceGroupsControllerCreate>>
+>;
+export type DeviceGroupsControllerCreateMutationBody = CreateDeviceGroupDto;
+export type DeviceGroupsControllerCreateMutationError = unknown;
+
+/**
+ * @summary Role: All - Tạo nhóm thiết bị
+ */
+export const useDeviceGroupsControllerCreate = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deviceGroupsControllerCreate>>,
+      TError,
+      { data: CreateDeviceGroupDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deviceGroupsControllerCreate>>,
+  TError,
+  { data: CreateDeviceGroupDto },
+  TContext
+> => {
+  const mutationOptions =
+    getDeviceGroupsControllerCreateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * Trả về danh sách nhóm kèm số lượng thiết bị của mỗi nhóm
+ * @summary Role: All - Lấy danh sách nhóm thiết bị
+ */
+export const deviceGroupsControllerFindAll = (
+  params?: DeviceGroupsControllerFindAllParams,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/device-groups`, method: "GET", params, signal },
+    options,
+  );
+};
+
+export const getDeviceGroupsControllerFindAllInfiniteQueryKey = (
+  params?: DeviceGroupsControllerFindAllParams,
+) => {
+  return [
+    "infinate",
+    `/api/device-groups`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getDeviceGroupsControllerFindAllQueryKey = (
+  params?: DeviceGroupsControllerFindAllParams,
+) => {
+  return [`/api/device-groups`, ...(params ? [params] : [])] as const;
+};
+
+export const getDeviceGroupsControllerFindAllInfiniteQueryOptions = <
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+    DeviceGroupsControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: DeviceGroupsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        DeviceGroupsControllerFindAllParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getDeviceGroupsControllerFindAllInfiniteQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+    QueryKey,
+    DeviceGroupsControllerFindAllParams["page"]
+  > = ({ signal, pageParam }) =>
+    deviceGroupsControllerFindAll(
+      { ...params, page: pageParam || params?.["page"] },
+      requestOptions,
+      signal,
+    );
+
+  return { queryKey, queryFn, ...queryOptions } as UseInfiniteQueryOptions<
+    Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+    TError,
+    TData,
+    QueryKey,
+    DeviceGroupsControllerFindAllParams["page"]
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type DeviceGroupsControllerFindAllInfiniteQueryResult = NonNullable<
+  Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>
+>;
+export type DeviceGroupsControllerFindAllInfiniteQueryError = unknown;
+
+export function useDeviceGroupsControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+    DeviceGroupsControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params: undefined | DeviceGroupsControllerFindAllParams,
+  options: {
+    query: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        DeviceGroupsControllerFindAllParams["page"]
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDeviceGroupsControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+    DeviceGroupsControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: DeviceGroupsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        DeviceGroupsControllerFindAllParams["page"]
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDeviceGroupsControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+    DeviceGroupsControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: DeviceGroupsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        DeviceGroupsControllerFindAllParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Lấy danh sách nhóm thiết bị
+ */
+
+export function useDeviceGroupsControllerFindAllInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+    DeviceGroupsControllerFindAllParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: DeviceGroupsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+        TError,
+        TData,
+        QueryKey,
+        DeviceGroupsControllerFindAllParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getDeviceGroupsControllerFindAllInfiniteQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useInfiniteQuery(
+    queryOptions,
+    queryClient,
+  ) as UseInfiniteQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const getDeviceGroupsControllerFindAllQueryOptions = <
+  TData = Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: DeviceGroupsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getDeviceGroupsControllerFindAllQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>
+  > = ({ signal }) =>
+    deviceGroupsControllerFindAll(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type DeviceGroupsControllerFindAllQueryResult = NonNullable<
+  Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>
+>;
+export type DeviceGroupsControllerFindAllQueryError = unknown;
+
+export function useDeviceGroupsControllerFindAll<
+  TData = Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+  TError = unknown,
+>(
+  params: undefined | DeviceGroupsControllerFindAllParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDeviceGroupsControllerFindAll<
+  TData = Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: DeviceGroupsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDeviceGroupsControllerFindAll<
+  TData = Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: DeviceGroupsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Lấy danh sách nhóm thiết bị
+ */
+
+export function useDeviceGroupsControllerFindAll<
+  TData = Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+  TError = unknown,
+>(
+  params?: DeviceGroupsControllerFindAllParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindAll>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getDeviceGroupsControllerFindAllQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Lấy chi tiết nhóm thiết bị
+ */
+export const deviceGroupsControllerFindOne = (
+  id: string,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/device-groups/${id}`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getDeviceGroupsControllerFindOneQueryKey = (id?: string) => {
+  return [`/api/device-groups/${id}`] as const;
+};
+
+export const getDeviceGroupsControllerFindOneQueryOptions = <
+  TData = Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>,
+  TError = ErrorResponseDto,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getDeviceGroupsControllerFindOneQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>
+  > = ({ signal }) => deviceGroupsControllerFindOne(id, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type DeviceGroupsControllerFindOneQueryResult = NonNullable<
+  Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>
+>;
+export type DeviceGroupsControllerFindOneQueryError = ErrorResponseDto;
+
+export function useDeviceGroupsControllerFindOne<
+  TData = Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>,
+  TError = ErrorResponseDto,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDeviceGroupsControllerFindOne<
+  TData = Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>,
+  TError = ErrorResponseDto,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDeviceGroupsControllerFindOne<
+  TData = Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>,
+  TError = ErrorResponseDto,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Lấy chi tiết nhóm thiết bị
+ */
+
+export function useDeviceGroupsControllerFindOne<
+  TData = Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>,
+  TError = ErrorResponseDto,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceGroupsControllerFindOne>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getDeviceGroupsControllerFindOneQueryOptions(
+    id,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Cập nhật nhóm thiết bị
+ */
+export const deviceGroupsControllerUpdate = (
+  id: string,
+  updateDeviceGroupDto: UpdateDeviceGroupDto,
+  options?: SecondParameter<typeof orvalClient>,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    {
+      url: `/api/device-groups/${id}`,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      data: updateDeviceGroupDto,
+    },
+    options,
+  );
+};
+
+export const getDeviceGroupsControllerUpdateMutationOptions = <
+  TError = ErrorResponseDto,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deviceGroupsControllerUpdate>>,
+    TError,
+    { id: string; data: UpdateDeviceGroupDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deviceGroupsControllerUpdate>>,
+  TError,
+  { id: string; data: UpdateDeviceGroupDto },
+  TContext
+> => {
+  const mutationKey = ["deviceGroupsControllerUpdate"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deviceGroupsControllerUpdate>>,
+    { id: string; data: UpdateDeviceGroupDto }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return deviceGroupsControllerUpdate(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeviceGroupsControllerUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deviceGroupsControllerUpdate>>
+>;
+export type DeviceGroupsControllerUpdateMutationBody = UpdateDeviceGroupDto;
+export type DeviceGroupsControllerUpdateMutationError = ErrorResponseDto;
+
+/**
+ * @summary Role: All - Cập nhật nhóm thiết bị
+ */
+export const useDeviceGroupsControllerUpdate = <
+  TError = ErrorResponseDto,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deviceGroupsControllerUpdate>>,
+      TError,
+      { id: string; data: UpdateDeviceGroupDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deviceGroupsControllerUpdate>>,
+  TError,
+  { id: string; data: UpdateDeviceGroupDto },
+  TContext
+> => {
+  const mutationOptions =
+    getDeviceGroupsControllerUpdateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * Khi xóa nhóm, các thiết bị thuộc nhóm sẽ bị gỡ khỏi nhóm
+ * @summary Role: All - Xóa nhóm thiết bị
+ */
+export const deviceGroupsControllerRemove = (
+  id: string,
+  options?: SecondParameter<typeof orvalClient>,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/device-groups/${id}`, method: "DELETE" },
+    options,
+  );
+};
+
+export const getDeviceGroupsControllerRemoveMutationOptions = <
+  TError = ErrorResponseDto,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deviceGroupsControllerRemove>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deviceGroupsControllerRemove>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["deviceGroupsControllerRemove"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deviceGroupsControllerRemove>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deviceGroupsControllerRemove(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeviceGroupsControllerRemoveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deviceGroupsControllerRemove>>
+>;
+
+export type DeviceGroupsControllerRemoveMutationError = ErrorResponseDto;
+
+/**
+ * @summary Role: All - Xóa nhóm thiết bị
+ */
+export const useDeviceGroupsControllerRemove = <
+  TError = ErrorResponseDto,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deviceGroupsControllerRemove>>,
+      TError,
+      { id: string },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deviceGroupsControllerRemove>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationOptions =
+    getDeviceGroupsControllerRemoveMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * Gán hàng loạt thiết bị vào nhóm. Những thiết bị không thuộc sở hữu của user sẽ bị bỏ qua.
+ * @summary Role: All - Gán thiết bị vào nhóm
+ */
+export const deviceGroupsControllerAssignDevices = (
+  id: string,
+  assignDevicesDto: AssignDevicesDto,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    {
+      url: `/api/device-groups/${id}/devices`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: assignDevicesDto,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getDeviceGroupsControllerAssignDevicesMutationOptions = <
+  TError = ErrorResponseDto,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deviceGroupsControllerAssignDevices>>,
+    TError,
+    { id: string; data: AssignDevicesDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deviceGroupsControllerAssignDevices>>,
+  TError,
+  { id: string; data: AssignDevicesDto },
+  TContext
+> => {
+  const mutationKey = ["deviceGroupsControllerAssignDevices"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deviceGroupsControllerAssignDevices>>,
+    { id: string; data: AssignDevicesDto }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return deviceGroupsControllerAssignDevices(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeviceGroupsControllerAssignDevicesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deviceGroupsControllerAssignDevices>>
+>;
+export type DeviceGroupsControllerAssignDevicesMutationBody = AssignDevicesDto;
+export type DeviceGroupsControllerAssignDevicesMutationError = ErrorResponseDto;
+
+/**
+ * @summary Role: All - Gán thiết bị vào nhóm
+ */
+export const useDeviceGroupsControllerAssignDevices = <
+  TError = ErrorResponseDto,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deviceGroupsControllerAssignDevices>>,
+      TError,
+      { id: string; data: AssignDevicesDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deviceGroupsControllerAssignDevices>>,
+  TError,
+  { id: string; data: AssignDevicesDto },
+  TContext
+> => {
+  const mutationOptions =
+    getDeviceGroupsControllerAssignDevicesMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Role: All - Gỡ thiết bị khỏi nhóm
+ */
+export const deviceGroupsControllerRemoveDevices = (
+  id: string,
+  assignDevicesDto: AssignDevicesDto,
+  options?: SecondParameter<typeof orvalClient>,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    {
+      url: `/api/device-groups/${id}/devices`,
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      data: assignDevicesDto,
+    },
+    options,
+  );
+};
+
+export const getDeviceGroupsControllerRemoveDevicesMutationOptions = <
+  TError = ErrorResponseDto,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deviceGroupsControllerRemoveDevices>>,
+    TError,
+    { id: string; data: AssignDevicesDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deviceGroupsControllerRemoveDevices>>,
+  TError,
+  { id: string; data: AssignDevicesDto },
+  TContext
+> => {
+  const mutationKey = ["deviceGroupsControllerRemoveDevices"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deviceGroupsControllerRemoveDevices>>,
+    { id: string; data: AssignDevicesDto }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return deviceGroupsControllerRemoveDevices(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeviceGroupsControllerRemoveDevicesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deviceGroupsControllerRemoveDevices>>
+>;
+export type DeviceGroupsControllerRemoveDevicesMutationBody = AssignDevicesDto;
+export type DeviceGroupsControllerRemoveDevicesMutationError = ErrorResponseDto;
+
+/**
+ * @summary Role: All - Gỡ thiết bị khỏi nhóm
+ */
+export const useDeviceGroupsControllerRemoveDevices = <
+  TError = ErrorResponseDto,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deviceGroupsControllerRemoveDevices>>,
+      TError,
+      { id: string; data: AssignDevicesDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deviceGroupsControllerRemoveDevices>>,
+  TError,
+  { id: string; data: AssignDevicesDto },
+  TContext
+> => {
+  const mutationOptions =
+    getDeviceGroupsControllerRemoveDevicesMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };

@@ -1,62 +1,124 @@
 import { AppHeader } from "@/components/app-header";
-import { User, ShieldCheck, Activity, Award } from "lucide-react";
+import {
+  Cpu,
+  ShieldAlert,
+  BarChart3,
+  HardDrive,
+} from "lucide-react";
+import { StatsCard } from "./components/stats-card";
+import { MapView } from "./components/map-view";
+import { DeviceList } from "./components/device-list";
+import { AlertTable } from "./components/alert-table";
+import { MediaLogs } from "./components/media-logs";
+import {
+  type DashboardDevice,
+  type DashboardAlert,
+  type DashboardMediaLog,
+  type DashboardGeofence,
+} from "@/types";
+
+const mockDevices: DashboardDevice[] = [];
+const mockAlerts: DashboardAlert[] = [];
+const mockMediaLogs: DashboardMediaLog[] = [];
+const mockGeofences: DashboardGeofence[] = [];
+const dashboardStats = {
+  totalDevices: 0,
+  onlineDevices: 0,
+  offlineDevices: 0,
+  alerts24h: 0,
+  criticalAlerts: 0,
+  warningAlerts: 0,
+  telemetryPoints: 0,
+  telemetryRate: "0/min",
+  mediaUsed: "0 GB",
+  mediaTotal: "0 GB",
+  mediaPercent: 0,
+};
+
+import { authClient } from "@/utils/auth-client";
+import { Navigate } from "react-router-dom";
 
 export default function DashboardPage() {
+  const { useSession } = authClient;
+  const { data: session } = useSession();
+
+  if (session?.user?.role === "admin") {
+    return <Navigate to="/admin/monitoring" replace />;
+  }
+
   const stats = [
-    { label: "Account Status", value: "Verified", icon: ShieldCheck, color: "text-green-500", bg: "bg-green-500/10" },
-    { label: "Role", value: "User", icon: User, color: "text-primary", bg: "bg-primary/10" },
-    { label: "Last Login", value: "Just now", icon: Activity, color: "text-orange-500", bg: "bg-orange-500/10" },
-    { label: "Trust Score", value: "98%", icon: Award, color: "text-purple-500", bg: "bg-purple-500/10" },
+    {
+      title: "Total Devices",
+      value: dashboardStats.totalDevices,
+      subtitle: `${dashboardStats.onlineDevices} online · ${dashboardStats.offlineDevices} offline`,
+      icon: Cpu,
+      iconColor: "text-blue-500",
+      iconBg: "bg-blue-500/10",
+      trend: { value: `${Math.round((dashboardStats.onlineDevices / dashboardStats.totalDevices) * 100)}% uptime`, positive: true },
+    },
+    {
+      title: "Alerts (24h)",
+      value: dashboardStats.alerts24h,
+      subtitle: `${dashboardStats.criticalAlerts} critical · ${dashboardStats.warningAlerts} warning`,
+      icon: ShieldAlert,
+      iconColor: "text-red-400",
+      iconBg: "bg-red-500/10",
+      trend: { value: `${dashboardStats.criticalAlerts} critical`, positive: false },
+    },
+    {
+      title: "Telemetry Points",
+      value: dashboardStats.telemetryPoints.toLocaleString(),
+      subtitle: `Rate: ${dashboardStats.telemetryRate}`,
+      icon: BarChart3,
+      iconColor: "text-emerald-500",
+      iconBg: "bg-emerald-500/10",
+      trend: { value: "↑ 12.3%", positive: true },
+    },
+    {
+      title: "Media Storage",
+      value: dashboardStats.mediaUsed,
+      subtitle: `of ${dashboardStats.mediaTotal} total (${dashboardStats.mediaPercent}%)`,
+      icon: HardDrive,
+      iconColor: "text-amber-500",
+      iconBg: "bg-amber-500/10",
+    },
   ];
 
   return (
     <>
-      <AppHeader title="Dashboard" />
-      <div className="flex flex-1 flex-col gap-6 p-6 mesh-gradient/10 min-h-full">
-        <div className="flex flex-col gap-2">
-          <h2 className="text-3xl font-bold tracking-tight text-gradient">Welcome back!</h2>
-          <p className="text-muted-foreground">Here's what happening with your account today.</p>
-        </div>
+      <AppHeader
+        title="Overview"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Overview" },
+        ]}
+      />
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
+        {/* Row 1: Stats Cards */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
-            <div key={stat.label} className="glass rounded-2xl p-6 flex items-center gap-4 shadow-sm hover:shadow-md transition-all hover:scale-[1.02] active:scale-[0.98] border-primary/5">
-              <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
-                <stat.icon className="size-6" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                <p className="text-2xl font-bold tracking-tight">{stat.value}</p>
-              </div>
-            </div>
+            <StatsCard key={stat.title} {...stat} />
           ))}
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-          <div className="lg:col-span-4 glass rounded-3xl p-8 min-h-[400px] border-primary/5 flex flex-col justify-center items-center text-center gap-4">
-             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
-                <Activity className="size-8" />
-             </div>
-             <h3 className="text-xl font-bold">Activity Overview</h3>
-             <p className="text-muted-foreground max-w-sm">No recent activity detected. Connect your services to start seeing data here.</p>
+        {/* Row 2: Map + Device Status */}
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-10">
+          <div className="lg:col-span-7">
+            <MapView devices={mockDevices} geofences={mockGeofences} />
           </div>
-          <div className="lg:col-span-3 glass rounded-3xl p-8 min-h-[400px] border-primary/5 flex flex-col gap-6">
-            <h3 className="text-xl font-bold">Secruity Tips</h3>
-            <div className="space-y-4">
-              {[
-                "Enable 2FA login for extra security",
-                "Regularly update your password",
-                "Check active sessions frequently",
-                "Monitor login attempts in logs"
-              ].map((tip, i) => (
-                <div key={i} className="flex gap-3 items-start group">
-                  <div className="mt-1 size-5 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                    <ShieldCheck className="size-3" />
-                  </div>
-                  <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">{tip}</p>
-                </div>
-              ))}
-            </div>
+          <div className="lg:col-span-3">
+            <DeviceList devices={mockDevices} />
+          </div>
+        </div>
+
+        {/* Row 3: Alerts + Media Logs */}
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-10">
+          <div className="lg:col-span-6">
+            <AlertTable alerts={mockAlerts} />
+          </div>
+          <div className="lg:col-span-4">
+            <MediaLogs logs={mockMediaLogs} />
           </div>
         </div>
       </div>

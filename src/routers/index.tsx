@@ -12,8 +12,25 @@ import AppLayout from "@/components/app-layout";
 import Login from "@/pages/login/login";
 import Register from "@/pages/register/register";
 import ForgotPassword from "@/pages/forgot-password/forgot-password";
+import AdminRoute from "./AdminRoute";
 import Dashboard from "@/pages/dashboard/dashboard";
+import MyDevices from "@/pages/my-devices/my-devices";
+import DeviceDetail from "@/pages/device-detail/device-detail";
+import MyGeofences from "@/pages/my-geofences/my-geofences";
+import MyAlerts from "@/pages/my-alerts/my-alerts";
+import AdminUsers from "@/pages/admin/users/admin-users";
+import AdminMonitoring from "@/pages/admin/monitoring/admin-monitoring";
+import AdminResources from "@/pages/admin/resources/admin-resources";
+import AdminStatistics from "@/pages/admin/statistics/admin-statistics";
 import VerifyOtp from "@/pages/verify-otp/verify-otp";
+
+// New Pages
+import TrackHistory from "@/pages/track-history/track-history";
+import MediaLogs from "@/pages/media-logs/media-logs";
+import StoragePage from "@/pages/storage/storage";
+import TelemetryPage from "@/pages/telemetry/telemetry";
+import DeviceGroupsPage from "@/pages/device-groups/device-groups";
+import RealTimeMap from "@/pages/real-time-map/real-time-map";
 
 const Root = () => {
   const location = useLocation();
@@ -78,6 +95,68 @@ export const router = createBrowserRouter([
               {
                 index: true,
                 element: <Dashboard />,
+              },
+              {
+                path: "my-devices",
+                element: <MyDevices />,
+              },
+              {
+                path: "my-devices/:id",
+                element: <DeviceDetail />,
+              },
+              {
+                path: "device-groups",
+                element: <DeviceGroupsPage />,
+              },
+              {
+                path: "my-geofences",
+                element: <MyGeofences />,
+              },
+              {
+                path: "my-alerts",
+                element: <MyAlerts />,
+              },
+              {
+                path: "track-history",
+                element: <TrackHistory />,
+              },
+              {
+                path: "real-time-map",
+                element: <RealTimeMap />,
+              },
+              {
+                path: "media-logs",
+                element: <MediaLogs />,
+              },
+              {
+                path: "storage",
+                element: <StoragePage />,
+              },
+              {
+                path: "telemetry",
+                element: <TelemetryPage />,
+              },
+              // Admin routes (Role: Admin)
+              {
+                element: <AdminRoute />,
+                children: [
+                  {
+                    path: "admin/users",
+                    element: <AdminUsers />,
+                  },
+                  {
+                    path: "admin/monitoring",
+                    element: <AdminMonitoring />,
+                  },
+                  {
+                    path: "admin/resources",
+                    element: <AdminResources />,
+                  },
+                  {
+                    path: "admin/statistics",
+                    element: <AdminStatistics />,
+                  },
+                ],
               },
               // Add more protected pages here, each gets sidebar + header automatically
             ],
