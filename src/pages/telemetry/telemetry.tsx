@@ -246,10 +246,10 @@ export default function TelemetryPage() {
   return (
     <>
       <AppHeader
-        title="Telemetry Data Explorer"
+        title="Khám phá dữ liệu viễn trắc"
         breadcrumbs={[
-          { label: "Telemetry" },
-          { label: "Data Explorer" },
+          { label: "Viễn trắc" },
+          { label: "Khám phá dữ liệu" },
         ]}
       />
 
@@ -257,7 +257,7 @@ export default function TelemetryPage() {
         {/* Page title */}
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Telemetry Data Explorer
+            Khám phá dữ liệu viễn trắc
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Khám phá và phân tích dữ liệu telemetry từ các thiết bị GNSS.

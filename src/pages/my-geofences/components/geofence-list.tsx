@@ -100,6 +100,15 @@ export function GeofenceList({
                   }
                 }
 
+                const zoneLabel =
+                  geo.type === "forbidden_zone"
+                    ? "Vùng cấm"
+                    : "Vùng được phép";
+                const zoneDescription =
+                  geo.type === "forbidden_zone"
+                    ? "Thiết bị không được đi vào vùng này."
+                    : "Thiết bị phải ở trong vùng này.";
+
                 return (
                   <div
                     key={geo.id}
@@ -159,6 +168,26 @@ export function GeofenceList({
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                    </div>
+
+                    {/* Zone type */}
+                    <div className="flex flex-wrap items-center gap-2 mb-2.5 text-[10px]">
+                      <Badge
+                        className="px-2 py-0.5 text-[10px] font-medium"
+                        style={{
+                          backgroundColor:
+                            geo.type === "forbidden_zone"
+                              ? "#fee2e2"
+                              : "#dbeafe",
+                          color:
+                            geo.type === "forbidden_zone"
+                              ? "#b91c1c"
+                              : "#0f172a",
+                        }}
+                      >
+                        {zoneLabel}
+                      </Badge>
+                      <span className="text-muted-foreground">{zoneDescription}</span>
                     </div>
 
                     {/* Meta */}

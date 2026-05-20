@@ -93,9 +93,9 @@ function GroupTreeItem({
     query: { enabled: addDialogOpen },
   });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const allDevices: any[] = (devicesResponse as any)?.data ?? [];
+  const allDevices: any[] = useMemo(() => (devicesResponse as any)?.data ?? [], [devicesResponse]);
 
-  const devices = detail?.devices ?? [];
+  const devices = useMemo(() => detail?.devices ?? [], [detail?.devices]);
   const deviceIdsInGroup = useMemo(
     () => new Set(devices.map((d) => d.id)),
     [devices]
@@ -543,10 +543,10 @@ export default function DeviceGroupsPage() {
   return (
     <>
       <AppHeader
-        title="Device Groups"
+        title="Nhóm thiết bị"
         breadcrumbs={[
-          { label: "Devices" },
-          { label: "Device Groups" },
+          { label: "Thiết bị" },
+          { label: "Nhóm thiết bị" },
         ]}
       />
 
@@ -555,7 +555,7 @@ export default function DeviceGroupsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              Device Groups
+              Nhóm thiết bị
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Quản lý và phân nhóm các thiết bị GNSS để dễ dàng theo dõi.

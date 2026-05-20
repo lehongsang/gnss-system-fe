@@ -181,7 +181,7 @@ export default function AdminResourcesPage() {
 
   return (
     <>
-      <AppHeader title="Resources" breadcrumbs={[{ label: "Admin", href: "/" }, { label: "Resources" }]} />
+      <AppHeader title="Tài nguyên" breadcrumbs={[{ label: "Admin", href: "/" }, { label: "Tài nguyên" }]} />
       <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>

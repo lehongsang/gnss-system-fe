@@ -132,10 +132,10 @@ export default function DeviceDetailPage() {
   return (
     <>
       <AppHeader
-        title="Device Detail"
+        title="Chi tiết thiết bị"
         breadcrumbs={[
-          { label: "Devices" },
-          { label: "My Devices", href: "/my-devices" },
+          { label: "Thiết bị" },
+          { label: "Thiết bị của tôi", href: "/my-devices" },
           { label: device.name },
         ]}
       />

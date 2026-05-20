@@ -12,13 +12,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Pentagon } from "lucide-react";
 
+type GeofenceFormType = "allowed_zone" | "forbidden_zone";
+
 interface GeofenceFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   pointCount: number;
-  initialData?: { name: string; color: string } | null;
-  onSubmit: (data: { name: string; color: string }) => Promise<void> | void;
+  initialData?: { name: string; color: string; type: GeofenceFormType } | null;
+  onSubmit: (data: { name: string; color: string; type: GeofenceFormType }) => Promise<void> | void;
 }
+
+const DEFAULT_TYPE_COLORS: Record<GeofenceFormType, string> = {
+  allowed_zone: "#3b82f6",
+  forbidden_zone: "#ef4444",
+};
 
 const PRESET_COLORS = [
   "#3b82f6",
@@ -39,7 +46,8 @@ export function GeofenceFormDialog({
   onSubmit,
 }: GeofenceFormDialogProps) {
   const [name, setName] = useState("");
-  const [color, setColor] = useState(PRESET_COLORS[0]);
+  const [zoneType, setZoneType] = useState<GeofenceFormType>("allowed_zone");
+  const [color, setColor] = useState(DEFAULT_TYPE_COLORS.allowed_zone);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -47,10 +55,12 @@ export function GeofenceFormDialog({
     if (open) {
       if (initialData) {
         setName(initialData.name);
-        setColor(initialData.color || PRESET_COLORS[0]);
+        setZoneType(initialData.type || "allowed_zone");
+        setColor(initialData.color || DEFAULT_TYPE_COLORS[initialData.type] || DEFAULT_TYPE_COLORS.allowed_zone);
       } else {
         setName("");
-        setColor(PRESET_COLORS[0]);
+        setZoneType("allowed_zone");
+        setColor(DEFAULT_TYPE_COLORS.allowed_zone);
       }
       setErrors({});
       setIsSubmitting(false);
@@ -75,9 +85,10 @@ export function GeofenceFormDialog({
 
     setIsSubmitting(true);
     try {
-      await onSubmit({ name: name.trim(), color });
+      await onSubmit({ name: name.trim(), color, type: zoneType });
       setName("");
-      setColor(PRESET_COLORS[0]);
+      setZoneType("allowed_zone");
+      setColor(DEFAULT_TYPE_COLORS.allowed_zone);
       setErrors({});
       onOpenChange(false);
     } catch (error) {
@@ -124,6 +135,34 @@ export function GeofenceFormDialog({
                   {errors.name}
                 </p>
               )}
+            </div>
+
+            {/* Zone Type */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Loại vùng</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={zoneType === "allowed_zone" ? "secondary" : "outline"}
+                  className="text-sm"
+                  onClick={() => setZoneType("allowed_zone")}
+                >
+                  Vùng được phép
+                </Button>
+                <Button
+                  type="button"
+                  variant={zoneType === "forbidden_zone" ? "secondary" : "outline"}
+                  className="text-sm"
+                  onClick={() => setZoneType("forbidden_zone")}
+                >
+                  Vùng cấm
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {zoneType === "allowed_zone"
+                  ? "Thiết bị phải di chuyển bên trong vùng này. Cảnh báo khi rời vùng."
+                  : "Thiết bị không được đi vào bên trong vùng này. Cảnh báo khi vào vùng."}
+              </p>
             </div>
 
             {/* Color Picker */}

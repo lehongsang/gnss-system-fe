@@ -39,7 +39,8 @@ export default function MyGeofencesPage() {
     return {
       id: g.id,
       name: g.name ?? "",
-      color: g.color ?? "#3b82f6",
+      type: g.type ?? "allowed_zone",
+      color: g.color ?? (g.type === "forbidden_zone" ? "#ef4444" : "#3b82f6"),
       paths: Array.isArray(g.paths) ? g.paths : [],
       assignedDevices: Array.isArray(g.Devices) ? g.Devices : [],
       createdAt: g.createdAt ?? "",
@@ -110,17 +111,19 @@ export default function MyGeofencesPage() {
   };
 
   // Create geofence
-  const handleCreateGeofence = async (data: { name: string; color: string }) => {
+  const handleCreateGeofence = async (data: { name: string; color: string; type: "allowed_zone" | "forbidden_zone" }) => {
     try {
       const coordinates = drawPoints.map((p) => [p.lng, p.lat]);
       if (coordinates.length > 0) {
         coordinates.push([drawPoints[0].lng, drawPoints[0].lat]);
       }
 
+      const color = data.color || (data.type === "forbidden_zone" ? "#ef4444" : "#3b82f6");
       const response = await createGeofence({
         data: {
           name: data.name,
-          color: data.color,
+          type: data.type,
+          color,
           geom: {
             type: "Polygon",
             coordinates: [coordinates],
@@ -134,7 +137,8 @@ export default function MyGeofencesPage() {
       const newGeofence: GeofenceZone = {
         id: newGeoData?.id ?? `temp-${Date.now()}`,
         name: data.name,
-        color: data.color || "#3b82f6",
+        type: data.type,
+        color,
         paths: [...drawPoints],
         assignedDevices: [],
         createdAt: newGeoData?.createdAt ?? new Date().toISOString(),
@@ -162,7 +166,7 @@ export default function MyGeofencesPage() {
   };
 
   // Update geofence
-  const handleUpdateGeofence = async (data: { name: string; color: string }) => {
+  const handleUpdateGeofence = async (data: { name: string; color: string; type: "allowed_zone" | "forbidden_zone" }) => {
     if (!editingGeofence) return;
     try {
       await updateGeofence({
@@ -170,6 +174,7 @@ export default function MyGeofencesPage() {
         data: {
           name: data.name,
           color: data.color,
+          type: data.type,
         } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       });
 
@@ -296,10 +301,10 @@ export default function MyGeofencesPage() {
   return (
     <>
       <AppHeader
-        title="My Geofences"
+        title="Vùng địa lý của tôi"
         breadcrumbs={[
-          { label: "Geofences" },
-          { label: "My Geofences" },
+          { label: "Vùng địa lý" },
+          { label: "Vùng địa lý của tôi" },
         ]}
       />
 
@@ -307,7 +312,7 @@ export default function MyGeofencesPage() {
         {/* Page title + Draw button */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">My Geofences</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Vùng địa lý của tôi</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Tạo và quản lý các vùng giám sát trên bản đồ.
             </p>
@@ -385,7 +390,11 @@ export default function MyGeofencesPage() {
           }
         }}
         pointCount={editingGeofence ? editingGeofence.vertexCount || editingGeofence.paths.length : drawPoints.length}
-        initialData={editingGeofence ? { name: editingGeofence.name, color: editingGeofence.color } : null}
+        initialData={
+          editingGeofence
+            ? { name: editingGeofence.name, color: editingGeofence.color, type: editingGeofence.type }
+            : null
+        }
         onSubmit={(data) => {
           if (editingGeofence) {
             return handleUpdateGeofence(data);

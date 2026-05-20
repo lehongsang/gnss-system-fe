@@ -58,7 +58,8 @@ export default function TrackHistory() {
   const allGeofences: GeofenceZone[] = rawGeofences.map((g: any) => ({
     id: g.id,
     name: g.name ?? "",
-    color: g.color ?? "#3b82f6",
+    type: g.type ?? "allowed_zone",
+    color: g.color ?? (g.type === "forbidden_zone" ? "#ef4444" : "#3b82f6"),
     paths: Array.isArray(g.paths) ? g.paths : [],
     assignedDevices: Array.isArray(g.Devices) ? g.Devices : [],
     createdAt: g.createdAt ?? "",
@@ -66,7 +67,15 @@ export default function TrackHistory() {
   }));
 
   const deviceGeofences = allGeofences.filter((g) => 
-    g.assignedDevices.some((dev: any) => dev.id === selectedDeviceId || dev === selectedDeviceId)
+    g.assignedDevices.some((dev: unknown) => {
+      if (typeof dev === "string") {
+        return dev === selectedDeviceId;
+      }
+      if (dev && typeof dev === "object" && "id" in dev) {
+        return (dev as { id: string }).id === selectedDeviceId;
+      }
+      return false;
+    })
   );
 
   // Parse history
@@ -108,16 +117,16 @@ export default function TrackHistory() {
   return (
     <>
       <AppHeader
-        title="Track History"
+        title="Lịch sử di chuyển"
         breadcrumbs={[
-          { label: "Live Tracking" },
-          { label: "Track History" },
+          { label: "Theo dõi trực tiếp" },
+          { label: "Lịch sử di chuyển" },
         ]}
       />
       <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Track History</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Lịch sử di chuyển</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Xem lại lịch sử di chuyển của thiết bị theo thời gian.
             </p>

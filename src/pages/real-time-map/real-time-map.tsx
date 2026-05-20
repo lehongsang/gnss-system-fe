@@ -97,10 +97,10 @@ export default function RealTimeMap() {
   return (
     <>
       <AppHeader
-        title="Real-time Map"
+        title="Bản đồ thời gian thực"
         breadcrumbs={[
-          { label: "Live Tracking" },
-          { label: "Real-time Map" },
+          { label: "Theo dõi trực tiếp" },
+          { label: "Bản đồ thời gian thực" },
         ]}
       />
       <div className="flex flex-1 flex-col p-0 min-h-[calc(100vh-64px)] overflow-hidden relative">

@@ -156,6 +156,32 @@ export function GeofenceMap({
               <p className="text-[10px] text-muted-foreground mt-0.5">
                 {geofences.length} vùng đã tạo
               </p>
+              {selectedGeo && (
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px]">
+                  <Badge
+                    className="px-2 py-0.5 text-[10px] font-medium"
+                    style={{
+                      backgroundColor:
+                        selectedGeo.type === "forbidden_zone"
+                          ? "#fee2e2"
+                          : "#dbeafe",
+                      color:
+                        selectedGeo.type === "forbidden_zone"
+                          ? "#b91c1c"
+                          : "#1e3a8a",
+                    }}
+                  >
+                    {selectedGeo.type === "forbidden_zone"
+                      ? "Vùng cấm"
+                      : "Vùng được phép"}
+                  </Badge>
+                  <span className="text-muted-foreground">
+                    {selectedGeo.type === "forbidden_zone"
+                      ? "Thiết bị không được vào vùng này."
+                      : "Thiết bị phải ở trong vùng này."}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           {isDrawing && (
@@ -196,6 +222,9 @@ export function GeofenceMap({
             {/* Existing geofences */}
             {geofences.map((geo) => {
               const isSelected = geo.id === selectedId;
+              const zoneColor =
+                geo.color ||
+                (geo.type === "forbidden_zone" ? "#ef4444" : "#3b82f6");
               return (
                 <Source
                   key={geo.id}
@@ -207,7 +236,7 @@ export function GeofenceMap({
                     id={`geofence-fill-${geo.id}`}
                     type="fill"
                     paint={{
-                      "fill-color": geo.color,
+                      "fill-color": zoneColor,
                       "fill-opacity": isSelected ? 0.3 : 0.15,
                     }}
                   />
@@ -215,7 +244,7 @@ export function GeofenceMap({
                     id={`geofence-line-${geo.id}`}
                     type="line"
                     paint={{
-                      "line-color": geo.color,
+                      "line-color": zoneColor,
                       "line-width": isSelected ? 3 : 2,
                       "line-dasharray": isSelected ? [1, 0] : [4, 2],
                     }}

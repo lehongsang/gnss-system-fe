@@ -62,10 +62,10 @@ export function DeviceList({ devices }: DeviceListProps) {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10 text-violet-500">
               <Satellite className="h-4 w-4" />
             </div>
-            <CardTitle className="text-sm font-semibold">Device Status</CardTitle>
+            <CardTitle className="text-sm font-semibold">Trạng thái thiết bị</CardTitle>
           </div>
           <Badge variant="outline" className="text-[10px] font-mono px-2 py-0.5 border-muted-foreground/20">
-            {devices.length} devices
+            {devices.length} thiết bị
           </Badge>
         </div>
       </CardHeader>

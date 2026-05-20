@@ -98,16 +98,16 @@ export default function MediaLogs() {
   return (
     <>
       <AppHeader
-        title="Media Logs"
+        title="Nhật ký Media"
         breadcrumbs={[
-          { label: "Media Logs" },
-          { label: "Media Logs" },
+          { label: "Nhật ký Media" },
+          { label: "Nhật ký Media" },
         ]}
       />
       <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Media Logs</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Nhật ký Media</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Quản lý các đoạn video và hình ảnh được ghi lại từ các thiết bị.
             </p>

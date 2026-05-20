@@ -324,8 +324,8 @@ export default function VisionFeed() {
   return (
     <>
       <AppHeader
-        title="Vision Feed"
-        breadcrumbs={[{ label: "Media Logs" }, { label: "Vision Feed" }]}
+        title="Luồng Video"
+        breadcrumbs={[{ label: "Nhật ký Media" }, { label: "Luồng Video" }]}
       />
       <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
         {/* Top Bar */}
@@ -337,7 +337,7 @@ export default function VisionFeed() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">
-                  Vision Feed
+                  Luồng Video
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   Giám sát hình ảnh mới nhất từ các thiết bị

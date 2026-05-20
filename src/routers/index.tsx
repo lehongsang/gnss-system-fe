@@ -33,6 +33,7 @@ import TelemetryCharts from "@/pages/telemetry-charts/telemetry-charts";
 import DeviceGroupsPage from "@/pages/device-groups/device-groups";
 import RealTimeMap from "@/pages/real-time-map/real-time-map";
 import VisionFeed from "@/pages/vision-feed/vision-feed";
+import LiveStreamPage from "@/pages/live-stream/live-stream";
 
 const Root = () => {
   const location = useLocation();
@@ -129,6 +130,10 @@ export const router = createBrowserRouter([
               {
                 path: "vision-feed",
                 element: <VisionFeed />,
+              },
+              {
+                path: "live-stream",
+                element: <LiveStreamPage />,
               },
               {
                 path: "media-logs",

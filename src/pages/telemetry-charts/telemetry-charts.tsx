@@ -238,8 +238,8 @@ export default function TelemetryCharts() {
   return (
     <>
       <AppHeader
-        title="Telemetry Charts"
-        breadcrumbs={[{ label: "Telemetry" }, { label: "Charts" }]}
+        title="Biểu đồ viễn trắc"
+        breadcrumbs={[{ label: "Viễn trắc" }, { label: "Biểu đồ" }]}
       />
       <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
         {/* Page Header */}
@@ -250,7 +250,7 @@ export default function TelemetryCharts() {
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight">
-                Telemetry Charts
+                Biểu đồ viễn trắc
               </h1>
               <p className="text-sm text-muted-foreground">
                 Trực quan hóa dữ liệu GNSS telemetry theo thời gian

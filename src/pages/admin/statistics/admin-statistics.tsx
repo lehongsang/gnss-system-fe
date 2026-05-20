@@ -78,7 +78,7 @@ export default function AdminStatisticsPage() {
 
   return (
     <>
-      <AppHeader title="System Statistics" breadcrumbs={[{ label: "Admin", href: "/" }, { label: "System Statistics" }]} />
+      <AppHeader title="Thống kê hệ thống" breadcrumbs={[{ label: "Admin", href: "/" }, { label: "Thống kê hệ thống" }]} />
       <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>

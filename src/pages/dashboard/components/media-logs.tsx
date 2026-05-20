@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Camera, Eye, ScanSearch } from "lucide-react";
+import { Camera, Eye, ScanSearch, Loader2, Video } from "lucide-react";
 import type { DashboardMediaLog as MediaLog } from "@/types";
+import { useMediaLogsControllerGetStreamUrl } from "@/services/apis/gen/queries";
 
 function timeAgo(ts: string) {
   const diff = Math.floor((new Date("2026-04-22T15:41:00+07:00").getTime() - new Date(ts).getTime()) / 60000);
@@ -47,6 +48,68 @@ function PlaceholderThumb({ object, index }: { object: string; index: number }) 
   );
 }
 
+function MediaLogItem({ log, index }: { log: MediaLog; index: number }) {
+  const { data: streamResponse, isLoading } = useMediaLogsControllerGetStreamUrl(log.id);
+
+  const getUrl = () => {
+    if (!streamResponse) return log.thumbnail;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = (streamResponse as any).data ?? streamResponse;
+    const url = data?.url || data?.data?.url || (typeof streamResponse === 'string' ? streamResponse : null);
+    return url || log.thumbnail;
+  };
+
+  const streamUrl = getUrl();
+  const isVideo = log.objectDetected === "Video recording";
+
+  return (
+    <div className="group flex gap-3 rounded-lg p-2 transition-colors hover:bg-accent/30 cursor-pointer border border-transparent hover:border-border/40">
+      {/* Thumbnail */}
+      <div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-black flex items-center justify-center relative">
+        {isLoading ? (
+          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+        ) : isVideo ? (
+          <>
+            <video
+              src={streamUrl ? streamUrl + "#t=0.001" : undefined}
+              className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+              preload="metadata"
+              playsInline
+              muted
+            />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/20">
+              <Video className="w-5 h-5 text-white/95 drop-shadow" />
+            </div>
+          </>
+        ) : streamUrl ? (
+          <img
+            src={streamUrl}
+            alt="Media capture"
+            className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity group-hover:scale-105 duration-300"
+          />
+        ) : (
+          <PlaceholderThumb object={log.objectDetected} index={index} />
+        )}
+      </div>
+      {/* Info */}
+      <div className="flex-1 min-w-0 space-y-1">
+        <div className="flex items-center gap-2">
+          <Eye className="h-3 w-3 text-cyan-500 shrink-0" />
+          <p className="text-xs font-semibold truncate">{log.objectDetected}</p>
+        </div>
+        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+          <span className="font-mono">{log.confidence}%</span>
+          <span>·</span>
+          <span>{log.resolution}</span>
+          <span>·</span>
+          <span>{timeAgo(log.timestamp)}</span>
+        </div>
+        <p className="text-[10px] text-muted-foreground font-mono truncate">{log.deviceName} ({log.deviceId})</p>
+      </div>
+    </div>
+  );
+}
+
 export function MediaLogs({ logs }: { logs: MediaLog[] }) {
   return (
     <Card className="flex flex-col overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm">
@@ -57,12 +120,12 @@ export function MediaLogs({ logs }: { logs: MediaLog[] }) {
               <Camera className="h-4 w-4" />
             </div>
             <div>
-              <CardTitle className="text-sm font-semibold">Recent Media Logs</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">Vision detections</p>
+              <CardTitle className="text-sm font-semibold">Nhật ký Media gần đây</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">Nhận diện hình ảnh</p>
             </div>
           </div>
           <Badge variant="outline" className="text-[10px] font-mono px-2 py-0.5 border-cyan-500/30 text-cyan-400">
-            {logs.length} captures
+            {logs.length} lượt ghi
           </Badge>
         </div>
       </CardHeader>
@@ -71,27 +134,7 @@ export function MediaLogs({ logs }: { logs: MediaLog[] }) {
         <ScrollArea className="h-[280px]">
           <div className="space-y-2 px-4 pb-4">
             {logs.map((log, i) => (
-              <div key={log.id} className="group flex gap-3 rounded-lg p-2 transition-colors hover:bg-accent/30 cursor-pointer border border-transparent hover:border-border/40">
-                {/* Thumbnail */}
-                <div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg">
-                  <PlaceholderThumb object={log.objectDetected} index={i} />
-                </div>
-                {/* Info */}
-                <div className="flex-1 min-w-0 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Eye className="h-3 w-3 text-cyan-500 shrink-0" />
-                    <p className="text-xs font-semibold truncate">{log.objectDetected}</p>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                    <span className="font-mono">{log.confidence}%</span>
-                    <span>·</span>
-                    <span>{log.resolution}</span>
-                    <span>·</span>
-                    <span>{timeAgo(log.timestamp)}</span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground font-mono">{log.deviceName} ({log.deviceId})</p>
-                </div>
-              </div>
+              <MediaLogItem key={log.id} log={log} index={i} />
             ))}
           </div>
         </ScrollArea>

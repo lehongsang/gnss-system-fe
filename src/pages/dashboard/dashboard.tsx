@@ -53,13 +53,9 @@ export default function DashboardPage() {
   const { data: statusRes } = useDeviceStatusMine();
 
   const { data: devicesRes } = useDevicesControllerFindMine({ limit: 100 });
-  const { data: alertsRes } = useAlertsControllerFindMine({ limit: 10, page: 1 });
+  const { data: alertsRes } = useAlertsControllerFindMine({ limit: 10, page: 1, sortBy: 'createdAt', sortOrder: 'DESC' });
   const { data: mediaLogsRes } = useMediaLogsControllerFindMine({ limit: 8, page: 1, sortBy: 'startTime', sortOrder: 'DESC' });
   const { data: geofencesRes } = useGeofencesControllerFindMine({ limit: 100 });
-
-  if (session?.user?.role === "admin") {
-    return <Navigate to="/admin/monitoring" replace />;
-  }
 
   // --- Data Parsing ---
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -85,11 +81,11 @@ export default function DashboardPage() {
     : 0;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rawDevices = ((devicesRes as any)?.data ?? []) as any[];
+  const rawDevices = useMemo(() => ((devicesRes as any)?.data ?? []) as any[], [devicesRes]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rawStatuses = (statusRes as any) ?? [];
+  const rawStatuses = useMemo(() => (statusRes as any) ?? [], [statusRes]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rawTelemetry = (telemetryRes as any) ?? [];
+  const rawTelemetry = useMemo(() => (telemetryRes as any) ?? [], [telemetryRes]);
 
   const mappedDevices: DashboardDevice[] = useMemo(() => {
     return rawDevices.map((d) => {
@@ -116,7 +112,7 @@ export default function DashboardPage() {
   }, [rawDevices, rawStatuses, rawTelemetry]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rawGeofences = ((geofencesRes as any)?.data ?? []) as any[];
+  const rawGeofences = useMemo(() => ((geofencesRes as any)?.data ?? []) as any[], [geofencesRes]);
   const mappedGeofences: DashboardGeofence[] = useMemo(() => {
     return rawGeofences.map(g => ({
       id: g.id,
@@ -127,7 +123,7 @@ export default function DashboardPage() {
   }, [rawGeofences]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rawAlerts = ((alertsRes as any)?.data ?? []) as any[];
+  const rawAlerts = useMemo(() => ((alertsRes as any)?.data ?? []) as any[], [alertsRes]);
   const mappedAlerts: DashboardAlert[] = useMemo(() => {
     return rawAlerts.map(a => ({
       id: a.id,
@@ -141,7 +137,7 @@ export default function DashboardPage() {
   }, [rawAlerts]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rawMediaLogs = ((mediaLogsRes as any)?.data ?? (mediaLogsRes as any)?.data?.data ?? []) as any[];
+  const rawMediaLogs = useMemo(() => ((mediaLogsRes as any)?.data ?? (mediaLogsRes as any)?.data?.data ?? []) as any[], [mediaLogsRes]);
   const mappedMediaLogs: DashboardMediaLog[] = useMemo(() => {
     return rawMediaLogs.map(m => ({
       id: m.id,
@@ -155,6 +151,10 @@ export default function DashboardPage() {
     }));
   }, [rawMediaLogs, rawDevices]);
 
+  if (session?.user?.role === "admin") {
+    return <Navigate to="/admin/monitoring" replace />;
+  }
+
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: dashboardKeys.stats });
     queryClient.invalidateQueries({ queryKey: dashboardKeys.latestTelemetry });
@@ -166,7 +166,7 @@ export default function DashboardPage() {
 
   const statsCards = [
     {
-      title: "Total Devices",
+      title: "Tổng thiết bị",
       value: rawStats.totalDevices,
       subtitle: `${rawStats.onlineDevices} online · ${rawStats.offlineDevices} offline`,
       icon: Cpu,
@@ -175,7 +175,7 @@ export default function DashboardPage() {
       trend: { value: `${uptime}% uptime`, positive: true },
     },
     {
-      title: "Alerts (24h)",
+      title: "Cảnh báo (24h)",
       value: rawStats.alerts24h,
       subtitle: `${rawStats.criticalAlerts} critical · ${rawStats.warningAlerts} warning`,
       icon: ShieldAlert,
@@ -184,7 +184,7 @@ export default function DashboardPage() {
       trend: { value: `${rawStats.criticalAlerts} critical`, positive: false },
     },
     {
-      title: "Telemetry Points",
+      title: "Điểm viễn trắc",
       value: rawStats.telemetryPoints.toLocaleString(),
       subtitle: `Rate: ${rawStats.telemetryRate}`,
       icon: BarChart3,
@@ -192,7 +192,7 @@ export default function DashboardPage() {
       iconBg: "bg-emerald-500/10",
     },
     {
-      title: "Media Storage",
+      title: "Lưu trữ bộ nhớ",
       value: formatBytes(rawStats.mediaUsedBytes),
       subtitle: `of ${formatBytes(rawStats.mediaTotalBytes)} total (${mediaPercent}%)`,
       icon: HardDrive,
@@ -204,10 +204,9 @@ export default function DashboardPage() {
   return (
     <>
       <AppHeader
-        title="Overview"
+        title="Bảng điều khiển"
         breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Overview" },
+          { label: "Bảng điều khiển" },
         ]}
       />
 

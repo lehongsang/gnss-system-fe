@@ -85,10 +85,10 @@ export function MapView({ devices, geofences }: MapViewProps) {
           </div>
           <div>
             <CardTitle className="text-sm font-semibold">
-              Live Map — Hà Nội · ĐHBK
+              Bản đồ trực tiếp
             </CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {onlineCount} active · {offlineCount} offline
+              {onlineCount} đang hoạt động · {offlineCount} ngoại tuyến
             </p>
           </div>
         </div>
@@ -98,7 +98,7 @@ export function MapView({ devices, geofences }: MapViewProps) {
             className="text-[10px] gap-1 px-2 py-0.5 font-mono border-emerald-500/30 text-emerald-500"
           >
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            LIVE
+            TRỰC TIẾP
           </Badge>
           <button className="h-7 w-7 rounded-md border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors">
             <Layers className="h-3.5 w-3.5" />
@@ -237,14 +237,14 @@ export function MapView({ devices, geofences }: MapViewProps) {
                       color: "#94a3b8",
                     }}
                   >
-                    <span>Status</span>
+                    <span>Trạng thái</span>
                     <span
                       style={{
                         fontWeight: 600,
                         color: selectedDevice.status === "online" ? "#10b981" : "#ef4444",
                       }}
                     >
-                      {selectedDevice.status.toUpperCase()}
+                      {selectedDevice.status === "online" ? "ĐANG CHẠY" : "MẤT KẾT NỐI"}
                     </span>
 
                     <span>HDOP / VDOP</span>
@@ -254,17 +254,17 @@ export function MapView({ devices, geofences }: MapViewProps) {
                         : "—"}
                     </span>
 
-                    <span>Satellites</span>
+                    <span>Vệ tinh</span>
                     <span style={{ fontFamily: "monospace", fontWeight: 600, color: "#e2e8f0" }}>
                       {selectedDevice.satellites}/{selectedDevice.maxSatellites}
                     </span>
 
-                    <span>Battery</span>
+                    <span>Pin</span>
                     <span style={{ fontFamily: "monospace", fontWeight: 600, color: "#e2e8f0" }}>
                       {selectedDevice.battery}%
                     </span>
 
-                    <span>Coords</span>
+                    <span>Tọa độ</span>
                     <span style={{ fontFamily: "monospace", fontSize: 10, color: "#cbd5e1" }}>
                       {selectedDevice.lat.toFixed(4)}, {selectedDevice.lng.toFixed(4)}
                     </span>

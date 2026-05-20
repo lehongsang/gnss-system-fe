@@ -14,15 +14,15 @@ export default function StoragePage() {
   return (
     <>
       <AppHeader
-        title="Storage"
+        title="Lưu trữ"
         breadcrumbs={[
-          { label: "Media Logs" },
-          { label: "Storage" },
+          { label: "Nhật ký Media" },
+          { label: "Lưu trữ" },
         ]}
       />
       <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Storage & Files</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Lưu trữ & Tệp</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Quản lý dung lượng lưu trữ đám mây và các tệp tin hệ thống.
           </p>

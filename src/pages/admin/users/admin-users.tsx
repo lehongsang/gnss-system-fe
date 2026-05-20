@@ -119,7 +119,7 @@ export default function AdminUsersPage() {
 
   return (
     <>
-      <AppHeader title="User Management" breadcrumbs={[{ label: "Admin", href: "/" }, { label: "User Management" }]} />
+      <AppHeader title="Quản lý người dùng" breadcrumbs={[{ label: "Admin", href: "/" }, { label: "Quản lý người dùng" }]} />
       <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Quản lý người dùng</h1>

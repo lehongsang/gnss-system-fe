@@ -122,6 +122,7 @@ export const ALERT_TYPE_CONFIG: Record<
 export interface GeofenceZone {
   id: string;
   name: string;
+  type: "allowed_zone" | "forbidden_zone";
   color: string;
   paths: { lat: number; lng: number }[];
   assignedDevices: string[];

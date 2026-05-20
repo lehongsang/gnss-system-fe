@@ -46,16 +46,16 @@ export function AlertTable({ alerts }: { alerts: Alert[] }) {
               <ShieldAlert className="h-4 w-4" />
             </div>
             <div>
-              <CardTitle className="text-sm font-semibold">Recent Alerts</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">Last 24 hours</p>
+              <CardTitle className="text-sm font-semibold">Cảnh báo gần đây</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">Trong 24 giờ qua</p>
             </div>
           </div>
           <div className="flex gap-1.5">
             <Badge variant="outline" className="text-[10px] font-mono px-2 py-0.5 border-red-500/30 text-red-400">
-              {alerts.filter(a => a.severity === "critical").length} critical
+              {alerts.filter(a => a.severity === "critical").length} nguy cấp
             </Badge>
             <Badge variant="outline" className="text-[10px] font-mono px-2 py-0.5 border-amber-500/30 text-amber-500">
-              {alerts.filter(a => a.severity === "warning").length} warning
+              {alerts.filter(a => a.severity === "warning").length} cảnh báo
             </Badge>
           </div>
         </div>
@@ -65,11 +65,11 @@ export function AlertTable({ alerts }: { alerts: Alert[] }) {
           <Table>
             <TableHeader>
               <TableRow className="border-border/30 hover:bg-transparent">
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8 pl-5">Severity</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8">Device</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8">Message</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8">Time</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8 pr-5">Status</TableHead>
+                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8 pl-5">Mức độ</TableHead>
+                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8">Thiết bị</TableHead>
+                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8">Tin nhắn</TableHead>
+                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8">Thời gian</TableHead>
+                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8 pr-5">Trạng thái</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -236,10 +236,10 @@ export default function MyDevicesPage() {
   return (
     <>
       <AppHeader
-        title="My Devices"
+        title="Thiết bị của tôi"
         breadcrumbs={[
-          { label: "Devices" },
-          { label: "My Devices" },
+          { label: "Thiết bị" },
+          { label: "Thiết bị của tôi" },
         ]}
       />
 
@@ -247,7 +247,7 @@ export default function MyDevicesPage() {
         {/* Page title + Add button */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">My Devices</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Thiết bị của tôi</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Quản lý và giám sát tất cả các thiết bị GNSS của bạn.
             </p>

@@ -34,93 +34,94 @@ import {
 // Navigation data — GNSS Vision System
 const userNavMain = [
   {
-    title: "Dashboard",
+    title: "Bảng điều khiển",
     url: "/",
     icon: LayoutDashboard,
     isActive: true,
   },
   {
-    title: "Devices",
+    title: "Thiết bị",
     url: "#",
     icon: Cpu,
     items: [
-      { title: "My Devices", url: "/my-devices" },
-      { title: "Device Groups", url: "/device-groups" },
+      { title: "Thiết bị của tôi", url: "/my-devices" },
+      { title: "Nhóm thiết bị", url: "/device-groups" },
     ],
   },
   {
-    title: "Live Tracking",
+    title: "Theo dõi trực tiếp",
     url: "#",
     icon: MapPinned,
     items: [
-      { title: "Real-time Map", url: "/real-time-map" },
-      { title: "Track History", url: "/track-history" },
+      { title: "Bản đồ thời gian thực", url: "/real-time-map" },
+      { title: "Lịch sử di chuyển", url: "/track-history" },
     ],
   },
   {
-    title: "Telemetry",
+    title: "Viễn trắc",
     url: "#",
     icon: Activity,
     items: [
-      { title: "Data Explorer", url: "/telemetry" },
-      { title: "Charts", url: "/telemetry-charts" },
+      { title: "Khám phá dữ liệu", url: "/telemetry" },
+      { title: "Biểu đồ", url: "/telemetry-charts" },
     ],
   },
   {
-    title: "Geofences",
+    title: "Vùng địa lý",
     url: "/my-geofences",
     icon: Pentagon,
   },
   {
-    title: "Alerts & Media",
+    title: "Cảnh báo & Media",
     url: "#",
     icon: Bell,
     items: [
-      { title: "My Alerts & Media", url: "/my-alerts" },
-      { title: "Alert Rules", url: "#" },
+      { title: "Cảnh báo & Media của tôi", url: "/my-alerts" },
+      { title: "Quy tắc cảnh báo", url: "#" },
     ],
   },
   {
-    title: "Media Logs",
+    title: "Nhật ký Media",
     url: "#",
     icon: Film,
     items: [
-      { title: "Vision Feed", url: "/vision-feed" },
-      { title: "Media Logs", url: "/media-logs" },
-      { title: "Storage", url: "/storage" },
+      { title: "Live Stream", url: "/live-stream" },
+      { title: "Luồng Video", url: "/vision-feed" },
+      { title: "Nhật ký Media", url: "/media-logs" },
+      { title: "Lưu trữ", url: "/storage" },
     ],
   },
   {
-    title: "Settings",
+    title: "Cài đặt",
     url: "#",
     icon: Settings2,
     items: [
-      { title: "General", url: "#" },
-      { title: "Integrations", url: "#" },
-      { title: "Team", url: "#" },
+      { title: "Chung", url: "#" },
+      { title: "Tích hợp", url: "#" },
+      { title: "Đội nhóm", url: "#" },
     ],
   },
 ];
 
 const adminNavMain = [
   {
-    title: "Global Monitoring",
+    title: "Giám sát toàn cầu",
     url: "/admin/monitoring",
     icon: Globe,
     isActive: true,
   },
   {
-    title: "User Management",
+    title: "Quản lý người dùng",
     url: "/admin/users",
     icon: Users,
   },
   {
-    title: "Resources",
+    title: "Tài nguyên",
     url: "/admin/resources",
     icon: Database,
   },
   {
-    title: "System Statistics",
+    title: "Thống kê hệ thống",
     url: "/admin/statistics",
     icon: BarChart4,
   },

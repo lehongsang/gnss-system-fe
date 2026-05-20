@@ -141,10 +141,10 @@ export default function MyAlertsPage() {
   return (
     <>
       <AppHeader
-        title="My Alerts & Media"
+        title="Cảnh báo & Media của tôi"
         breadcrumbs={[
-          { label: "Alerts & Media" },
-          { label: "My Alerts & Media" },
+          { label: "Cảnh báo & Media" },
+          { label: "Cảnh báo & Media của tôi" },
         ]}
       />
 
@@ -152,7 +152,7 @@ export default function MyAlertsPage() {
         {/* Page title */}
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            My Alerts & Media
+            Cảnh báo & Media của tôi
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Xem và quản lý cảnh báo từ các thiết bị, bao gồm ảnh và video đính

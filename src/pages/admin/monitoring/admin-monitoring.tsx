@@ -67,7 +67,7 @@ export default function AdminMonitoringPage() {
 
   return (
     <>
-      <AppHeader title="Global Monitoring" breadcrumbs={[{ label: "Admin", href: "/" }, { label: "Global Monitoring" }]} />
+      <AppHeader title="Giám sát toàn cầu" breadcrumbs={[{ label: "Admin", href: "/" }, { label: "Giám sát toàn cầu" }]} />
       <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Giám sát tổng thể</h1>
