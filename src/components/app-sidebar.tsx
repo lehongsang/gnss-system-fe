@@ -63,18 +63,13 @@ const userNavMain = [
     icon: Activity,
     items: [
       { title: "Data Explorer", url: "/telemetry" },
-      { title: "Charts", url: "#" },
-      { title: "Export", url: "#" },
+      { title: "Charts", url: "/telemetry-charts" },
     ],
   },
   {
     title: "Geofences",
-    url: "#",
+    url: "/my-geofences",
     icon: Pentagon,
-    items: [
-      { title: "My Geofences", url: "/my-geofences" },
-      { title: "Zone Alerts", url: "#" },
-    ],
   },
   {
     title: "Alerts & Media",
@@ -90,7 +85,7 @@ const userNavMain = [
     url: "#",
     icon: Film,
     items: [
-      { title: "Vision Feed", url: "#" },
+      { title: "Vision Feed", url: "/vision-feed" },
       { title: "Media Logs", url: "/media-logs" },
       { title: "Storage", url: "/storage" },
     ],

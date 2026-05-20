@@ -84,6 +84,8 @@ export default function MediaLogs() {
     deviceId: selectedDeviceId !== "all" ? selectedDeviceId : undefined,
     page,
     limit,
+    sortBy: 'startTime',
+    sortOrder: 'DESC',
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

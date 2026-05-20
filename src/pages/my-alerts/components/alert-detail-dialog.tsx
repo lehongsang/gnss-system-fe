@@ -20,6 +20,7 @@ import {
 
 } from "lucide-react";
 import { ALERT_TYPE_CONFIG, type UserAlert } from "@/types";
+import { useMediaLogsControllerGetStreamUrl } from "@/services/apis/gen/queries";
 
 interface AlertDetailDialogProps {
   open: boolean;
@@ -46,6 +47,23 @@ export function AlertDetailDialog({
   onResolve,
 }: AlertDetailDialogProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  const { data: streamResponse, isLoading: isLoadingMedia } = useMediaLogsControllerGetStreamUrl(
+    alert?.media?.mediaLogId || "",
+    { query: { enabled: !!alert?.media?.mediaLogId && open } }
+  );
+
+  const getMediaUrl = () => {
+    if (!alert?.media) return "";
+    if (!alert.media.mediaLogId) return alert.media.url;
+    if (!streamResponse) return alert.media.url;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = (streamResponse as any).data ?? streamResponse;
+    const url = data?.url || data?.data?.url || (typeof streamResponse === 'string' ? streamResponse : null);
+    return url || alert.media.url;
+  };
+
+  const actualMediaUrl = getMediaUrl();
 
   if (!alert) return null;
 
@@ -156,11 +174,15 @@ export function AlertDetailDialog({
                     className="relative group rounded-lg overflow-hidden border border-border/30 cursor-pointer"
                     onClick={() => setLightboxOpen(true)}
                   >
-                    <img
-                      src={alert.media.url}
-                      alt="Alert snapshot"
-                      className="w-full h-[240px] object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
+                    {isLoadingMedia ? (
+                      <div className="w-full h-[240px] bg-muted/50 animate-pulse rounded-lg flex items-center justify-center text-muted-foreground text-xs">Đang tải ảnh...</div>
+                    ) : (
+                      <img
+                        src={actualMediaUrl}
+                        alt="Alert snapshot"
+                        className="w-full h-[240px] object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    )}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                       <ZoomIn className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
@@ -168,14 +190,18 @@ export function AlertDetailDialog({
                 ) : (
                   /* Video Player with progress bar */
                   <div className="rounded-lg overflow-hidden border border-border/30">
-                    <video
-                      controls
-                      className="w-full h-[240px] bg-black"
-                      poster={alert.media.thumbnail}
-                    >
-                      <source src={alert.media.url} type="video/mp4" />
-                      Trình duyệt không hỗ trợ video.
-                    </video>
+                    {isLoadingMedia ? (
+                      <div className="w-full h-[240px] bg-muted/50 animate-pulse rounded-lg flex items-center justify-center text-muted-foreground text-xs">Đang tải video...</div>
+                    ) : (
+                      <video
+                        controls
+                        className="w-full h-[240px] bg-black"
+                        poster={alert.media.thumbnail}
+                      >
+                        <source src={actualMediaUrl} type="video/mp4" />
+                        Trình duyệt không hỗ trợ video.
+                      </video>
+                    )}
                   </div>
                 )}
               </div>
@@ -211,7 +237,7 @@ export function AlertDetailDialog({
             <X className="h-5 w-5 text-white" />
           </button>
           <img
-            src={alert.media.url}
+            src={actualMediaUrl}
             alt="Alert snapshot full"
             className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
             onClick={(e) => e.stopPropagation()}

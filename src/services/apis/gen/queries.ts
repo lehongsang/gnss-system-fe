@@ -65,6 +65,16 @@ export type ErrorResponseDto = {
   data?: ErrorResponseDtoData;
 };
 
+export type AppResponseSerialization = { [key: string]: unknown };
+
+export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SortOrder = {
+  ASC: "ASC",
+  DESC: "DESC",
+} as const;
+
 /**
  * Upload processing status
  */
@@ -76,6 +86,8 @@ export const MediaStatus = {
   COMPLETED: "COMPLETED",
   FAILED: "FAILED",
 } as const;
+
+export type MediaCreatedBy = { [key: string]: unknown };
 
 export type MediaDeletedAt = { [key: string]: unknown };
 
@@ -97,6 +109,7 @@ export type Media = {
   url?: string;
   /** Upload processing status */
   status: MediaStatus;
+  createdBy?: MediaCreatedBy;
   deletedAt?: MediaDeletedAt;
 };
 
@@ -151,8 +164,6 @@ export type User = {
   isVerifiedKyc?: boolean;
 };
 
-export type AppResponseSerialization = { [key: string]: unknown };
-
 export type DefaultMessageResponseDto = {
   message: string;
 };
@@ -180,14 +191,6 @@ export type UserResendOtpDto = {
   /** User email */
   email: string;
 };
-
-export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const SortOrder = {
-  ASC: "ASC",
-  DESC: "DESC",
-} as const;
 
 export type CreateDeviceDto = {
   name: string;
@@ -231,6 +234,55 @@ export type UpdateGeofenceDto = {
 
 export type AssignDeviceDto = {
   deviceId: string;
+};
+
+/**
+ * File extension of the media to be uploaded
+ */
+export type RequestUploadUrlDtoFileExtension =
+  (typeof RequestUploadUrlDtoFileExtension)[keyof typeof RequestUploadUrlDtoFileExtension];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RequestUploadUrlDtoFileExtension = {
+  jpg: "jpg",
+  jpeg: "jpeg",
+  png: "png",
+  webp: "webp",
+  mp4: "mp4",
+  avi: "avi",
+  mkv: "mkv",
+} as const;
+
+export type RequestUploadUrlDto = {
+  /** UUID of the device requesting upload */
+  deviceId: string;
+  /** File extension of the media to be uploaded */
+  fileExtension: RequestUploadUrlDtoFileExtension;
+  /** Optional custom filename (without extension). Defaults to auto-generated timestamp-based name. */
+  filename?: string;
+};
+
+/**
+ * Type of media that was uploaded
+ */
+export type ConfirmUploadDtoMediaType =
+  (typeof ConfirmUploadDtoMediaType)[keyof typeof ConfirmUploadDtoMediaType];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ConfirmUploadDtoMediaType = {
+  image: "image",
+  video: "video",
+} as const;
+
+export type ConfirmUploadDto = {
+  /** UUID of the device that performed the upload */
+  deviceId: string;
+  /** S3 object key returned by the request-upload-url endpoint */
+  s3Key: string;
+  /** Type of media that was uploaded */
+  mediaType: ConfirmUploadDtoMediaType;
+  /** Optional correlation ID used to link this upload to an alert */
+  snapshotId?: string;
 };
 
 export type SystemOverviewResponse = {
@@ -290,6 +342,51 @@ export type AssignDevicesDto = {
   deviceIds: string[];
 };
 
+export type DashboardStatsResponse = {
+  /** Total devices owned by the current user */
+  totalDevices: number;
+  /** Online devices owned by the current user */
+  onlineDevices: number;
+  /** Offline devices owned by the current user */
+  offlineDevices: number;
+  /** Alerts created in the last 24 hours */
+  alerts24h: number;
+  /** Critical alerts created in the last 24 hours */
+  criticalAlerts: number;
+  /** Warning alerts created in the last 24 hours */
+  warningAlerts: number;
+  /** Informational alerts created in the last 24 hours */
+  infoAlerts: number;
+  /** Total telemetry points for the current user devices */
+  telemetryPoints: number;
+  /** Telemetry ingestion rate for the last minute */
+  telemetryRate: string;
+  /** Known media storage usage in bytes */
+  mediaUsedBytes: number;
+  /** Configured media storage quota in bytes */
+  mediaTotalBytes: number;
+};
+
+export type StorageControllerGetFilesParams = {
+  search?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: SortOrder;
+  /**
+   * Filter by type: archive/document/video/image
+   */
+  type?: string;
+};
+
+export type StorageControllerUploadFileBodyOne = {
+  file?: Blob;
+};
+
+export type StorageControllerUploadFileBodyTwo = {
+  file?: Blob;
+};
+
 export type UsersControllerUpdateMeBody = {
   avatar?: Blob;
 };
@@ -313,12 +410,12 @@ export type DevicesControllerFindMineParams = {
 export type TelemetryControllerGetHistoryParams = {
   search?: string;
   page?: number;
-  sortBy?: string;
-  sortOrder?: SortOrder;
   /**
    * Giới hạn tối đa 500
    */
   limit?: number;
+  sortBy?: string;
+  sortOrder?: SortOrder;
   from: string;
   to: string;
 };
@@ -481,6 +578,900 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+/**
+ * @summary Get storage quota and usage
+ */
+export const storageControllerGetQuota = (
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/storage/quota`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getStorageControllerGetQuotaQueryKey = () => {
+  return [`/api/storage/quota`] as const;
+};
+
+export const getStorageControllerGetQuotaQueryOptions = <
+  TData = Awaited<ReturnType<typeof storageControllerGetQuota>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof storageControllerGetQuota>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getStorageControllerGetQuotaQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof storageControllerGetQuota>>
+  > = ({ signal }) => storageControllerGetQuota(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof storageControllerGetQuota>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type StorageControllerGetQuotaQueryResult = NonNullable<
+  Awaited<ReturnType<typeof storageControllerGetQuota>>
+>;
+export type StorageControllerGetQuotaQueryError = unknown;
+
+export function useStorageControllerGetQuota<
+  TData = Awaited<ReturnType<typeof storageControllerGetQuota>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetQuota>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof storageControllerGetQuota>>,
+          TError,
+          Awaited<ReturnType<typeof storageControllerGetQuota>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStorageControllerGetQuota<
+  TData = Awaited<ReturnType<typeof storageControllerGetQuota>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetQuota>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof storageControllerGetQuota>>,
+          TError,
+          Awaited<ReturnType<typeof storageControllerGetQuota>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStorageControllerGetQuota<
+  TData = Awaited<ReturnType<typeof storageControllerGetQuota>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetQuota>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get storage quota and usage
+ */
+
+export function useStorageControllerGetQuota<
+  TData = Awaited<ReturnType<typeof storageControllerGetQuota>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetQuota>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getStorageControllerGetQuotaQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Get paginated list of files
+ */
+export const storageControllerGetFiles = (
+  params?: StorageControllerGetFilesParams,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/storage/files`, method: "GET", params, signal },
+    options,
+  );
+};
+
+export const getStorageControllerGetFilesInfiniteQueryKey = (
+  params?: StorageControllerGetFilesParams,
+) => {
+  return [
+    "infinate",
+    `/api/storage/files`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getStorageControllerGetFilesQueryKey = (
+  params?: StorageControllerGetFilesParams,
+) => {
+  return [`/api/storage/files`, ...(params ? [params] : [])] as const;
+};
+
+export const getStorageControllerGetFilesInfiniteQueryOptions = <
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof storageControllerGetFiles>>,
+    StorageControllerGetFilesParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: StorageControllerGetFilesParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetFiles>>,
+        TError,
+        TData,
+        QueryKey,
+        StorageControllerGetFilesParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getStorageControllerGetFilesInfiniteQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof storageControllerGetFiles>>,
+    QueryKey,
+    StorageControllerGetFilesParams["page"]
+  > = ({ signal, pageParam }) =>
+    storageControllerGetFiles(
+      { ...params, page: pageParam || params?.["page"] },
+      requestOptions,
+      signal,
+    );
+
+  return { queryKey, queryFn, ...queryOptions } as UseInfiniteQueryOptions<
+    Awaited<ReturnType<typeof storageControllerGetFiles>>,
+    TError,
+    TData,
+    QueryKey,
+    StorageControllerGetFilesParams["page"]
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type StorageControllerGetFilesInfiniteQueryResult = NonNullable<
+  Awaited<ReturnType<typeof storageControllerGetFiles>>
+>;
+export type StorageControllerGetFilesInfiniteQueryError = unknown;
+
+export function useStorageControllerGetFilesInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof storageControllerGetFiles>>,
+    StorageControllerGetFilesParams["page"]
+  >,
+  TError = unknown,
+>(
+  params: undefined | StorageControllerGetFilesParams,
+  options: {
+    query: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetFiles>>,
+        TError,
+        TData,
+        QueryKey,
+        StorageControllerGetFilesParams["page"]
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof storageControllerGetFiles>>,
+          TError,
+          Awaited<ReturnType<typeof storageControllerGetFiles>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStorageControllerGetFilesInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof storageControllerGetFiles>>,
+    StorageControllerGetFilesParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: StorageControllerGetFilesParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetFiles>>,
+        TError,
+        TData,
+        QueryKey,
+        StorageControllerGetFilesParams["page"]
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof storageControllerGetFiles>>,
+          TError,
+          Awaited<ReturnType<typeof storageControllerGetFiles>>,
+          QueryKey
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStorageControllerGetFilesInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof storageControllerGetFiles>>,
+    StorageControllerGetFilesParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: StorageControllerGetFilesParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetFiles>>,
+        TError,
+        TData,
+        QueryKey,
+        StorageControllerGetFilesParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get paginated list of files
+ */
+
+export function useStorageControllerGetFilesInfinite<
+  TData = InfiniteData<
+    Awaited<ReturnType<typeof storageControllerGetFiles>>,
+    StorageControllerGetFilesParams["page"]
+  >,
+  TError = unknown,
+>(
+  params?: StorageControllerGetFilesParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetFiles>>,
+        TError,
+        TData,
+        QueryKey,
+        StorageControllerGetFilesParams["page"]
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseInfiniteQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getStorageControllerGetFilesInfiniteQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useInfiniteQuery(
+    queryOptions,
+    queryClient,
+  ) as UseInfiniteQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const getStorageControllerGetFilesQueryOptions = <
+  TData = Awaited<ReturnType<typeof storageControllerGetFiles>>,
+  TError = unknown,
+>(
+  params?: StorageControllerGetFilesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetFiles>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getStorageControllerGetFilesQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof storageControllerGetFiles>>
+  > = ({ signal }) => storageControllerGetFiles(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof storageControllerGetFiles>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type StorageControllerGetFilesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof storageControllerGetFiles>>
+>;
+export type StorageControllerGetFilesQueryError = unknown;
+
+export function useStorageControllerGetFiles<
+  TData = Awaited<ReturnType<typeof storageControllerGetFiles>>,
+  TError = unknown,
+>(
+  params: undefined | StorageControllerGetFilesParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetFiles>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof storageControllerGetFiles>>,
+          TError,
+          Awaited<ReturnType<typeof storageControllerGetFiles>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStorageControllerGetFiles<
+  TData = Awaited<ReturnType<typeof storageControllerGetFiles>>,
+  TError = unknown,
+>(
+  params?: StorageControllerGetFilesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetFiles>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof storageControllerGetFiles>>,
+          TError,
+          Awaited<ReturnType<typeof storageControllerGetFiles>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStorageControllerGetFiles<
+  TData = Awaited<ReturnType<typeof storageControllerGetFiles>>,
+  TError = unknown,
+>(
+  params?: StorageControllerGetFilesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetFiles>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get paginated list of files
+ */
+
+export function useStorageControllerGetFiles<
+  TData = Awaited<ReturnType<typeof storageControllerGetFiles>>,
+  TError = unknown,
+>(
+  params?: StorageControllerGetFilesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetFiles>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getStorageControllerGetFilesQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Upload a generic file
+ */
+export const storageControllerUploadFile = (
+  storageControllerUploadFileBody:
+    | StorageControllerUploadFileBodyOne
+    | StorageControllerUploadFileBodyTwo,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    {
+      url: `/api/storage/files/upload`,
+      method: "POST",
+      data: storageControllerUploadFileBody,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getStorageControllerUploadFileMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof storageControllerUploadFile>>,
+    TError,
+    {
+      data:
+        | StorageControllerUploadFileBodyOne
+        | StorageControllerUploadFileBodyTwo;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof storageControllerUploadFile>>,
+  TError,
+  {
+    data:
+      | StorageControllerUploadFileBodyOne
+      | StorageControllerUploadFileBodyTwo;
+  },
+  TContext
+> => {
+  const mutationKey = ["storageControllerUploadFile"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof storageControllerUploadFile>>,
+    {
+      data:
+        | StorageControllerUploadFileBodyOne
+        | StorageControllerUploadFileBodyTwo;
+    }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return storageControllerUploadFile(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type StorageControllerUploadFileMutationResult = NonNullable<
+  Awaited<ReturnType<typeof storageControllerUploadFile>>
+>;
+export type StorageControllerUploadFileMutationBody =
+  | StorageControllerUploadFileBodyOne
+  | StorageControllerUploadFileBodyTwo;
+export type StorageControllerUploadFileMutationError = unknown;
+
+/**
+ * @summary Upload a generic file
+ */
+export const useStorageControllerUploadFile = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof storageControllerUploadFile>>,
+      TError,
+      {
+        data:
+          | StorageControllerUploadFileBodyOne
+          | StorageControllerUploadFileBodyTwo;
+      },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof storageControllerUploadFile>>,
+  TError,
+  {
+    data:
+      | StorageControllerUploadFileBodyOne
+      | StorageControllerUploadFileBodyTwo;
+  },
+  TContext
+> => {
+  const mutationOptions =
+    getStorageControllerUploadFileMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Get a presigned download URL for a file
+ */
+export const storageControllerGetDownloadUrl = (
+  id: string,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/storage/files/${id}/download`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getStorageControllerGetDownloadUrlQueryKey = (id?: string) => {
+  return [`/api/storage/files/${id}/download`] as const;
+};
+
+export const getStorageControllerGetDownloadUrlQueryOptions = <
+  TData = Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getStorageControllerGetDownloadUrlQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>
+  > = ({ signal }) =>
+    storageControllerGetDownloadUrl(id, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type StorageControllerGetDownloadUrlQueryResult = NonNullable<
+  Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>
+>;
+export type StorageControllerGetDownloadUrlQueryError = unknown;
+
+export function useStorageControllerGetDownloadUrl<
+  TData = Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>,
+  TError = unknown,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>,
+          TError,
+          Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStorageControllerGetDownloadUrl<
+  TData = Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>,
+          TError,
+          Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStorageControllerGetDownloadUrl<
+  TData = Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get a presigned download URL for a file
+ */
+
+export function useStorageControllerGetDownloadUrl<
+  TData = Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof storageControllerGetDownloadUrl>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getStorageControllerGetDownloadUrlQueryOptions(
+    id,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Delete a file
+ */
+export const storageControllerDeleteFile = (
+  id: string,
+  options?: SecondParameter<typeof orvalClient>,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/storage/files/${id}`, method: "DELETE" },
+    options,
+  );
+};
+
+export const getStorageControllerDeleteFileMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof storageControllerDeleteFile>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof storageControllerDeleteFile>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["storageControllerDeleteFile"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof storageControllerDeleteFile>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return storageControllerDeleteFile(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type StorageControllerDeleteFileMutationResult = NonNullable<
+  Awaited<ReturnType<typeof storageControllerDeleteFile>>
+>;
+
+export type StorageControllerDeleteFileMutationError = unknown;
+
+/**
+ * @summary Delete a file
+ */
+export const useStorageControllerDeleteFile = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof storageControllerDeleteFile>>,
+      TError,
+      { id: string },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof storageControllerDeleteFile>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationOptions =
+    getStorageControllerDeleteFileMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
 
 export const rootControllerGetHealth = (
   options?: SecondParameter<typeof orvalClient>,
@@ -2339,6 +3330,164 @@ export function useDeviceStatusControllerGetAllStatuses<
 }
 
 /**
+ * @summary Role: All - Get statuses for my devices
+ */
+export const deviceStatusControllerGetMineStatuses = (
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/devices/status/mine`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getDeviceStatusControllerGetMineStatusesQueryKey = () => {
+  return [`/api/devices/status/mine`] as const;
+};
+
+export const getDeviceStatusControllerGetMineStatusesQueryOptions = <
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getDeviceStatusControllerGetMineStatusesQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>
+  > = ({ signal }) =>
+    deviceStatusControllerGetMineStatuses(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type DeviceStatusControllerGetMineStatusesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>
+>;
+export type DeviceStatusControllerGetMineStatusesQueryError = unknown;
+
+export function useDeviceStatusControllerGetMineStatuses<
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>,
+          TError,
+          Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDeviceStatusControllerGetMineStatuses<
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>,
+          TError,
+          Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDeviceStatusControllerGetMineStatuses<
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get statuses for my devices
+ */
+
+export function useDeviceStatusControllerGetMineStatuses<
+  TData = Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof deviceStatusControllerGetMineStatuses>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions =
+    getDeviceStatusControllerGetMineStatusesQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
  * @summary Role: All - Get device status
  */
 export const deviceStatusControllerGetStatus = (
@@ -3072,6 +4221,161 @@ export function useTelemetryControllerGetLatest<
     deviceId,
     options,
   );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Get latest telemetry for my devices
+ */
+export const telemetryControllerGetLatestMine = (
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    { url: `/api/telemetry/latest/mine`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getTelemetryControllerGetLatestMineQueryKey = () => {
+  return [`/api/telemetry/latest/mine`] as const;
+};
+
+export const getTelemetryControllerGetLatestMineQueryOptions = <
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getTelemetryControllerGetLatestMineQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>
+  > = ({ signal }) => telemetryControllerGetLatestMine(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type TelemetryControllerGetLatestMineQueryResult = NonNullable<
+  Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>
+>;
+export type TelemetryControllerGetLatestMineQueryError = unknown;
+
+export function useTelemetryControllerGetLatestMine<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>,
+          TError,
+          Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useTelemetryControllerGetLatestMine<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>,
+          TError,
+          Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useTelemetryControllerGetLatestMine<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get latest telemetry for my devices
+ */
+
+export function useTelemetryControllerGetLatestMine<
+  TData = Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof telemetryControllerGetLatestMine>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getTelemetryControllerGetLatestMineQueryOptions(options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -5722,6 +7026,195 @@ export const useGeofencesControllerRemoveDevice = <
 };
 
 /**
+ * IoT devices call this to obtain a time-limited presigned PUT URL. The device then uploads the raw file directly to S3 via HTTP PUT, bypassing the MQTT/Kafka Base64 pipeline. No authentication required.
+ * @summary Device - Request a presigned S3 upload URL for direct media upload
+ */
+export const mediaLogsControllerRequestUploadUrl = (
+  requestUploadUrlDto: RequestUploadUrlDto,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    {
+      url: `/api/media-logs/request-upload-url`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: requestUploadUrlDto,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getMediaLogsControllerRequestUploadUrlMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof mediaLogsControllerRequestUploadUrl>>,
+    TError,
+    { data: RequestUploadUrlDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof mediaLogsControllerRequestUploadUrl>>,
+  TError,
+  { data: RequestUploadUrlDto },
+  TContext
+> => {
+  const mutationKey = ["mediaLogsControllerRequestUploadUrl"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof mediaLogsControllerRequestUploadUrl>>,
+    { data: RequestUploadUrlDto }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return mediaLogsControllerRequestUploadUrl(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type MediaLogsControllerRequestUploadUrlMutationResult = NonNullable<
+  Awaited<ReturnType<typeof mediaLogsControllerRequestUploadUrl>>
+>;
+export type MediaLogsControllerRequestUploadUrlMutationBody =
+  RequestUploadUrlDto;
+export type MediaLogsControllerRequestUploadUrlMutationError = unknown;
+
+/**
+ * @summary Device - Request a presigned S3 upload URL for direct media upload
+ */
+export const useMediaLogsControllerRequestUploadUrl = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof mediaLogsControllerRequestUploadUrl>>,
+      TError,
+      { data: RequestUploadUrlDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof mediaLogsControllerRequestUploadUrl>>,
+  TError,
+  { data: RequestUploadUrlDto },
+  TContext
+> => {
+  const mutationOptions =
+    getMediaLogsControllerRequestUploadUrlMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * After uploading a file to S3 via the presigned URL, the device calls this endpoint to register the media log in the database. No authentication required.
+ * @summary Device - Confirm a successful presigned URL upload
+ */
+export const mediaLogsControllerConfirmUpload = (
+  confirmUploadDto: ConfirmUploadDto,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<AppResponseSerialization>(
+    {
+      url: `/api/media-logs/confirm-upload`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: confirmUploadDto,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getMediaLogsControllerConfirmUploadMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof mediaLogsControllerConfirmUpload>>,
+    TError,
+    { data: ConfirmUploadDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof mediaLogsControllerConfirmUpload>>,
+  TError,
+  { data: ConfirmUploadDto },
+  TContext
+> => {
+  const mutationKey = ["mediaLogsControllerConfirmUpload"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof mediaLogsControllerConfirmUpload>>,
+    { data: ConfirmUploadDto }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return mediaLogsControllerConfirmUpload(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type MediaLogsControllerConfirmUploadMutationResult = NonNullable<
+  Awaited<ReturnType<typeof mediaLogsControllerConfirmUpload>>
+>;
+export type MediaLogsControllerConfirmUploadMutationBody = ConfirmUploadDto;
+export type MediaLogsControllerConfirmUploadMutationError = unknown;
+
+/**
+ * @summary Device - Confirm a successful presigned URL upload
+ */
+export const useMediaLogsControllerConfirmUpload = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof mediaLogsControllerConfirmUpload>>,
+      TError,
+      { data: ConfirmUploadDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof mediaLogsControllerConfirmUpload>>,
+  TError,
+  { data: ConfirmUploadDto },
+  TContext
+> => {
+  const mutationOptions =
+    getMediaLogsControllerConfirmUploadMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
  * @summary Role: Admin - Get all media logs
  */
 export const mediaLogsControllerFindAll = (
@@ -6618,7 +8111,7 @@ export function useMediaLogsControllerFindOne<
 }
 
 /**
- * @summary Role: All - Get medial log stream url
+ * @summary Role: All - Get media log stream url
  */
 export const mediaLogsControllerGetStreamUrl = (
   id: string,
@@ -6752,7 +8245,7 @@ export function useMediaLogsControllerGetStreamUrl<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Role: All - Get medial log stream url
+ * @summary Role: All - Get media log stream url
  */
 
 export function useMediaLogsControllerGetStreamUrl<
@@ -8413,3 +9906,158 @@ export const useDeviceGroupsControllerRemoveDevices = <
 
   return useMutation(mutationOptions, queryClient);
 };
+
+/**
+ * @summary Role: All - Get current user dashboard statistics
+ */
+export const dashboardControllerGetStats = (
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<DashboardStatsResponse>(
+    { url: `/api/dashboard/stats`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getDashboardControllerGetStatsQueryKey = () => {
+  return [`/api/dashboard/stats`] as const;
+};
+
+export const getDashboardControllerGetStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof dashboardControllerGetStats>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof dashboardControllerGetStats>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof orvalClient>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getDashboardControllerGetStatsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof dashboardControllerGetStats>>
+  > = ({ signal }) => dashboardControllerGetStats(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof dashboardControllerGetStats>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type DashboardControllerGetStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof dashboardControllerGetStats>>
+>;
+export type DashboardControllerGetStatsQueryError = unknown;
+
+export function useDashboardControllerGetStats<
+  TData = Awaited<ReturnType<typeof dashboardControllerGetStats>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof dashboardControllerGetStats>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof dashboardControllerGetStats>>,
+          TError,
+          Awaited<ReturnType<typeof dashboardControllerGetStats>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDashboardControllerGetStats<
+  TData = Awaited<ReturnType<typeof dashboardControllerGetStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof dashboardControllerGetStats>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof dashboardControllerGetStats>>,
+          TError,
+          Awaited<ReturnType<typeof dashboardControllerGetStats>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDashboardControllerGetStats<
+  TData = Awaited<ReturnType<typeof dashboardControllerGetStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof dashboardControllerGetStats>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Role: All - Get current user dashboard statistics
+ */
+
+export function useDashboardControllerGetStats<
+  TData = Awaited<ReturnType<typeof dashboardControllerGetStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof dashboardControllerGetStats>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getDashboardControllerGetStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}

@@ -68,6 +68,7 @@ export interface UserAlert {
     type: "image_frame" | "video_chunk";
     url: string;
     thumbnail: string;
+    mediaLogId?: string;
   };
 }
 

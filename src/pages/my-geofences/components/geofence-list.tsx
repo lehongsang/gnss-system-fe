@@ -172,6 +172,44 @@ export function GeofenceList({
                       </span>
                     </div>
 
+                    {/* Coordinate Details — visible when selected */}
+                    {isSelected && geo.paths.length > 0 && (
+                      <div className="mb-2.5 rounded-md border border-border/40 bg-muted/20 p-2">
+                        <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">
+                          Tọa độ các đỉnh
+                        </p>
+                        <div className="space-y-1 max-h-[120px] overflow-y-auto">
+                          {geo.paths.map((point, idx) => {
+                            // Skip closing point
+                            if (
+                              idx === geo.paths.length - 1 &&
+                              geo.paths.length > 1 &&
+                              point.lat === geo.paths[0].lat &&
+                              point.lng === geo.paths[0].lng
+                            ) {
+                              return null;
+                            }
+                            return (
+                              <div
+                                key={idx}
+                                className="flex items-center gap-2 text-[10px] font-mono"
+                              >
+                                <span
+                                  className="inline-flex items-center justify-center w-4 h-4 rounded text-[8px] font-bold text-white shrink-0"
+                                  style={{ backgroundColor: geo.color }}
+                                >
+                                  {idx + 1}
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {point.lat.toFixed(6)}, {point.lng.toFixed(6)}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Assigned Devices */}
                     <div className="space-y-1.5">
                       <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">

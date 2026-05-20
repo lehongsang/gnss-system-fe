@@ -42,7 +42,14 @@ export default function MyAlertsPage() {
       message: a.message ?? "",
       isResolved: a.isResolved ?? false,
       timestamp: a.createdAt ?? "",
-      media: a.mediaLog
+      media: a.snapshotMediaLogId
+        ? {
+            type: "image_frame",
+            url: "",
+            thumbnail: "",
+            mediaLogId: a.snapshotMediaLogId,
+          }
+        : a.mediaLog
         ? {
             type: a.mediaLog.mediaType ?? "image_frame",
             url: a.mediaLog.media?.url ?? "",
@@ -172,17 +179,17 @@ export default function MyAlertsPage() {
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Hiển thị</span>
             <select
-              className="h-9 w-20 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="h-9 w-20 rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               value={limit}
               onChange={(e) => {
                 setLimit(Number(e.target.value));
                 setPage(1);
               }}
             >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
+              <option className="bg-background text-foreground" value={10}>10</option>
+              <option className="bg-background text-foreground" value={20}>20</option>
+              <option className="bg-background text-foreground" value={50}>50</option>
+              <option className="bg-background text-foreground" value={100}>100</option>
             </select>
             <span className="text-sm text-muted-foreground">
               / trang (Tổng: {total})

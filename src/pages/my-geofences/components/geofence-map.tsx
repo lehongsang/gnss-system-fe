@@ -2,6 +2,7 @@ import { useRef, useCallback } from "react";
 import Map, {
   Source,
   Layer,
+  Marker,
   NavigationControl,
   FullscreenControl,
   type MapRef,
@@ -10,7 +11,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Pentagon, MousePointer2 } from "lucide-react";
+import { Pentagon, MousePointer2, MapPin } from "lucide-react";
 import type { GeofenceZone } from "@/types";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN ?? "";
@@ -135,6 +136,11 @@ export function GeofenceMap({
     onSelectGeofence(null);
   };
 
+  // Compute selected geofence center for label
+  const selectedGeo = selectedId
+    ? geofences.find((g) => g.id === selectedId)
+    : null;
+
   return (
     <Card className="flex flex-col overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm h-full">
       <CardHeader className="px-5 pt-4 pb-3 space-y-0">
@@ -175,7 +181,7 @@ export function GeofenceMap({
             style={{
               width: "100%",
               height: "100%",
-              cursor: isDrawing ? "crosshair" : "grab",
+              cursor: isDrawing ? "crosshair" : "default",
             }}
             onLoad={onMapLoad}
             onClick={handleClick}
@@ -218,6 +224,47 @@ export function GeofenceMap({
               );
             })}
 
+            {/* Vertex markers for selected geofence */}
+            {selectedGeo &&
+              selectedGeo.paths.map((point, idx) => {
+                // Skip the closing point if it matches the first
+                const paths = selectedGeo.paths;
+                if (
+                  idx === paths.length - 1 &&
+                  paths.length > 1 &&
+                  point.lat === paths[0].lat &&
+                  point.lng === paths[0].lng
+                ) {
+                  return null;
+                }
+                return (
+                  <Marker
+                    key={`vertex-${selectedGeo.id}-${idx}`}
+                    latitude={point.lat}
+                    longitude={point.lng}
+                    anchor="bottom"
+                  >
+                    <div className="flex flex-col items-center">
+                      <div
+                        className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md mb-0.5 shadow-lg border border-white/20"
+                        style={{
+                          backgroundColor: selectedGeo.color,
+                          color: "#fff",
+                        }}
+                      >
+                        {idx + 1}
+                      </div>
+                      <MapPin
+                        className="w-5 h-5 drop-shadow-lg"
+                        style={{ color: selectedGeo.color }}
+                        fill={selectedGeo.color}
+                        fillOpacity={0.3}
+                      />
+                    </div>
+                  </Marker>
+                );
+              })}
+
             {/* Drawing preview */}
             {isDrawing && drawPoints.length >= 2 && (
               <Source
@@ -258,6 +305,28 @@ export function GeofenceMap({
                 )}
               </Source>
             )}
+
+            {/* Draw point markers with arrow pins */}
+            {isDrawing &&
+              drawPoints.map((point, idx) => (
+                <Marker
+                  key={`draw-point-${idx}`}
+                  latitude={point.lat}
+                  longitude={point.lng}
+                  anchor="bottom"
+                >
+                  <div className="flex flex-col items-center animate-in fade-in zoom-in duration-200">
+                    <div className="text-[9px] font-mono font-bold bg-blue-500 text-white px-1.5 py-0.5 rounded-md mb-0.5 shadow-lg border border-blue-400/50">
+                      {idx + 1}
+                    </div>
+                    <MapPin
+                      className="w-5 h-5 text-blue-500 drop-shadow-lg"
+                      fill="#3b82f6"
+                      fillOpacity={0.3}
+                    />
+                  </div>
+                </Marker>
+              ))}
           </Map>
         </div>
       </CardContent>

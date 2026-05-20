@@ -128,8 +128,6 @@ function SkeletonRow() {
   );
 }
 
-const ITEMS_PER_PAGE = 10;
-
 export default function TelemetryPage() {
   // Date range state - default to today
   const today = new Date().toISOString().split("T")[0];
@@ -140,6 +138,7 @@ export default function TelemetryPage() {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [limit, setLimit] = useState(10);
 
   // Fetch user's devices
   const { data: devicesResponse } = useDevicesControllerFindMine();
@@ -157,11 +156,12 @@ export default function TelemetryPage() {
       from: `${dateFrom}T00:00:00.000Z`,
       to: `${dateTo}T23:59:59.999Z`,
       page: currentPage,
-      limit: ITEMS_PER_PAGE,
+      limit: limit,
+      search: searchQuery || undefined,
       sortBy: "timestamp",
       sortOrder: SortOrder.DESC,
     }),
-    [dateFrom, dateTo, currentPage]
+    [dateFrom, dateTo, currentPage, limit, searchQuery]
   );
 
   // Fetch telemetry history
@@ -187,16 +187,7 @@ export default function TelemetryPage() {
   const latest = latestResponse as any;
 
   // Filter telemetry rows by search
-  const filtered = telemetryRows.filter((row) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      row.id?.toLowerCase().includes(q) ||
-      String(row.lat).includes(q) ||
-      String(row.lng).includes(q) ||
-      row.accuracyStatus?.toLowerCase().includes(q)
-    );
-  });
+  const filtered = telemetryRows;
 
   // Stats
   const avgSpeed =
@@ -391,7 +382,10 @@ export default function TelemetryPage() {
                     id="telemetry-search"
                     placeholder="ID, tọa độ, trạng thái..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="pl-8 h-9 w-[220px] text-xs bg-background/50"
                   />
                 </div>
@@ -479,7 +473,7 @@ export default function TelemetryPage() {
                 </TableHeader>
                 <TableBody>
                   {isLoadingHistory ? (
-                    Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
+                    Array.from({ length: 5 }).map((_, i) => (
                       <SkeletonRow key={`skeleton-${i}`} />
                     ))
                   ) : filtered.length === 0 ? (
@@ -591,18 +585,25 @@ export default function TelemetryPage() {
             {/* Pagination Footer */}
             {!isLoadingHistory && totalRows > 0 && (
               <div className="flex items-center justify-between border-t border-border/30 px-5 py-3">
-                <p className="text-xs text-muted-foreground">
-                  Hiển thị{" "}
-                  <span className="font-semibold text-foreground">
-                    {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
-                    {Math.min(currentPage * ITEMS_PER_PAGE, totalRows)}
-                  </span>{" "}
-                  trong tổng{" "}
-                  <span className="font-semibold text-foreground">
-                    {totalRows}
-                  </span>{" "}
-                  bản ghi
-                </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Hiển thị</span>
+                  <select
+                    className="h-8 w-16 rounded border border-input bg-background text-foreground px-2 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    value={limit}
+                    onChange={(e) => {
+                      setLimit(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <option className="bg-background text-foreground" value={10}>10</option>
+                    <option className="bg-background text-foreground" value={20}>20</option>
+                    <option className="bg-background text-foreground" value={50}>50</option>
+                    <option className="bg-background text-foreground" value={100}>100</option>
+                  </select>
+                  <span className="text-xs text-muted-foreground">
+                    / trang ({(currentPage - 1) * limit + 1}–{Math.min(currentPage * limit, totalRows)} trong {totalRows})
+                  </span>
+                </div>
                 <div className="flex items-center gap-1">
                   <Button
                     id="telemetry-pagination-prev"

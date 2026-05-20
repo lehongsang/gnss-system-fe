@@ -26,8 +26,6 @@ import {
   CheckCircle2,
   AlertTriangle,
   Cpu,
-  ChevronLeft,
-  ChevronRight,
   Image as ImageIcon,
   Video,
   Eye,

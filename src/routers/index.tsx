@@ -29,8 +29,10 @@ import TrackHistory from "@/pages/track-history/track-history";
 import MediaLogs from "@/pages/media-logs/media-logs";
 import StoragePage from "@/pages/storage/storage";
 import TelemetryPage from "@/pages/telemetry/telemetry";
+import TelemetryCharts from "@/pages/telemetry-charts/telemetry-charts";
 import DeviceGroupsPage from "@/pages/device-groups/device-groups";
 import RealTimeMap from "@/pages/real-time-map/real-time-map";
+import VisionFeed from "@/pages/vision-feed/vision-feed";
 
 const Root = () => {
   const location = useLocation();
@@ -125,6 +127,10 @@ export const router = createBrowserRouter([
                 element: <RealTimeMap />,
               },
               {
+                path: "vision-feed",
+                element: <VisionFeed />,
+              },
+              {
                 path: "media-logs",
                 element: <MediaLogs />,
               },
@@ -135,6 +141,10 @@ export const router = createBrowserRouter([
               {
                 path: "telemetry",
                 element: <TelemetryPage />,
+              },
+              {
+                path: "telemetry-charts",
+                element: <TelemetryCharts />,
               },
               // Admin routes (Role: Admin)
               {

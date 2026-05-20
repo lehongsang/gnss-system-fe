@@ -145,7 +145,7 @@ export default function AdminResourcesPage() {
       type: a.alertType ?? "",
       message: a.message ?? "",
       isResolved: a.isResolved ?? false,
-      hasMedia: !!a.snapshotUrl,
+      hasMedia: !!a.snapshotUrl || !!a.snapshotMediaLogId || !!a.mediaLog,
       timestamp: a.createdAt ?? "",
     }));
   }, [alertsRes]);
