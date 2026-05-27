@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import {
   Cpu,
@@ -127,9 +126,6 @@ export function DeviceInfoPanel({ device }: DeviceInfoPanelProps) {
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-lg font-semibold truncate">{device.name}</h2>
-              <p className="text-xs text-muted-foreground font-mono">
-                {device.macAddress}
-              </p>
             </div>
             <Badge
               variant="outline"
@@ -271,8 +267,7 @@ export function DeviceInfoPanel({ device }: DeviceInfoPanelProps) {
               <div>
                 <p className="text-xs font-medium">GNSS Receiver</p>
                 <p className="text-[10px] text-muted-foreground">
-                  {device.satellites} vệ tinh · HDOP {device.hdop} / VDOP{" "}
-                  {device.vdop}
+                  {device.satellites} vệ tinh
                 </p>
               </div>
             </div>
@@ -293,16 +288,12 @@ export function DeviceInfoPanel({ device }: DeviceInfoPanelProps) {
             <div className="pt-1">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
-                  Satellite Lock
+                  Số vệ tinh bắt được
                 </span>
                 <span className="text-xs font-mono font-bold">
-                  {device.satellites}/18
+                  {device.satellites}
                 </span>
               </div>
-              <Progress
-                value={(device.satellites / 18) * 100}
-                className="h-2 bg-muted"
-              />
             </div>
           )}
         </CardContent>

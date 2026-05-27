@@ -11,7 +11,6 @@ export type DeviceStatus = "online" | "offline" | "maintenance";
 export interface UserDevice {
   id: string;
   name: string;
-  macAddress: string;
   speedLimitKmh: number;
   status: DeviceStatus;
   battery: number;
@@ -21,6 +20,16 @@ export interface UserDevice {
   gnssStatus: boolean;
   lastSeen: string;
   createdAt: string;
+}
+
+export interface MqttCredentials {
+  deviceId: string;
+  mqttUsername: string;
+  mqttPassword: string;
+  mqttHost: string;
+  mqttPort: number;
+  mqttProtocol: string;
+  topics: Record<string, string>;
 }
 
 export interface DeviceDetailInfo extends UserDevice {

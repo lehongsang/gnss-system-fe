@@ -106,11 +106,7 @@ function GroupTreeItem({
     const list = allDevices.filter((d) => !deviceIdsInGroup.has(d.id));
     if (!deviceSearch) return list;
     const q = deviceSearch.toLowerCase();
-    return list.filter(
-      (d) =>
-        d.name?.toLowerCase().includes(q) ||
-        d.macAddress?.toLowerCase().includes(q)
-    );
+    return list.filter((d) => d.name?.toLowerCase().includes(q));
   }, [allDevices, deviceIdsInGroup, deviceSearch]);
 
   const handleRemoveDevice = (deviceId: string, deviceName: string) => {
@@ -263,9 +259,6 @@ function GroupTreeItem({
                     <span className="text-xs font-medium truncate">
                       {device.name}
                     </span>
-                    <span className="text-[10px] text-muted-foreground font-mono truncate">
-                      {device.macAddress}
-                    </span>
                   </div>
 
                   {/* Speed limit badge */}
@@ -372,10 +365,7 @@ function GroupTreeItem({
                       <span className="text-xs font-medium truncate">
                         {device.name}
                       </span>
-                      <span className="text-[10px] text-muted-foreground font-mono truncate">
-                        {device.macAddress}
-                      </span>
-                    </div>
+                      </div>
                   </label>
                 ))
               )}

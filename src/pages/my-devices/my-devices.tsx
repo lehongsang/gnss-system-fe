@@ -3,13 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient, useQueries } from "@tanstack/react-query";
 import { AppHeader } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
-import { Cpu, Wifi, WifiOff, Wrench, Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Copy, Cpu, Lock, Server, Wifi, WifiOff, Wrench, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { DeviceStatsCard } from "./components/device-stats-card";
 import { DeviceTable } from "./components/device-table";
 import { DeviceFormDialog } from "./components/device-form-dialog";
 import { DeleteConfirmDialog } from "./components/delete-confirm-dialog";
-import type { UserDevice } from "@/types";
+import type { MqttCredentials, UserDevice } from "@/types";
 import {
   useDevicesControllerFindMine,
   useDevicesControllerCreate,
@@ -54,7 +62,6 @@ export default function MyDevicesPage() {
     return {
       id: d.id,
       name: d.name ?? "",
-      macAddress: d.macAddress ?? "",
       speedLimitKmh: d.speedLimitKmh ?? 0,
       status: s.status ?? "offline",
       battery: s.batteryLevel ?? 0,
@@ -77,6 +84,9 @@ export default function MyDevicesPage() {
   const [editingDevice, setEditingDevice] = useState<UserDevice | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingDevice, setDeletingDevice] = useState<UserDevice | null>(null);
+  const [credentialsOpen, setCredentialsOpen] = useState(false);
+  const [createdMqttCredentials, setCreatedMqttCredentials] = useState<MqttCredentials | null>(null);
+  const [isCopyingCredentials, setIsCopyingCredentials] = useState(false);
 
   // Stats
   const totalDevices = devices.length;
@@ -120,7 +130,6 @@ export default function MyDevicesPage() {
 
   const handleFormSubmit = (data: {
     name: string;
-    macAddress: string;
     speedLimitKmh: number;
   }) => {
     if (editingDevice) {
@@ -129,7 +138,6 @@ export default function MyDevicesPage() {
           id: editingDevice.id,
           data: {
             name: data.name,
-            macAddress: data.macAddress,
             speedLimitKmh: data.speedLimitKmh,
           },
         },
@@ -152,14 +160,21 @@ export default function MyDevicesPage() {
         {
           data: {
             name: data.name,
-            macAddress: data.macAddress,
             speedLimitKmh: data.speedLimitKmh,
           },
         },
         {
-          onSuccess: () => {
+          onSuccess: (response) => {
+            const mqttCredentials = (response as any)?.mqttCredentials ?? null;
+            if (mqttCredentials) {
+              setCreatedMqttCredentials(mqttCredentials);
+              setCredentialsOpen(true);
+            }
+
             toast.success("Tạo thiết bị thành công", {
-              description: `Thiết bị "${data.name}" đã được thêm vào hệ thống.`,
+              description: mqttCredentials
+                ? `Thiết bị "${data.name}" đã được tạo. Vui lòng lưu thông tin MQTT hiển thị.`
+                : `Thiết bị "${data.name}" đã được thêm vào hệ thống.`,
             });
             invalidateDevices();
           },
@@ -294,6 +309,149 @@ export default function MyDevicesPage() {
         deviceName={deletingDevice?.name ?? ""}
         onConfirm={handleDeleteConfirm}
       />
+
+      <Dialog
+        open={credentialsOpen}
+        onOpenChange={(value) => {
+          if (!value) {
+            setCreatedMqttCredentials(null);
+          }
+          setCredentialsOpen(value);
+        }}
+      >
+        <DialogContent className="sm:max-w-[560px] border-border/50 bg-card/95 backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">
+              Thông tin MQTT thiết bị
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Mật khẩu chỉ hiển thị một lần. Sao chép và lưu lại cấu hình cho thiết bị.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-border/50 bg-muted p-4">
+                <p className="text-[11px] uppercase tracking-[.2em] text-muted-foreground">
+                  MQTT Username
+                </p>
+                <p className="mt-2 break-all text-sm font-medium">
+                  {createdMqttCredentials?.mqttUsername ?? "-"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border/50 bg-muted p-4">
+                <div className="flex items-center gap-2 text-[11px] uppercase tracking-[.2em] text-muted-foreground">
+                  <Lock className="h-3.5 w-3.5" />
+                  <span>MQTT Password</span>
+                </div>
+                <p className="mt-2 break-all text-sm font-semibold text-rose-500">
+                  {createdMqttCredentials?.mqttPassword ?? "-"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border/50 bg-muted p-4">
+                <div className="flex items-center gap-2 text-[11px] uppercase tracking-[.2em] text-muted-foreground">
+                  <Server className="h-3.5 w-3.5" />
+                  <span>Broker</span>
+                </div>
+                <p className="mt-2 text-sm">
+                  {createdMqttCredentials?.mqttProtocol ?? "-"}://{createdMqttCredentials?.mqttHost ?? "-"}:{createdMqttCredentials?.mqttPort ?? "-"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border/50 bg-muted p-4">
+                <p className="text-[11px] uppercase tracking-[.2em] text-muted-foreground">
+                  Device ID
+                </p>
+                <p className="mt-2 break-all text-sm">
+                  {createdMqttCredentials?.deviceId ?? "-"}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border/50 bg-muted p-4">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[.2em] text-muted-foreground">
+                    Topics MQTT được phép
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Thiết bị chỉ được publish/subcribe theo cấu hình này.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="whitespace-nowrap"
+                  onClick={async () => {
+                    if (!createdMqttCredentials) return;
+                    setIsCopyingCredentials(true);
+                    try {
+                      await navigator.clipboard.writeText(
+                        JSON.stringify(createdMqttCredentials, null, 2)
+                      );
+                      toast.success("Đã sao chép MQTT credentials.");
+                    } catch (error) {
+                      toast.error("Không thể sao chép. Vui lòng thử lại.");
+                    } finally {
+                      setIsCopyingCredentials(false);
+                    }
+                  }}
+                >
+                  <Copy className="h-4 w-4" /> Sao chép JSON
+                </Button>
+              </div>
+              <div className="mt-4 grid gap-2 text-sm">
+                {createdMqttCredentials?.topics &&
+                  Object.entries(createdMqttCredentials.topics).map(
+                    ([topicName, topicValue]) => (
+                      <div
+                        key={topicName}
+                        className="rounded-lg border border-border/50 bg-background/80 p-3"
+                      >
+                        <p className="text-[11px] uppercase tracking-[.2em] text-muted-foreground">
+                          {topicName}
+                        </p>
+                        <p className="mt-1 break-all font-mono text-xs">
+                          {topicValue}
+                        </p>
+                      </div>
+                    )
+                  )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setCredentialsOpen(false)}
+            >
+              Đóng
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={async () => {
+                if (!createdMqttCredentials) return;
+                setIsCopyingCredentials(true);
+                try {
+                  await navigator.clipboard.writeText(
+                    JSON.stringify(createdMqttCredentials, null, 2)
+                  );
+                  toast.success("Đã sao chép MQTT credentials.");
+                } catch (error) {
+                  toast.error("Không thể sao chép. Vui lòng thử lại.");
+                } finally {
+                  setIsCopyingCredentials(false);
+                }
+              }}
+              disabled={!createdMqttCredentials || isCopyingCredentials}
+            >
+              <Copy className="h-4 w-4" /> Sao chép cấu hình
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

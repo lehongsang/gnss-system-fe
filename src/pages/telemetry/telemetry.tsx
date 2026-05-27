@@ -317,9 +317,6 @@ export default function TelemetryPage() {
                           <Cpu className="h-3.5 w-3.5" />
                           <div className="flex flex-col">
                             <span className="font-medium">{d.name}</span>
-                            <span className="text-[10px] text-muted-foreground font-mono">
-                              {d.macAddress}
-                            </span>
                           </div>
                         </DropdownMenuItem>
                       )

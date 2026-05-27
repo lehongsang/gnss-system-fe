@@ -19,12 +19,9 @@ interface DeviceFormDialogProps {
   device?: UserDevice | null;
   onSubmit: (data: {
     name: string;
-    macAddress: string;
     speedLimitKmh: number;
   }) => void;
 }
-
-const MAC_REGEX = /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/;
 
 export function DeviceFormDialog({
   open,
@@ -35,7 +32,6 @@ export function DeviceFormDialog({
   const isEditing = !!device;
 
   const [name, setName] = useState(device?.name ?? "");
-  const [macAddress, setMacAddress] = useState(device?.macAddress ?? "");
   const [speedLimit, setSpeedLimit] = useState(
     device?.speedLimitKmh?.toString() ?? "60"
   );
@@ -45,7 +41,6 @@ export function DeviceFormDialog({
   // Reset form when dialog opens with different device
   const resetForm = () => {
     setName(device?.name ?? "");
-    setMacAddress(device?.macAddress ?? "");
     setSpeedLimit(device?.speedLimitKmh?.toString() ?? "60");
     setErrors({});
     setIsSubmitting(false);
@@ -56,13 +51,6 @@ export function DeviceFormDialog({
 
     if (!name.trim()) {
       newErrors.name = "Tên thiết bị không được để trống.";
-    }
-
-    if (!macAddress.trim()) {
-      newErrors.macAddress = "Địa chỉ MAC không được để trống.";
-    } else if (!MAC_REGEX.test(macAddress)) {
-      newErrors.macAddress =
-        "Sai định dạng. Ví dụ: AA:BB:CC:DD:EE:FF";
     }
 
     const speedNum = Number(speedLimit);
@@ -86,7 +74,6 @@ export function DeviceFormDialog({
 
     onSubmit({
       name: name.trim(),
-      macAddress: macAddress.toUpperCase(),
       speedLimitKmh: Number(speedLimit),
     });
 
@@ -94,22 +81,6 @@ export function DeviceFormDialog({
     onOpenChange(false);
   };
 
-  // Auto-format MAC address input
-  const handleMacChange = (value: string) => {
-    // Remove non-hex characters except colons
-    let cleaned = value.replace(/[^0-9A-Fa-f:]/g, "").toUpperCase();
-
-    // Auto-insert colons
-    const hexOnly = cleaned.replace(/:/g, "");
-    if (hexOnly.length <= 12) {
-      const parts = hexOnly.match(/.{1,2}/g) || [];
-      cleaned = parts.join(":");
-    }
-
-    if (cleaned.length <= 17) {
-      setMacAddress(cleaned);
-    }
-  };
 
   return (
     <Dialog
@@ -128,7 +99,7 @@ export function DeviceFormDialog({
             <DialogDescription className="text-xs text-muted-foreground">
               {isEditing
                 ? "Cập nhật thông tin thiết bị của bạn."
-                : "Điền thông tin để đăng ký thiết bị mới vào hệ thống."}
+                : "Điền thông tin để đăng ký thiết bị mới, hệ thống sẽ tạo MQTT credentials."}
             </DialogDescription>
           </DialogHeader>
 
@@ -157,35 +128,6 @@ export function DeviceFormDialog({
               )}
             </div>
 
-            {/* MAC Address */}
-            <div className="space-y-2">
-              <Label htmlFor="device-mac" className="text-xs font-medium">
-                Địa chỉ MAC <span className="text-red-400">*</span>
-              </Label>
-              <Input
-                id="device-mac"
-                placeholder="AA:BB:CC:DD:EE:FF"
-                value={macAddress}
-                onChange={(e) => handleMacChange(e.target.value)}
-                className={`font-mono tracking-wider ${
-                  errors.macAddress
-                    ? "border-red-500/50 focus-visible:ring-red-500/30"
-                    : ""
-                }`}
-                disabled={isEditing}
-              />
-              {errors.macAddress && (
-                <p className="text-[11px] text-red-400 flex items-center gap-1">
-                  <span className="inline-block h-1 w-1 rounded-full bg-red-400" />
-                  {errors.macAddress}
-                </p>
-              )}
-              {isEditing && (
-                <p className="text-[10px] text-muted-foreground">
-                  Không thể thay đổi MAC Address sau khi tạo.
-                </p>
-              )}
-            </div>
 
             {/* Speed Limit */}
             <div className="space-y-2">

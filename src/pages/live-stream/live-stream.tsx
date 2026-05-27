@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { axiosInstance } from "@/services/apis/axios-client";
 import { useDevicesControllerFindMine } from "@/services/apis/gen/queries";
-import { Loader2, Video, AlertTriangle, Clock9, Globe, Play, StopCircle, RefreshCcw } from "lucide-react";
+import { Loader2, Video, AlertTriangle, Globe, Play, StopCircle, RefreshCcw } from "lucide-react";
 
 type LiveStreamStatus = "starting" | "ready" | "failed" | "stopped";
 
@@ -46,12 +46,6 @@ function formatDateTime(value: string) {
   });
 }
 
-function formatDuration(seconds: number) {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins} phút ${secs} giây`;
-}
-
 export default function LiveStreamPage() {
   const { data: devicesResponse, isLoading: isLoadingDevices } = useDevicesControllerFindMine();
   const rawDevices = (devicesResponse as any)?.data ?? [];
@@ -62,7 +56,6 @@ export default function LiveStreamPage() {
   const [session, setSession] = useState<StreamSession | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [isPolling, setIsPolling] = useState(false);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -83,7 +76,6 @@ export default function LiveStreamPage() {
         clearInterval(pollRef.current);
         pollRef.current = null;
       }
-      setIsPolling(false);
       return;
     }
 
@@ -91,7 +83,7 @@ export default function LiveStreamPage() {
       if (!session || !selectedDeviceId) return;
       try {
         const statusResponse = await axiosInstance.get<StreamSession>(`/api/live-streams/${selectedDeviceId}/status`);
-        setSession(statusResponse as StreamSession);
+        setSession(statusResponse.data);
       } catch (error) {
         setErrorMessage("Không thể kiểm tra trạng thái livestream.");
       }
@@ -99,7 +91,6 @@ export default function LiveStreamPage() {
 
     if (!pollRef.current) {
       pollRef.current = setInterval(poll, 1500);
-      setIsPolling(true);
     }
 
     return () => {
@@ -138,10 +129,7 @@ export default function LiveStreamPage() {
       const response = await axiosInstance.post<StreamSession>(`/api/live-streams/${selectedDeviceId}/start`, {
         durationSeconds,
       });
-      setSession(response as StreamSession);
-      if ((response as StreamSession).status === "starting") {
-        setIsPolling(true);
-      }
+      setSession(response.data);
     } catch (error: any) {
       setErrorMessage(
         error?.response?.data?.message || error?.message || "Khởi động livestream thất bại."
@@ -167,7 +155,7 @@ export default function LiveStreamPage() {
 
     try {
       const response = await axiosInstance.post<StreamSession>(`/api/live-streams/${selectedDeviceId}/stop`, {});
-      setSession(response as StreamSession);
+      setSession(response.data);
     } catch (error: any) {
       setErrorMessage(
         error?.response?.data?.message || error?.message || "Dừng livestream thất bại."
@@ -177,7 +165,6 @@ export default function LiveStreamPage() {
       if (pollRef.current) {
         clearInterval(pollRef.current);
         pollRef.current = null;
-        setIsPolling(false);
       }
     }
   };
@@ -287,8 +274,8 @@ export default function LiveStreamPage() {
                     className="gap-2"
                     onClick={() => {
                       if (session && selectedDeviceId) {
-                        axiosInstance.get(`/api/live-streams/${selectedDeviceId}/status`).then((response) => {
-                          setSession(response as StreamSession);
+                        axiosInstance.get<StreamSession>(`/api/live-streams/${selectedDeviceId}/status`).then((response) => {
+                          setSession(response.data);
                         });
                       }
                     }}

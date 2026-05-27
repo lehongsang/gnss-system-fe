@@ -100,10 +100,10 @@ export default function DashboardPage() {
         type: "rover", // Default since API doesn't have it
         status: status?.status ?? "offline",
         battery: status?.batteryLevel ?? 0,
-        hdop: telemetry?.accuracy_status === "gnss_only" ? 1.5 : 5.0, // Mock based on status
-        vdop: 2.0, // Mock
-        satellites: status?.gnssStatus ? 12 : 0, // Mock based on GNSS status
-        maxSatellites: 24, // Mock
+        hdop: 0,
+        vdop: 0,
+        satellites: status?.satellitesTracked ?? 0,
+        maxSatellites: 0,
         lat: telemetry?.lat ?? 21.0062,
         lng: telemetry?.lng ?? 105.8431,
         lastSeen: status?.updatedAt ?? d.updatedAt ?? new Date().toISOString(),

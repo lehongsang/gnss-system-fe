@@ -1,15 +1,29 @@
 import { useMemo, useState } from "react";
 import { AppHeader } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Pencil } from "lucide-react";
+import {
+  ArrowLeft,
+  Copy,
+  Lock,
+  Pencil,
+  AlertTriangle,
+} from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { DeviceInfoPanel } from "./components/device-info-panel";
 import { TelemetryMap } from "./components/telemetry-map";
 import { DeviceFormDialog } from "../my-devices/components/device-form-dialog";
-import type { DeviceDetailInfo, TelemetryPoint } from "@/types";
+import type { DeviceDetailInfo, MqttCredentials, TelemetryPoint } from "@/types";
+import { axiosInstance } from "@/services/apis/axios-client";
 import {
   useDevicesControllerFindOne,
   useDeviceStatusControllerGetStatus,
@@ -17,6 +31,7 @@ import {
   useTelemetryControllerGetLatest,
   useDevicesControllerUpdate,
   getDevicesControllerFindOneQueryKey,
+  getDevicesControllerFindMineQueryKey,
   SortOrder,
 } from "@/services/apis/gen/queries";
 
@@ -31,12 +46,49 @@ export default function DeviceDetailPage() {
   const [dateTo, setDateTo] = useState(today);
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [credentialDialogOpen, setCredentialDialogOpen] = useState(false);
+  const [regeneratedMqttCredentials, setRegeneratedMqttCredentials] = useState<
+    MqttCredentials | null
+  >(null);
+  const [isCopyingMqtt, setIsCopyingMqtt] = useState(false);
   const queryClient = useQueryClient();
   const updateMutation = useDevicesControllerUpdate();
 
+  const regenerateMutation = useMutation({
+    mutationFn: async () => {
+      return axiosInstance.post<MqttCredentials>(
+        `/api/devices/${deviceId}/mqtt-credentials/regenerate`
+      );
+    },
+    onSuccess: (res) => {
+      setRegeneratedMqttCredentials(res.data);
+      setCredentialDialogOpen(true);
+      queryClient.invalidateQueries({
+        queryKey: getDevicesControllerFindOneQueryKey(deviceId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getDevicesControllerFindMineQueryKey(),
+      });
+      toast.success("Tạo lại MQTT credentials thành công", {
+        description:
+          "Mật khẩu cũ đã hết hiệu lực. Sao chép mật khẩu mới và cấu hình lại thiết bị ngay.",
+      });
+    },
+    onError: (error: unknown) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const err = error as any;
+      if (err?.response?.status === 403) {
+        toast.error("Không được phép. Vui lòng đăng nhập lại hoặc liên hệ quản trị.");
+      } else {
+        toast.error(
+          "Không thể tạo lại MQTT credentials. Vui lòng thử lại sau."
+        );
+      }
+    },
+  });
+
   const handleUpdateDevice = (data: {
     name: string;
-    macAddress: string;
     speedLimitKmh: number;
   }) => {
     updateMutation.mutate(
@@ -99,7 +151,6 @@ export default function DeviceDetailPage() {
   const device: DeviceDetailInfo = {
     id: raw.id ?? deviceId,
     name: raw.name ?? "",
-    macAddress: raw.macAddress ?? "",
     speedLimitKmh: raw.speedLimitKmh ?? 0,
     status: statusData.status ?? "offline",
     battery: statusData.batteryLevel ?? 0,
@@ -110,9 +161,9 @@ export default function DeviceDetailPage() {
     lastSeen: statusData.updatedAt ?? raw.updatedAt ?? "",
     createdAt: raw.createdAt ?? "",
     owner: raw.owner?.name ?? "",
-    satellites: latest?.satellites ?? 0,
-    hdop: latest?.hdop ?? 0,
-    vdop: latest?.vdop ?? 0,
+    satellites: statusData.satellitesTracked ?? 0,
+    hdop: 0,
+    vdop: 0,
   };
 
   // Map history response to TelemetryPoint[]
@@ -156,19 +207,27 @@ export default function DeviceDetailPage() {
               <h1 className="text-2xl font-bold tracking-tight">
                 {device.name}
               </h1>
-              <p className="text-sm text-muted-foreground mt-0.5 font-mono">
-                {device.macAddress}
-              </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            className="gap-2 text-sm"
-            onClick={() => setEditDialogOpen(true)}
-          >
-            <Pencil className="h-3.5 w-3.5" />
-            Chỉnh sửa
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              className="gap-2 text-sm"
+              onClick={() => setEditDialogOpen(true)}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Chỉnh sửa
+            </Button>
+            <Button
+              variant="destructive"
+              className="gap-2 text-sm"
+              onClick={() => regenerateMutation.mutate()}
+              disabled={regenerateMutation.isPending}
+            >
+              <Lock className="h-3.5 w-3.5" />
+              Tạo lại MQTT credentials
+            </Button>
+          </div>
         </div>
 
         {/* Main 2-column layout */}
@@ -199,6 +258,54 @@ export default function DeviceDetailPage() {
         device={device}
         onSubmit={handleUpdateDevice}
       />
+
+      <Dialog open={credentialDialogOpen} onOpenChange={setCredentialDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              MQTT Credentials mới
+            </DialogTitle>
+            <DialogDescription>
+              Mật khẩu cũ đã hết hiệu lực. Sao chép thông tin bên dưới và cấu hình lại thiết bị ngay.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-900">
+              <pre className="whitespace-pre-wrap break-words text-xs">
+                {regeneratedMqttCredentials
+                  ? JSON.stringify(regeneratedMqttCredentials, null, 2)
+                  : "Đang tải..."}
+              </pre>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="secondary"
+                className="gap-2"
+                onClick={async () => {
+                  if (!regeneratedMqttCredentials) return;
+                  setIsCopyingMqtt(true);
+                  await navigator.clipboard.writeText(
+                    JSON.stringify(regeneratedMqttCredentials)
+                  );
+                  setIsCopyingMqtt(false);
+                  toast.success("Đã sao chép MQTT credentials mới vào clipboard.");
+                }}
+                disabled={!regeneratedMqttCredentials || isCopyingMqtt}
+              >
+                <Copy className="h-3.5 w-3.5" />
+                {isCopyingMqtt ? "Đang sao chép..." : "Sao chép JSON"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setCredentialDialogOpen(false)}
+              >
+                Đóng
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

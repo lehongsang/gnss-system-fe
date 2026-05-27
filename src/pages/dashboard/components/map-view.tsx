@@ -247,16 +247,9 @@ export function MapView({ devices, geofences }: MapViewProps) {
                       {selectedDevice.status === "online" ? "ĐANG CHẠY" : "MẤT KẾT NỐI"}
                     </span>
 
-                    <span>HDOP / VDOP</span>
-                    <span style={{ fontFamily: "monospace", fontWeight: 600, color: "#e2e8f0" }}>
-                      {selectedDevice.hdop > 0
-                        ? `${selectedDevice.hdop} / ${selectedDevice.vdop}`
-                        : "—"}
-                    </span>
-
                     <span>Vệ tinh</span>
                     <span style={{ fontFamily: "monospace", fontWeight: 600, color: "#e2e8f0" }}>
-                      {selectedDevice.satellites}/{selectedDevice.maxSatellites}
+                      {selectedDevice.satellites}
                     </span>
 
                     <span>Pin</span>

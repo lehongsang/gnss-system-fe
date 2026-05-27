@@ -116,9 +116,6 @@ function SkeletonRow() {
         </div>
       </TableCell>
       <TableCell>
-        <Skeleton className="h-3.5 w-28 font-mono" />
-      </TableCell>
-      <TableCell>
         <Skeleton className="h-5 w-16 rounded-md" />
       </TableCell>
       <TableCell>
@@ -154,8 +151,7 @@ export function DeviceTable({
   // Filter devices
   const filtered = devices.filter((d) => {
     const matchSearch =
-      d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.macAddress.toLowerCase().includes(searchQuery.toLowerCase());
+      d.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchStatus = statusFilter === "all" || d.status === statusFilter;
     return matchSearch && matchStatus;
   });
@@ -201,7 +197,7 @@ export function DeviceTable({
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 id="device-search"
-                placeholder="Tìm tên hoặc MAC..."
+                placeholder="Tìm theo tên thiết bị..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 className="pl-8 h-8 w-[200px] text-xs bg-background/50"
@@ -267,9 +263,6 @@ export function DeviceTable({
                   Thiết bị
                 </TableHead>
                 <TableHead className="text-[11px] uppercase tracking-wider font-medium">
-                  MAC Address
-                </TableHead>
-                <TableHead className="text-[11px] uppercase tracking-wider font-medium">
                   Trạng thái
                 </TableHead>
                 <TableHead className="text-[11px] uppercase tracking-wider font-medium">
@@ -293,7 +286,7 @@ export function DeviceTable({
               ) : paginated.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={6}
                     className="text-center py-12 text-muted-foreground"
                   >
                     <div className="flex flex-col items-center gap-2">
@@ -341,13 +334,6 @@ export function DeviceTable({
                             </p>
                           </div>
                         </div>
-                      </TableCell>
-
-                      {/* MAC Address */}
-                      <TableCell>
-                        <code className="text-xs font-mono text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">
-                          {device.macAddress}
-                        </code>
                       </TableCell>
 
                       {/* Status Badge */}

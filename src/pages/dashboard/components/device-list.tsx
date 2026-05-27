@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Satellite,
@@ -28,13 +27,6 @@ function getBatteryColor(level: number) {
   if (level >= 60) return "text-emerald-500";
   if (level >= 30) return "text-amber-500";
   return "text-red-400";
-}
-
-function getHdopLabel(hdop: number) {
-  if (hdop <= 1) return { label: "Excellent", color: "text-emerald-500" };
-  if (hdop <= 2) return { label: "Good", color: "text-blue-400" };
-  if (hdop <= 5) return { label: "Moderate", color: "text-amber-500" };
-  return { label: "Poor", color: "text-red-400" };
 }
 
 function getTypeIcon(type: Device["type"]) {
@@ -74,14 +66,12 @@ export function DeviceList({ devices }: DeviceListProps) {
         <ScrollArea className="h-[388px]">
           <div className="space-y-0.5 px-3 pb-3">
             {sorted.map((device) => {
-              const BatIcon = getBatteryIcon(device.battery);
-              const batColor = getBatteryColor(device.battery);
-              const hdopInfo = getHdopLabel(device.hdop);
-              const TypeIcon = getTypeIcon(device.type);
-              const isOnline = device.status === "online";
-              const satPercent = (device.satellites / device.maxSatellites) * 100;
+               const BatIcon = getBatteryIcon(device.battery);
+               const batColor = getBatteryColor(device.battery);
+               const TypeIcon = getTypeIcon(device.type);
+               const isOnline = device.status === "online";
 
-              return (
+               return (
                 <div
                   key={device.id}
                   className="group rounded-lg p-3 transition-colors hover:bg-accent/50 cursor-pointer border border-transparent hover:border-border/50"
@@ -111,16 +101,7 @@ export function DeviceList({ devices }: DeviceListProps) {
                   </div>
 
                   {/* Metrics grid */}
-                  <div className="grid grid-cols-3 gap-2">
-                    {/* HDOP / VDOP */}
-                    <div className="space-y-1">
-                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">HDOP / VDOP</p>
-                      <p className={`text-xs font-bold font-mono ${hdopInfo.color}`}>
-                        {device.hdop > 0 ? `${device.hdop} / ${device.vdop}` : "—"}
-                      </p>
-                      <p className={`text-[9px] ${hdopInfo.color}`}>{device.hdop > 0 ? hdopInfo.label : "N/A"}</p>
-                    </div>
-
+                  <div className="grid grid-cols-2 gap-4">
                     {/* Battery */}
                     <div className="space-y-1">
                       <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Battery</p>
@@ -134,12 +115,8 @@ export function DeviceList({ devices }: DeviceListProps) {
                     <div className="space-y-1">
                       <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Satellites</p>
                       <p className="text-xs font-bold font-mono">
-                        {device.satellites}/{device.maxSatellites}
+                        {device.satellites} vệ tinh
                       </p>
-                      <Progress
-                        value={satPercent}
-                        className="h-1.5 bg-muted"
-                      />
                     </div>
                   </div>
                 </div>

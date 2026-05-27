@@ -103,7 +103,6 @@ export default function AdminResourcesPage() {
       return {
         id: d.id,
         name: d.name ?? "",
-        macAddress: d.macAddress ?? "",
         speedLimitKmh: d.speedLimitKmh ?? 0,
         status: (st?.status ?? "offline") as "online" | "offline" | "maintenance",
         battery: st?.batteryLevel ?? 0,
@@ -258,7 +257,6 @@ export default function AdminResourcesPage() {
                     <TableRow className="border-border/30 hover:bg-transparent">
                       <TableHead className="text-[11px] uppercase tracking-wider font-medium pl-5">ID</TableHead>
                       <TableHead className="text-[11px] uppercase tracking-wider font-medium">Tên</TableHead>
-                      <TableHead className="text-[11px] uppercase tracking-wider font-medium">MAC</TableHead>
                       <TableHead className="text-[11px] uppercase tracking-wider font-medium">Chủ sở hữu</TableHead>
                       <TableHead className="text-[11px] uppercase tracking-wider font-medium">Status</TableHead>
                       <TableHead className="text-[11px] uppercase tracking-wider font-medium">Battery</TableHead>
@@ -266,14 +264,13 @@ export default function AdminResourcesPage() {
                     </TableRow>
                   </TableHeader>
                   {loadingDevices ? (
-                    <TableSkeleton cols={7} />
+                    <TableSkeleton cols={6} />
                   ) : (
                     <TableBody>
                       {filteredDevices.slice((devPage - 1) * PER_PAGE, devPage * PER_PAGE).map((d) => (
                         <TableRow key={d.id} className="border-border/30 transition-colors">
                           <TableCell className="pl-5"><code className="text-[10px] font-mono text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">{d.id.slice(0, 8)}…</code></TableCell>
                           <TableCell><p className="text-sm font-semibold">{d.name}</p></TableCell>
-                          <TableCell><code className="text-[10px] font-mono text-muted-foreground">{d.macAddress || "—"}</code></TableCell>
                           <TableCell>
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 gap-1 border-blue-500/20 text-blue-400">
                               <User className="h-2.5 w-2.5" />{d.ownerEmail}

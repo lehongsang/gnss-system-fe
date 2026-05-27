@@ -43,11 +43,11 @@ export function NavMain({
         {items.map((item) => {
           const isParentActive =
             item.url === currentPath ||
-            (item.url !== "/" && item.url !== "#" && currentPath.startsWith(item.url)) ||
+            (item.url !== "/" && item.url !== "#" && (currentPath === item.url || currentPath.startsWith(item.url + "/"))) ||
             item.items?.some(
               (sub) =>
                 sub.url === currentPath ||
-                (sub.url !== "/" && sub.url !== "#" && currentPath.startsWith(sub.url))
+                (sub.url !== "/" && sub.url !== "#" && (currentPath === sub.url || currentPath.startsWith(sub.url + "/")))
             );
 
           if (!item.items || item.items.length === 0) {
@@ -83,7 +83,7 @@ export function NavMain({
                     {item.items?.map((subItem) => {
                       const isChildActive =
                         subItem.url === currentPath ||
-                        (subItem.url !== "/" && subItem.url !== "#" && currentPath.startsWith(subItem.url));
+                        (subItem.url !== "/" && subItem.url !== "#" && (currentPath === subItem.url || currentPath.startsWith(subItem.url + "/")));
 
                       return (
                         <SidebarMenuSubItem key={subItem.title}>

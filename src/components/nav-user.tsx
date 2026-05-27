@@ -147,7 +147,7 @@ export function NavUser({
                 <CreditCard />
                 Billing
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/my-alerts")}>
                 <Bell />
                 Notifications
               </DropdownMenuItem>
