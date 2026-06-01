@@ -66,6 +66,58 @@ function formatDateTime(dateStr: string) {
   });
 }
 
+const PRESET_COLORS = [
+  { bg: "bg-blue-500/10", text: "text-blue-500" },
+  { bg: "bg-emerald-500/10", text: "text-emerald-500" },
+  { bg: "bg-violet-500/10", text: "text-violet-500" },
+  { bg: "bg-amber-500/10", text: "text-amber-500" },
+  { bg: "bg-rose-500/10", text: "text-rose-500" },
+  { bg: "bg-cyan-500/10", text: "text-cyan-500" },
+];
+
+function getGroupColorStyles(groupId: string) {
+  let hash = 0;
+  for (let i = 0; i < groupId.length; i++) {
+    hash = groupId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % PRESET_COLORS.length;
+  return PRESET_COLORS[index];
+}
+
+function GroupStatsCard({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  iconColor,
+  iconBg,
+}: {
+  title: string;
+  value: string | number;
+  subtitle: string;
+  icon: typeof Folder;
+  iconColor: string;
+  iconBg: string;
+}) {
+  return (
+    <Card className="group relative overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:border-primary/30">
+      <div className={`absolute top-0 right-0 h-16 w-16 rounded-full ${iconBg} opacity-20 blur-xl transition-all duration-500`} />
+      <CardContent className="p-4 flex items-center justify-between">
+        <div className="space-y-1">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            {title}
+          </p>
+          <p className="text-xl font-bold tracking-tight">{value}</p>
+          <p className="text-[10px] text-muted-foreground">{subtitle}</p>
+        </div>
+        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${iconBg} ${iconColor}`}>
+          <Icon className="h-4.5 w-4.5" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ---------- Group Tree Item ----------
 function GroupTreeItem({
   group,
@@ -156,6 +208,8 @@ function GroupTreeItem({
     );
   };
 
+  const colorStyles = getGroupColorStyles(group.id);
+
   return (
     <>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -168,7 +222,7 @@ function GroupTreeItem({
                   isOpen ? "rotate-90" : ""
                 }`}
               />
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
+              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${colorStyles.bg} ${colorStyles.text}`}>
                 {isOpen ? (
                   <FolderOpen className="h-4 w-4" />
                 ) : (
@@ -446,6 +500,12 @@ export default function DeviceGroupsPage() {
     page: currentPage,
     limit: ITEMS_PER_PAGE,
   });
+
+  // Fetch all user devices for global group stats calculation
+  const { data: devicesRes } = useDevicesControllerFindMine({ limit: 100 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const allDevices: any[] = (devicesRes as any)?.data ?? [];
+
   const createMutation = useCreateDeviceGroup();
   const updateMutation = useUpdateDeviceGroup();
   const deleteMutation = useDeleteDeviceGroup();
@@ -453,6 +513,10 @@ export default function DeviceGroupsPage() {
   const groups: DeviceGroup[] = response?.data ?? [];
   const totalRows = response?.total ?? 0;
   const totalPages = response?.pageCount ?? 1;
+
+  // Calculate statistics
+  const totalAssignedDevices = groups.reduce((acc, g) => acc + (g.deviceCount ?? 0), 0);
+  const totalUnassignedDevices = Math.max(0, allDevices.length - totalAssignedDevices);
 
   // Client-side search filter
   const filtered = groups.filter((g) => {
@@ -555,6 +619,34 @@ export default function DeviceGroupsPage() {
             <Plus className="h-4 w-4" />
             Tạo nhóm mới
           </Button>
+        </div>
+
+        {/* Row 1: Mini Stats Cards */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+          <GroupStatsCard
+            title="Tổng số nhóm"
+            value={totalRows}
+            subtitle="Phân loại theo khu vực/loại xe"
+            icon={Folder}
+            iconColor="text-indigo-500"
+            iconBg="bg-indigo-500/10"
+          />
+          <GroupStatsCard
+            title="Thiết bị đã phân nhóm"
+            value={totalAssignedDevices}
+            subtitle={`${allDevices.length} tổng thiết bị`}
+            icon={Cpu}
+            iconColor="text-emerald-500"
+            iconBg="bg-emerald-500/10"
+          />
+          <GroupStatsCard
+            title="Thiết bị chưa phân nhóm"
+            value={totalUnassignedDevices}
+            subtitle="Cần gán vào nhóm để quản lý"
+            icon={Unlink}
+            iconColor="text-amber-500"
+            iconBg="bg-amber-500/10"
+          />
         </div>
 
         {/* Tree Card */}

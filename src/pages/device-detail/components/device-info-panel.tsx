@@ -246,13 +246,14 @@ export function DeviceInfoPanel({ device }: DeviceInfoPanelProps) {
             </div>
             <Badge
               variant="outline"
-              className={`text-[10px] ${
+              className={`text-[10px] font-semibold gap-1.5 px-2 py-0.5 border ${
                 device.cameraStatus
-                  ? "text-emerald-500 border-emerald-500/20"
-                  : "text-red-400 border-red-500/20"
+                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                  : "bg-red-500/10 text-red-400 border-red-500/20"
               }`}
             >
-              {device.cameraStatus ? "Active" : "Inactive"}
+              <span className={`h-1.5 w-1.5 rounded-full ${device.cameraStatus ? 'bg-emerald-500 animate-pulse shadow-[0_0_6px_#10b981]' : 'bg-red-500'}`} />
+              {device.cameraStatus ? "Hoạt động" : "Ngoại tuyến"}
             </Badge>
           </div>
 
@@ -273,13 +274,14 @@ export function DeviceInfoPanel({ device }: DeviceInfoPanelProps) {
             </div>
             <Badge
               variant="outline"
-              className={`text-[10px] ${
+              className={`text-[10px] font-semibold gap-1.5 px-2 py-0.5 border ${
                 device.gnssStatus
-                  ? "text-emerald-500 border-emerald-500/20"
-                  : "text-red-400 border-red-500/20"
+                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                  : "bg-red-500/10 text-red-400 border-red-500/20"
               }`}
             >
-              {device.gnssStatus ? "Active" : "Inactive"}
+              <span className={`h-1.5 w-1.5 rounded-full ${device.gnssStatus ? 'bg-emerald-500 animate-pulse shadow-[0_0_6px_#10b981]' : 'bg-red-500'}`} />
+              {device.gnssStatus ? "Hoạt động" : "Ngoại tuyến"}
             </Badge>
           </div>
 

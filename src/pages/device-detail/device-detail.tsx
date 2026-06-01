@@ -219,8 +219,8 @@ export default function DeviceDetailPage() {
               Chỉnh sửa
             </Button>
             <Button
-              variant="destructive"
-              className="gap-2 text-sm"
+              variant="outline"
+              className="gap-2 text-sm text-amber-500 hover:text-amber-600 hover:bg-amber-500/10 border-amber-500/30 hover:border-amber-500/50"
               onClick={() => regenerateMutation.mutate()}
               disabled={regenerateMutation.isPending}
             >
@@ -231,14 +231,14 @@ export default function DeviceDetailPage() {
         </div>
 
         {/* Main 2-column layout */}
-        <div className="grid gap-5 grid-cols-1 lg:grid-cols-10">
+        <div className="grid gap-5 grid-cols-1 lg:grid-cols-10 items-stretch">
           {/* Left: Device Info */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 h-full">
             <DeviceInfoPanel device={device} />
           </div>
 
           {/* Right: Telemetry Map */}
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7 h-full">
             <TelemetryMap
               telemetry={telemetry}
               deviceName={device.name}

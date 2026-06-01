@@ -34,10 +34,10 @@ export function StatsCard({
               <span className="text-2xl font-bold tracking-tight">{value}</span>
               {trend && (
                 <span
-                  className={`text-xs font-semibold ${
+                  className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-semibold border ${
                     trend.positive
-                      ? "text-emerald-500"
-                      : "text-red-400"
+                      ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                      : "bg-red-500/10 text-red-400 border-red-500/20"
                   }`}
                 >
                   {trend.value}

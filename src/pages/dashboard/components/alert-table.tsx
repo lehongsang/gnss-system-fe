@@ -39,7 +39,7 @@ export function AlertTable({ alerts }: { alerts: Alert[] }) {
 
   return (
     <Card className="flex flex-col overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm">
-      <CardHeader className="px-5 pt-4 pb-3 space-y-0">
+      <CardHeader className="px-5 pt-4 pb-5 space-y-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-400">

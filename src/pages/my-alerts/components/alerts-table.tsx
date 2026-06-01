@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -336,9 +337,17 @@ export function AlertsTable({
                             <p className="text-xs font-semibold">
                               {alert.deviceName}
                             </p>
-                            <p className="text-[10px] text-muted-foreground font-mono">
-                              {alert.deviceId.slice(0, 12)}...
-                            </p>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(alert.deviceId);
+                                toast.success("Đã sao chép ID thiết bị");
+                              }}
+                              className="text-[10px] text-muted-foreground font-mono hover:text-primary transition-colors cursor-pointer block text-left"
+                              title="Click để sao chép nhanh ID"
+                            >
+                              {alert.deviceId.slice(0, 8)}...
+                            </button>
                           </div>
                         </div>
                       </TableCell>

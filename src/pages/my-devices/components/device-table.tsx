@@ -29,10 +29,11 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
-  Gauge,
   Wifi,
   WifiOff,
   Wrench,
+  AlertTriangle,
+  ShieldAlert,
 } from "lucide-react";
 import type { UserDevice, DeviceStatus } from "@/types";
 
@@ -266,7 +267,7 @@ export function DeviceTable({
                   Trạng thái
                 </TableHead>
                 <TableHead className="text-[11px] uppercase tracking-wider font-medium">
-                  Speed Limit
+                  Giới hạn tốc độ
                 </TableHead>
                 <TableHead className="text-[11px] uppercase tracking-wider font-medium">
                   Pin
@@ -274,7 +275,9 @@ export function DeviceTable({
                 <TableHead className="text-[11px] uppercase tracking-wider font-medium">
                   Hoạt động gần nhất
                 </TableHead>
-                <TableHead className="text-[11px] uppercase tracking-wider font-medium pr-5 w-[50px]" />
+                <TableHead className="text-[11px] uppercase tracking-wider font-medium pr-5 w-[120px] text-right">
+                  Thao tác
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -350,7 +353,8 @@ export function DeviceTable({
                       {/* Speed Limit */}
                       <TableCell>
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Gauge className="h-3.5 w-3.5" />
+                          <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
+                          <span className="text-[10px] text-muted-foreground">Giới hạn:</span>
                           <span className="font-mono font-semibold text-foreground">
                             {device.speedLimitKmh}
                           </span>
@@ -360,29 +364,36 @@ export function DeviceTable({
 
                       {/* Battery */}
                       <TableCell>
-                        <div className="space-y-1 w-[100px]">
-                          <div className="flex items-center justify-between">
-                            <span
-                              className={`text-[11px] font-bold font-mono ${getBatteryTextColor(
-                                device.battery
-                              )}`}
-                            >
-                              {device.battery}%
-                            </span>
+                        {device.battery === 0 ? (
+                          <div className="flex items-center gap-1.5 bg-red-500/10 border border-red-500/20 rounded px-2 py-0.5 w-fit text-red-500 animate-pulse">
+                            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                            <span className="text-[9px] font-extrabold uppercase tracking-wider">CẦN SẠC!</span>
                           </div>
-                          <div
-                            className={`h-1.5 w-full rounded-full ${getBatteryBgColor(
-                              device.battery
-                            )} overflow-hidden`}
-                          >
+                        ) : (
+                          <div className="space-y-1 w-[100px]">
+                            <div className="flex items-center justify-between">
+                              <span
+                                className={`text-[11px] font-bold font-mono ${getBatteryTextColor(
+                                  device.battery
+                                )}`}
+                              >
+                                {device.battery}%
+                              </span>
+                            </div>
                             <div
-                              className={`h-full rounded-full transition-all duration-500 ${getBatteryColor(
+                              className={`h-1.5 w-full rounded-full ${getBatteryBgColor(
                                 device.battery
-                              )}`}
-                              style={{ width: `${device.battery}%` }}
-                            />
+                              )} overflow-hidden`}
+                            >
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${getBatteryColor(
+                                  device.battery
+                                )}`}
+                                style={{ width: `${device.battery}%` }}
+                              />
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </TableCell>
 
                       {/* Last Seen */}
@@ -393,52 +404,47 @@ export function DeviceTable({
                       </TableCell>
 
                       {/* Actions */}
-                      <TableCell className="pr-5">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44">
-                            <DropdownMenuItem
-                              className="text-xs gap-2"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onView(device);
-                              }}
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                              Xem chi tiết
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-xs gap-2"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit(device);
-                              }}
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                              Chỉnh sửa
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-xs gap-2 text-red-400 focus:text-red-400"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onDelete(device);
-                              }}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                              Xóa thiết bị
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                      <TableCell className="pr-5" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors"
+                            title="Xem chi tiết"
+                            onClick={() => onView(device)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-amber-500 transition-colors"
+                            title="Chỉnh sửa"
+                            onClick={() => onEdit(device)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-36">
+                              <DropdownMenuItem
+                                className="text-xs gap-2 text-red-400 focus:text-red-400 focus:bg-red-500/10"
+                                onClick={() => onDelete(device)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Xóa thiết bị
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );

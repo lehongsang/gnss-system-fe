@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { AppHeader } from "@/components/app-header";
 import Map, {
   Marker,
@@ -7,6 +7,7 @@ import Map, {
   Popup,
   Source,
   Layer,
+  type MapRef,
 } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useQueries } from "@tanstack/react-query";
@@ -16,7 +17,8 @@ import {
   getDeviceStatusControllerGetStatusQueryOptions,
   getTelemetryControllerGetLatestQueryOptions,
 } from "@/services/apis/gen/queries";
-import { Wifi, WifiOff, Wrench } from "lucide-react";
+import { Wifi, WifiOff, Wrench, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { DeviceStatus } from "@/types";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN ?? "";
@@ -28,7 +30,9 @@ const STATUS_COLORS: Record<DeviceStatus, string> = {
 };
 
 export default function RealTimeMap() {
+  const mapRef = useRef<MapRef>(null);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
 
   // 1. Lấy danh sách thiết bị
   const { data: devicesResponse } = useDevicesControllerFindMine();
@@ -84,6 +88,32 @@ export default function RealTimeMap() {
 
   const selectedDevice = devices.find((d: { id: string }) => d.id === selectedDeviceId);
 
+  const handleFitBounds = () => {
+    const map = mapRef.current;
+    if (!map || devices.length === 0) return;
+
+    const bounds = devices.reduce(
+      (b: { minLng: number; maxLng: number; minLat: number; maxLat: number }, d: { lng: number; lat: number }) => {
+        b.minLng = Math.min(b.minLng, d.lng);
+        b.maxLng = Math.max(b.maxLng, d.lng);
+        b.minLat = Math.min(b.minLat, d.lat);
+        b.maxLat = Math.max(b.maxLat, d.lat);
+        return b;
+      },
+      { minLng: Infinity, maxLng: -Infinity, minLat: Infinity, maxLat: -Infinity }
+    );
+
+    if (bounds.minLng === Infinity) return;
+
+    map.fitBounds(
+      [
+        [bounds.minLng - 0.005, bounds.minLat - 0.005],
+        [bounds.maxLng + 0.005, bounds.maxLat + 0.005],
+      ],
+      { padding: 80, duration: 1000 }
+    );
+  };
+
   function toGeoJSONPolygon(paths: { lat: number; lng: number }[]): GeoJSON.Feature<GeoJSON.Polygon> {
     const coordinates = paths.map((p) => [p.lng, p.lat]);
     if (coordinates.length > 0) coordinates.push(coordinates[0]);
@@ -105,13 +135,27 @@ export default function RealTimeMap() {
       />
       <div className="flex flex-1 flex-col p-0 min-h-[calc(100vh-64px)] overflow-hidden relative">
         <Map
+          ref={mapRef}
           initialViewState={initialViewState}
           mapboxAccessToken={MAPBOX_TOKEN}
-          mapStyle="mapbox://styles/mapbox/dark-v11"
+          mapStyle="mapbox://styles/mapbox/navigation-night-v1"
           style={{ width: "100%", height: "100%" }}
         >
           <NavigationControl position="top-right" showCompass={false} />
           <FullscreenControl position="top-right" />
+
+          {/* Fit Bounds Floating Button */}
+          <div className="absolute top-24 right-2.5 z-10 flex flex-col gap-2">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="h-8.5 w-8.5 rounded-md border border-border/80 shadow-md bg-card/95 hover:bg-accent flex items-center justify-center text-muted-foreground hover:text-foreground"
+              onClick={handleFitBounds}
+              title="Xem toàn bộ thiết bị"
+            >
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+          </div>
 
           {/* Render Geofences */}
           {rawGeofences.map((geo: { id: string; color?: string; paths: { lat: number; lng: number }[] }) => (
@@ -135,7 +179,7 @@ export default function RealTimeMap() {
           ))}
 
           {/* Render Devices */}
-          {devices.map((device: { id: string; lat: number; lng: number; status: string; heading: number }) => (
+          {devices.map((device: { id: string; name: string; lat: number; lng: number; status: string; heading: number }) => (
             <Marker
               key={device.id}
               latitude={device.lat}
@@ -148,19 +192,28 @@ export default function RealTimeMap() {
               style={{ cursor: "pointer" }}
             >
               <div 
-                className="relative flex items-center justify-center transition-transform hover:scale-110"
-                style={{
-                   transform: `rotate(${device.heading}deg)`,
-                }}
+                className="relative flex flex-col items-center justify-center transition-transform hover:scale-110"
               >
+                {/* Heading Arrow indicator */}
                 <div 
-                  className="absolute -top-1 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[10px] border-l-transparent border-r-transparent"
-                  style={{ borderBottomColor: STATUS_COLORS[device.status as DeviceStatus] || STATUS_COLORS.offline }}
-                />
-                <div 
-                  className="w-4 h-4 rounded-full border-2 border-white shadow-lg"
-                  style={{ backgroundColor: STATUS_COLORS[device.status as DeviceStatus] || STATUS_COLORS.offline }}
-                />
+                  className="relative flex items-center justify-center"
+                  style={{
+                     transform: `rotate(${device.heading}deg)`,
+                  }}
+                >
+                  <div 
+                    className="absolute -top-1.5 w-0 h-0 border-l-[5px] border-r-[5px] border-b-[8px] border-l-transparent border-r-transparent"
+                    style={{ borderBottomColor: STATUS_COLORS[device.status as DeviceStatus] || STATUS_COLORS.offline }}
+                  />
+                  <div 
+                    className="w-3.5 h-3.5 rounded-full border-2 border-white shadow-lg"
+                    style={{ backgroundColor: STATUS_COLORS[device.status as DeviceStatus] || STATUS_COLORS.offline }}
+                  />
+                </div>
+                {/* Device Name label (horizontal) */}
+                <div className="mt-1 bg-card/90 backdrop-blur-sm text-card-foreground text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-border/50 shadow-md whitespace-nowrap tracking-wide">
+                  {device.name}
+                </div>
               </div>
             </Marker>
           ))}
@@ -203,23 +256,49 @@ export default function RealTimeMap() {
           )}
         </Map>
 
-        {/* Floating Status Panel */}
-        <div className="absolute top-4 left-4 bg-card/90 backdrop-blur-md border rounded-xl p-4 shadow-xl z-10 min-w-[250px]">
-          <h2 className="font-semibold mb-3">Tổng quan thiết bị</h2>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2 text-emerald-500"><Wifi className="w-4 h-4"/> Đang chạy</span>
-              <span className="font-bold">{devices.filter((d: { status: string }) => d.status === "online").length}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2 text-red-400"><WifiOff className="w-4 h-4"/> Mất kết nối</span>
-              <span className="font-bold">{devices.filter((d: { status: string }) => d.status === "offline").length}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2 text-amber-500"><Wrench className="w-4 h-4"/> Bảo trì</span>
-              <span className="font-bold">{devices.filter((d: { status: string }) => d.status === "maintenance").length}</span>
-            </div>
+        {/* Floating Collapsible Status Panel */}
+        <div 
+          className={`absolute top-4 left-4 bg-card/95 backdrop-blur-md border rounded-xl p-4 shadow-xl z-10 min-w-[250px] transition-all duration-300 ${
+            isPanelCollapsed ? "-translate-x-[calc(100%-40px)] opacity-60" : ""
+          }`}
+        >
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <h2 className="font-semibold text-sm">Tổng quan thiết bị</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground shrink-0"
+              onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
+            >
+              {isPanelCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </Button>
           </div>
+
+          {!isPanelCollapsed && (
+            <div className="space-y-3 pt-2 border-t border-border/30">
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-[#10b981] shadow-[0_0_4px_#10b981]" />
+                  <Wifi className="w-3.5 h-3.5 text-emerald-500"/> Đang chạy (Online)
+                </span>
+                <span className="font-bold font-mono text-sm">{devices.filter((d: { status: string }) => d.status === "online").length}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-[#f87171] shadow-[0_0_4px_#f87171]" />
+                  <WifiOff className="w-3.5 h-3.5 text-red-400"/> Mất kết nối (Offline)
+                </span>
+                <span className="font-bold font-mono text-sm">{devices.filter((d: { status: string }) => d.status === "offline").length}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-[#f59e0b] shadow-[0_0_4px_#f59e0b]" />
+                  <Wrench className="w-3.5 h-3.5 text-amber-500"/> Bảo trì (Maintenance)
+                </span>
+                <span className="font-bold font-mono text-sm">{devices.filter((d: { status: string }) => d.status === "maintenance").length}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

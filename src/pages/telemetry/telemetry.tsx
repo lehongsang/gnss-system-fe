@@ -32,7 +32,6 @@ import {
   Crosshair,
   Compass,
   Clock,
-  ArrowUpDown,
   Satellite,
   TrendingUp,
 } from "lucide-react";
@@ -123,7 +122,6 @@ function SkeletonRow() {
       <TableCell><Skeleton className="h-5 w-16 rounded-md" /></TableCell>
       <TableCell><Skeleton className="h-3.5 w-12" /></TableCell>
       <TableCell><Skeleton className="h-5 w-16 rounded-md" /></TableCell>
-      <TableCell><Skeleton className="h-3.5 w-28" /></TableCell>
     </TableRow>
   );
 }
@@ -377,7 +375,7 @@ export default function TelemetryPage() {
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input
                     id="telemetry-search"
-                    placeholder="ID, tọa độ, trạng thái..."
+                    placeholder="Tọa độ, trạng thái..."
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
@@ -454,16 +452,10 @@ export default function TelemetryPage() {
                         Hướng
                       </div>
                     </TableHead>
-                    <TableHead className="text-[11px] uppercase tracking-wider font-medium">
+                    <TableHead className="text-[11px] uppercase tracking-wider font-medium pr-5">
                       <div className="flex items-center gap-1">
                         <Navigation className="h-3 w-3" />
                         Độ chính xác
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-[11px] uppercase tracking-wider font-medium pr-5">
-                      <div className="flex items-center gap-1">
-                        <ArrowUpDown className="h-3 w-3" />
-                        ID
                       </div>
                     </TableHead>
                   </TableRow>
@@ -476,7 +468,7 @@ export default function TelemetryPage() {
                   ) : filtered.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={7}
+                        colSpan={6}
                         className="text-center py-16 text-muted-foreground"
                       >
                         <div className="flex flex-col items-center gap-2">
@@ -556,20 +548,13 @@ export default function TelemetryPage() {
                           </TableCell>
 
                           {/* Accuracy Status */}
-                          <TableCell>
+                          <TableCell className="pr-5">
                             <Badge
                               variant="outline"
                               className={`text-[10px] px-2 py-0.5 ${accuracy.className}`}
                             >
                               {accuracy.label}
                             </Badge>
-                          </TableCell>
-
-                          {/* ID */}
-                          <TableCell className="pr-5">
-                            <code className="text-[10px] font-mono text-muted-foreground/60 bg-muted/30 px-1.5 py-0.5 rounded">
-                              {row.id?.slice(0, 12)}...
-                            </code>
                           </TableCell>
                         </TableRow>
                       );

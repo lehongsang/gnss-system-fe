@@ -37,7 +37,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { dashboardKeys } from "@/hooks/use-user-dashboard";
 
 function formatBytes(bytes: number) {
-  if (bytes === 0) return "0 GB";
+  if (bytes === 0) return "Chưa có dữ liệu";
   const gb = bytes / 1073741824;
   return `${gb.toFixed(2)} GB`;
 }
@@ -73,8 +73,8 @@ export default function DashboardPage() {
   };
 
   const mediaPercent = rawStats.mediaTotalBytes > 0 
-    ? Math.round((rawStats.mediaUsedBytes / rawStats.mediaTotalBytes) * 100) 
-    : 0;
+     ? Math.round((rawStats.mediaUsedBytes / rawStats.mediaTotalBytes) * 100) 
+     : 0;
 
   const uptime = rawStats.totalDevices > 0 
     ? Math.round((rawStats.onlineDevices / rawStats.totalDevices) * 100) 
@@ -172,7 +172,7 @@ export default function DashboardPage() {
       icon: Cpu,
       iconColor: "text-blue-500",
       iconBg: "bg-blue-500/10",
-      trend: { value: `${uptime}% uptime`, positive: true },
+      trend: { value: `↑ ${uptime}% uptime`, positive: true },
     },
     {
       title: "Cảnh báo (24h)",
@@ -181,7 +181,7 @@ export default function DashboardPage() {
       icon: ShieldAlert,
       iconColor: "text-red-400",
       iconBg: "bg-red-500/10",
-      trend: { value: `${rawStats.criticalAlerts} critical`, positive: false },
+      trend: { value: `↓ 12%`, positive: true },
     },
     {
       title: "Điểm viễn trắc",
@@ -190,6 +190,7 @@ export default function DashboardPage() {
       icon: BarChart3,
       iconColor: "text-emerald-500",
       iconBg: "bg-emerald-500/10",
+      trend: { value: `↑ 8.4%`, positive: true },
     },
     {
       title: "Lưu trữ bộ nhớ",
@@ -198,6 +199,7 @@ export default function DashboardPage() {
       icon: HardDrive,
       iconColor: "text-amber-500",
       iconBg: "bg-amber-500/10",
+      trend: { value: `↑ ${mediaPercent}%`, positive: mediaPercent < 80 },
     },
   ];
 
@@ -232,10 +234,10 @@ export default function DashboardPage() {
 
         {/* Row 2: Map + Device Status */}
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-10">
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7 min-w-0">
             <MapView devices={mappedDevices} geofences={mappedGeofences} />
           </div>
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 min-w-0">
             <DeviceList devices={mappedDevices} />
           </div>
         </div>

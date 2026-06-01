@@ -11,7 +11,7 @@ const mockStorageData = [
 ];
 
 export default function StoragePage() {
-  return (
+  return ( 
     <>
       <AppHeader
         title="Lưu trữ"

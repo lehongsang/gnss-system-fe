@@ -18,6 +18,7 @@ import MyDevices from "@/pages/my-devices/my-devices";
 import DeviceDetail from "@/pages/device-detail/device-detail";
 import MyGeofences from "@/pages/my-geofences/my-geofences";
 import MyAlerts from "@/pages/my-alerts/my-alerts";
+import AlertRules from "@/pages/alert-rules/alert-rules";
 import AdminUsers from "@/pages/admin/users/admin-users";
 import AdminMonitoring from "@/pages/admin/monitoring/admin-monitoring";
 import AdminResources from "@/pages/admin/resources/admin-resources";
@@ -34,6 +35,8 @@ import DeviceGroupsPage from "@/pages/device-groups/device-groups";
 import RealTimeMap from "@/pages/real-time-map/real-time-map";
 import VisionFeed from "@/pages/vision-feed/vision-feed";
 import LiveStreamPage from "@/pages/live-stream/live-stream";
+import SettingsPage from "@/pages/settings/settings";
+import RoutePlanning from "@/pages/route-planning/route-planning";
 
 const Root = () => {
   const location = useLocation();
@@ -120,12 +123,20 @@ export const router = createBrowserRouter([
                 element: <MyAlerts />,
               },
               {
+                path: "alert-rules",
+                element: <AlertRules />,
+              },
+              {
                 path: "track-history",
                 element: <TrackHistory />,
               },
               {
                 path: "real-time-map",
                 element: <RealTimeMap />,
+              },
+              {
+                path: "route-planning",
+                element: <RoutePlanning />,
               },
               {
                 path: "vision-feed",
@@ -150,6 +161,10 @@ export const router = createBrowserRouter([
               {
                 path: "telemetry-charts",
                 element: <TelemetryCharts />,
+              },
+              {
+                path: "settings",
+                element: <SettingsPage />,
               },
               // Admin routes (Role: Admin)
               {

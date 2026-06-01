@@ -27,6 +27,15 @@ export default function TrackHistory() {
   // Derive selected device: use manually selected, or default to first available
   const selectedDeviceId = manualSelectedId || (rawDevices.length > 0 ? rawDevices[0].id : "");
 
+  const [focusedPoint, setFocusedPoint] = useState<TelemetryPoint | null>(null);
+
+  // Track the previous device ID to reset focusedPoint when it changes
+  const [prevDeviceId, setPrevDeviceId] = useState<string>("");
+  if (selectedDeviceId !== prevDeviceId) {
+    setPrevDeviceId(selectedDeviceId);
+    setFocusedPoint(null);
+  }
+
   // Date range
   const today = new Date().toISOString().split("T")[0];
   const [dateFrom, setDateFrom] = useState(today);
@@ -176,6 +185,7 @@ export default function TrackHistory() {
                 dateTo={dateTo}
                 onDateFromChange={setDateFrom}
                 onDateToChange={setDateTo}
+                focusedPoint={focusedPoint}
               />
             ) : (
                <div className="flex flex-col items-center justify-center h-[520px] bg-muted/20 border rounded-xl">
@@ -198,21 +208,42 @@ export default function TrackHistory() {
               ) : (
                 logRows.map((item, idx) => {
                   const status = item.speed > 0 ? "Moving" : "Stopped";
+                  const isFocused = focusedPoint && focusedPoint.timestamp === item.timestamp;
                   return (
-                    <div key={idx} className="relative flex items-start gap-4 p-1 group">
-                      <div className={`z-10 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ring-4 ring-card ${status === 'Moving' ? 'bg-blue-500/20 text-blue-500' : 'bg-amber-500/20 text-amber-500'}`}>
-                        <Navigation className={`w-3.5 h-3.5 ${status === 'Stopped' ? 'rotate-180' : ''}`} />
+                    <div 
+                      key={idx} 
+                      className="relative flex items-start gap-4 p-1 group cursor-pointer"
+                      onClick={() => setFocusedPoint(item)}
+                    >
+                      <div className={`z-10 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ring-4 ring-card transition-all duration-300 ${
+                        isFocused 
+                          ? 'bg-cyan-500/20 text-cyan-400 ring-cyan-500/30 shadow-lg shadow-cyan-500/20 scale-110' 
+                          : status === 'Moving' 
+                            ? 'bg-blue-500/20 text-blue-500' 
+                            : 'bg-amber-500/20 text-amber-500'
+                      }`}>
+                        <Navigation className={`w-3.5 h-3.5 transition-transform duration-300 ${status === 'Stopped' ? 'rotate-180' : ''} ${isFocused ? 'text-cyan-400 animate-pulse' : ''}`} />
                       </div>
                       
-                      <div className="flex-1 bg-muted/10 border border-border/50 rounded-lg p-3 hover:bg-muted/30 transition-colors">
+                      <div className={`flex-1 border rounded-lg p-3 transition-all duration-300 ${
+                        isFocused 
+                          ? 'bg-cyan-500/10 border-cyan-500/80 shadow-md shadow-cyan-500/10 scale-[1.01]' 
+                          : 'bg-muted/10 border-border/50 hover:bg-muted/30'
+                      }`}>
                         <div className="flex justify-between items-center mb-1">
-                          <p className="font-semibold text-sm">{formatTime(item.timestamp)}</p>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${status === 'Moving' ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'}`}>{status}</span>
+                          <p className={`font-semibold text-sm transition-colors ${isFocused ? 'text-cyan-400 font-bold' : ''}`}>{formatTime(item.timestamp)}</p>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium transition-colors ${
+                            isFocused 
+                              ? 'bg-cyan-500/20 text-cyan-400'
+                              : status === 'Moving' 
+                                ? 'bg-blue-500/10 text-blue-500' 
+                                : 'bg-amber-500/10 text-amber-500'
+                          }`}>{isFocused ? 'Đang chọn' : status === 'Moving' ? 'Đang di chuyển' : 'Đang dừng'}</span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground font-mono truncate">
+                        <p className={`text-[11px] font-mono truncate transition-colors ${isFocused ? 'text-cyan-300/80' : 'text-muted-foreground'}`}>
                           {item.lat.toFixed(6)}, {item.lng.toFixed(6)}
                         </p>
-                        <p className="text-[11px] font-medium mt-1 text-foreground/80">Vận tốc: {item.speed.toFixed(1)} km/h</p>
+                        <p className={`text-[11px] font-medium mt-1 transition-colors ${isFocused ? 'text-cyan-200/90' : 'text-foreground/80'}`}>Vận tốc: {item.speed.toFixed(1)} km/h</p>
                       </div>
                     </div>
                   );

@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useState, useEffect, useMemo } from "react";
 import Map, {
   Source,
   Layer,
@@ -12,7 +12,6 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Route, CalendarDays, Play, Pause, MapPin } from "lucide-react";
 import type { TelemetryPoint, GeofenceZone } from "@/types";
@@ -28,6 +27,48 @@ interface TelemetryMapProps {
   dateTo: string;
   onDateFromChange: (val: string) => void;
   onDateToChange: (val: string) => void;
+  focusedPoint?: TelemetryPoint | null;
+}
+
+// ---------- Trip Calculation Helpers ----------
+function getHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function calculateTotalDistance(points: TelemetryPoint[]): number {
+  let total = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    total += getHaversineDistance(points[i].lat, points[i].lng, points[i + 1].lat, points[i + 1].lng);
+  }
+  return total;
+}
+
+function calculateDuration(points: TelemetryPoint[]): string {
+  if (points.length < 2) return "0 phút";
+  const start = new Date(points[0].timestamp).getTime();
+  const end = new Date(points[points.length - 1].timestamp).getTime();
+  const diffMs = end - start;
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 60) return `${diffMins} phút`;
+  const hours = Math.floor(diffMins / 60);
+  const mins = diffMins % 60;
+  return `${hours} giờ ${mins} phút`;
+}
+
+function calculateAvgSpeed(points: TelemetryPoint[]): number {
+  if (points.length === 0) return 0;
+  const sum = points.reduce((acc, p) => acc + p.speed, 0);
+  return sum / points.length;
 }
 
 function toGeoJSONLine(
@@ -69,11 +110,23 @@ export function TelemetryMap({
   dateTo,
   onDateFromChange,
   onDateToChange,
+  focusedPoint,
 }: TelemetryMapProps) {
   const mapRef = useRef<MapRef>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playIndex, setPlayIndex] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Fly to focusedPoint when updated
+  useEffect(() => {
+    if (focusedPoint && mapRef.current) {
+      mapRef.current.flyTo({
+        center: [focusedPoint.lng, focusedPoint.lat],
+        zoom: 16,
+        duration: 1000,
+      });
+    }
+  }, [focusedPoint]);
 
   // Playback logic
   const startPlayback = () => {
@@ -83,7 +136,9 @@ export function TelemetryMap({
       return;
     }
     setIsPlaying(true);
-    setPlayIndex(0);
+    setPlayIndex((prev) => {
+      return prev >= telemetry.length - 1 ? 0 : prev;
+    });
     intervalRef.current = setInterval(() => {
       setPlayIndex((prev) => {
         if (prev >= telemetry.length - 1) {
@@ -136,6 +191,10 @@ export function TelemetryMap({
     );
   }, [telemetry, geofences]);
 
+  const tripDistance = useMemo(() => calculateTotalDistance(telemetry), [telemetry]);
+  const tripDuration = useMemo(() => calculateDuration(telemetry), [telemetry]);
+  const tripAvgSpeed = useMemo(() => calculateAvgSpeed(telemetry), [telemetry]);
+
   return (
     <Card className="flex flex-col overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm h-full">
       <CardHeader className="px-5 pt-4 pb-3 space-y-0">
@@ -164,25 +223,52 @@ export function TelemetryMap({
             </Badge>
           </div>
 
-          {/* Date Range Picker row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-            <div className="flex items-center gap-1.5">
-              <Input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => onDateFromChange(e.target.value)}
-                className="h-8 w-[140px] text-xs bg-background/50"
-              />
+          {/* Date Range Picker & Trip Stats row */}
+          <div className="flex items-center justify-between flex-wrap gap-3 border-t border-border/20 pt-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+              <div className="flex items-center gap-1.5 bg-background/30 border rounded-lg px-2.5 py-1">
+                <span className="text-[9px] text-muted-foreground font-extrabold uppercase mr-1">Từ:</span>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => onDateFromChange(e.target.value)}
+                  className="h-5 w-[110px] text-[11px] bg-transparent border-0 focus:outline-none focus:ring-0 p-0 text-foreground"
+                />
+              </div>
               <span className="text-xs text-muted-foreground">→</span>
-              <Input
-                type="date"
-                value={dateTo}
-                onChange={(e) => onDateToChange(e.target.value)}
-                className="h-8 w-[140px] text-xs bg-background/50"
-              />
+              <div className="flex items-center gap-1.5 bg-background/30 border rounded-lg px-2.5 py-1">
+                <span className="text-[9px] text-muted-foreground font-extrabold uppercase mr-1">Đến:</span>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => onDateToChange(e.target.value)}
+                  className="h-5 w-[110px] text-[11px] bg-transparent border-0 focus:outline-none focus:ring-0 p-0 text-foreground"
+                />
+              </div>
             </div>
-            <div className="ml-auto flex items-center gap-2">
+
+            {/* Trip Stats */}
+            {telemetry.length > 0 && (
+              <div className="flex items-center gap-3 bg-indigo-500/5 border border-indigo-500/10 rounded-lg px-3 py-1 text-[11px] font-semibold text-indigo-300">
+                <div>
+                  <span className="text-muted-foreground text-[10px] font-medium">Quãng đường: </span>
+                  <span className="font-bold text-indigo-400">{tripDistance.toFixed(2)} km</span>
+                </div>
+                <div className="h-3 w-px bg-indigo-500/20" />
+                <div>
+                  <span className="text-muted-foreground text-[10px] font-medium">Thời gian: </span>
+                  <span className="font-bold text-indigo-400">{tripDuration}</span>
+                </div>
+                <div className="h-3 w-px bg-indigo-500/20" />
+                <div>
+                  <span className="text-muted-foreground text-[10px] font-medium">Tốc độ TB: </span>
+                  <span className="font-bold text-indigo-400">{tripAvgSpeed.toFixed(1)} km/h</span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
               <Button
                 variant={isPlaying ? "destructive" : "default"}
                 size="sm"
@@ -227,6 +313,18 @@ export function TelemetryMap({
             >
               <NavigationControl position="top-right" showCompass={false} />
               <FullscreenControl position="top-right" />
+
+              {/* Focused Point Glow Marker */}
+              {focusedPoint && (
+                <Marker latitude={focusedPoint.lat} longitude={focusedPoint.lng} anchor="center">
+                  <div className="relative flex h-10 w-10 items-center justify-center">
+                    <span className="absolute rounded-full bg-cyan-500/40 animate-ping" style={{ width: 40, height: 40 }} />
+                    <div className="h-6 w-6 rounded-full bg-cyan-500 border-2 border-white shadow-xl flex items-center justify-center animate-pulse">
+                      <MapPin className="h-3.5 w-3.5 text-white" />
+                    </div>
+                  </div>
+                </Marker>
+              )}
 
               {/* Geofences */}
               {geofences.map((geo) => (
@@ -353,7 +451,7 @@ export function TelemetryMap({
                 <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">
                   Tốc độ
                 </p>
-                <p className="text-sm font-bold font-mono">
+                <p className="text-sm font-bold font-mono text-indigo-400">
                   {currentPoint.speed}{" "}
                   <span className="text-[10px] text-muted-foreground font-normal">
                     km/h
@@ -369,11 +467,27 @@ export function TelemetryMap({
                 </p>
               </div>
             </div>
+
+            {/* Timeline Scrubbing Slider */}
+            <div className="flex items-center gap-3 flex-1 mx-6 hidden md:flex">
+              <span className="text-[10px] text-muted-foreground font-mono">0</span>
+              <input
+                type="range"
+                min={0}
+                max={telemetry.length > 0 ? telemetry.length - 1 : 0}
+                value={playIndex}
+                onChange={(e) => setPlayIndex(Number(e.target.value))}
+                disabled={telemetry.length === 0}
+                className="flex-grow h-1.5 bg-border rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 focus:outline-none"
+              />
+              <span className="text-[10px] text-muted-foreground font-mono">{telemetry.length}</span>
+            </div>
+
             <div className="text-right">
               <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">
                 Thời gian
               </p>
-              <p className="text-xs font-mono">
+              <p className="text-xs font-mono text-indigo-400">
                 {new Date(currentPoint.timestamp).toLocaleTimeString("vi-VN", {
                   hour: "2-digit",
                   minute: "2-digit",

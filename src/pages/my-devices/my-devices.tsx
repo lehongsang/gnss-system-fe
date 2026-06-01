@@ -165,7 +165,7 @@ export default function MyDevicesPage() {
         },
         {
           onSuccess: (response) => {
-            const mqttCredentials = (response as any)?.mqttCredentials ?? null;
+            const mqttCredentials = (response as { mqttCredentials?: MqttCredentials })?.mqttCredentials ?? null;
             if (mqttCredentials) {
               setCreatedMqttCredentials(mqttCredentials);
               setCredentialsOpen(true);
@@ -389,7 +389,7 @@ export default function MyDevicesPage() {
                         JSON.stringify(createdMqttCredentials, null, 2)
                       );
                       toast.success("Đã sao chép MQTT credentials.");
-                    } catch (error) {
+                    } catch {
                       toast.error("Không thể sao chép. Vui lòng thử lại.");
                     } finally {
                       setIsCopyingCredentials(false);
@@ -439,7 +439,7 @@ export default function MyDevicesPage() {
                     JSON.stringify(createdMqttCredentials, null, 2)
                   );
                   toast.success("Đã sao chép MQTT credentials.");
-                } catch (error) {
+                } catch {
                   toast.error("Không thể sao chép. Vui lòng thử lại.");
                 } finally {
                   setIsCopyingCredentials(false);

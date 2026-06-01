@@ -55,6 +55,7 @@ const userNavMain = [
     items: [
       { title: "Bản đồ thời gian thực", url: "/real-time-map" },
       { title: "Lịch sử di chuyển", url: "/track-history" },
+      { title: "Tìm đường & Giám sát", url: "/route-planning" },
     ],
   },
   {
@@ -77,7 +78,7 @@ const userNavMain = [
     icon: Bell,
     items: [
       { title: "Cảnh báo & Media của tôi", url: "/my-alerts" },
-      { title: "Quy tắc cảnh báo", url: "#" },
+      { title: "Quy tắc cảnh báo", url: "/alert-rules" },
     ],
   },
   {
@@ -93,13 +94,8 @@ const userNavMain = [
   },
   {
     title: "Cài đặt",
-    url: "#",
+    url: "/settings",
     icon: Settings2,
-    items: [
-      { title: "Chung", url: "#" },
-      { title: "Tích hợp", url: "#" },
-      { title: "Đội nhóm", url: "#" },
-    ],
   },
 ];
 

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { axiosInstance } from "@/services/apis/axios-client";
 import { useDevicesControllerFindMine } from "@/services/apis/gen/queries";
 import { Loader2, Video, AlertTriangle, Globe, Play, StopCircle, RefreshCcw } from "lucide-react";
+import type { UserDevice } from "@/types";
 
 type LiveStreamStatus = "starting" | "ready" | "failed" | "stopped";
 
@@ -48,8 +49,10 @@ function formatDateTime(value: string) {
 
 export default function LiveStreamPage() {
   const { data: devicesResponse, isLoading: isLoadingDevices } = useDevicesControllerFindMine();
-  const rawDevices = (devicesResponse as any)?.data ?? [];
-  const devices = Array.isArray(rawDevices) ? rawDevices : [];
+  const devices = useMemo(() => {
+    const rawDevices = (devicesResponse as { data?: UserDevice[] })?.data;
+    return Array.isArray(rawDevices) ? rawDevices : [];
+  }, [devicesResponse]);
 
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
   const [durationSeconds, setDurationSeconds] = useState(300);
@@ -60,7 +63,7 @@ export default function LiveStreamPage() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const selectedDevice = useMemo(
-    () => devices.find((device: any) => device.id === selectedDeviceId),
+    () => devices.find((device: UserDevice) => device.id === selectedDeviceId),
     [devices, selectedDeviceId]
   );
 
@@ -84,7 +87,7 @@ export default function LiveStreamPage() {
       try {
         const statusResponse = await axiosInstance.get<StreamSession>(`/api/live-streams/${selectedDeviceId}/status`);
         setSession(statusResponse.data);
-      } catch (error) {
+      } catch {
         setErrorMessage("Không thể kiểm tra trạng thái livestream.");
       }
     };
@@ -130,9 +133,10 @@ export default function LiveStreamPage() {
         durationSeconds,
       });
       setSession(response.data);
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
       setErrorMessage(
-        error?.response?.data?.message || error?.message || "Khởi động livestream thất bại."
+        err?.response?.data?.message || err?.message || "Khởi động livestream thất bại."
       );
       setSession({
         requestId: "",
@@ -141,7 +145,7 @@ export default function LiveStreamPage() {
         webrtcUrl: null,
         startedAt: new Date().toISOString(),
         expiresAt: new Date().toISOString(),
-        errorMessage: error?.response?.data?.message || error?.message || "Lỗi không xác định.",
+        errorMessage: err?.response?.data?.message || err?.message || "Lỗi không xác định.",
       });
     } finally {
       setIsSubmitting(false);
@@ -156,9 +160,10 @@ export default function LiveStreamPage() {
     try {
       const response = await axiosInstance.post<StreamSession>(`/api/live-streams/${selectedDeviceId}/stop`, {});
       setSession(response.data);
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
       setErrorMessage(
-        error?.response?.data?.message || error?.message || "Dừng livestream thất bại."
+        err?.response?.data?.message || err?.message || "Dừng livestream thất bại."
       );
     } finally {
       setIsSubmitting(false);
@@ -175,7 +180,7 @@ export default function LiveStreamPage() {
     const minutes = Math.floor(remaining / 60000);
     const seconds = Math.floor((remaining % 60000) / 1000);
     return `${minutes} phút ${seconds < 10 ? "0" : ""}${seconds} giây`;
-  }, [session?.expiresAt, session?.status, session?.requestId]);
+  }, [session?.expiresAt]);
 
   const isReady = session?.status === "ready";
   const isStarting = session?.status === "starting";
@@ -220,7 +225,7 @@ export default function LiveStreamPage() {
                     {devices.length === 0 ? (
                       <option value="">Không có thiết bị</option>
                     ) : (
-                      devices.map((device: any) => (
+                      devices.map((device: UserDevice) => (
                         <option key={device.id} value={device.id}>
                           {device.name ?? device.id}
                         </option>

@@ -203,7 +203,7 @@ export function GeofenceMap({
               zoom: 14,
             }}
             mapboxAccessToken={MAPBOX_TOKEN}
-            mapStyle="mapbox://styles/mapbox/dark-v11"
+            mapStyle="mapbox://styles/mapbox/navigation-night-v1"
             style={{
               width: "100%",
               height: "100%",
