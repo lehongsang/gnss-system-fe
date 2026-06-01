@@ -69,9 +69,16 @@ export interface UserAlert {
   deviceId: string;
   deviceName: string;
   type: AlertType;
+  alertType?: string;
   message: string;
   isResolved: boolean;
   timestamp: string;
+  createdAt?: string;
+  device?: {
+    id?: string;
+    name?: string;
+    [key: string]: unknown;
+  };
   /** Optional media attachment */
   media?: {
     type: "image_frame" | "video_chunk";
@@ -135,6 +142,7 @@ export interface GeofenceZone {
   color: string;
   paths: { lat: number; lng: number }[];
   assignedDevices: string[];
+  Devices?: unknown[];
   createdAt: string;
   vertexCount?: number;
 }

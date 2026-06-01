@@ -655,7 +655,7 @@ export default function AlertRulesPage() {
                                   <TableCell className="py-2 px-3 text-xs font-medium w-[25%]">{alert.device?.name || alert.deviceId}</TableCell>
                                   <TableCell className="py-2 px-3 text-[11px] text-muted-foreground w-[45%] truncate max-w-[200px]">{alert.message}</TableCell>
                                   <TableCell className="py-2 px-3 text-right text-[10px] text-muted-foreground w-[15%]">
-                                    {new Date(alert.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                                    {new Date(alert.createdAt || alert.timestamp).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
                                   </TableCell>
                                 </TableRow>
                               ))}
