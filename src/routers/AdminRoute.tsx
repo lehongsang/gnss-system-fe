@@ -22,7 +22,7 @@ const AdminRoute = () => {
       // You can add a toast here if you want:
       // toast.error("You don't have permission to access Admin Tools");
     }, 0);
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;

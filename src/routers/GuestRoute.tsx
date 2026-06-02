@@ -17,7 +17,7 @@ const GuestRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (session) {
-    const redirect = getSafeRedirectUrl(searchParams.get("redirect"));
+    const redirect = getSafeRedirectUrl(searchParams.get("redirect"), "/dashboard");
     return <Navigate to={redirect} replace />;
   }
 

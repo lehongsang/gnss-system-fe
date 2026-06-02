@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import {
   createBrowserRouter,
+  Navigate,
   Outlet,
   useLocation,
   useNavigate,
@@ -58,6 +59,10 @@ export const router = createBrowserRouter([
     path: "/",
     element: <Root />,
     children: [
+      {
+        index: true,
+        element: <Navigate to="/login" replace />,
+      },
       // Guest-only: auth pages
       {
         path: "login",
@@ -99,7 +104,7 @@ export const router = createBrowserRouter([
             element: <AppLayout />,
             children: [
               {
-                index: true,
+                path: "dashboard",
                 element: <Dashboard />,
               },
               {

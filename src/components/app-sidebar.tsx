@@ -35,7 +35,7 @@ import {
 const userNavMain = [
   {
     title: "Bảng điều khiển",
-    url: "/",
+    url: "/dashboard",
     icon: LayoutDashboard,
     isActive: true,
   },
@@ -142,7 +142,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link to="/">
+              <Link to="/dashboard">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
                   <img src={logo} alt="GNSS Vision" className="size-6" />
                 </div>
