@@ -514,7 +514,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                             const { error } = await authClient.linkSocial({
                               provider: "google",
                               callbackURL: window.location.href,
-                              errorCallbackURL: "http://localhost:5173",
+                              errorCallbackURL: window.location.origin,
                             });
                             if (error) {
                               toast.error(error.message);
