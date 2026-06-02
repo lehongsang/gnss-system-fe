@@ -64,8 +64,12 @@ export function LoginForm({
         return;
       }
 
+      console.log("Submitting login with VITE_API_URL:", import.meta.env.VITE_API_URL);
       const res = await authClient.signIn.email({ email, password });
+      console.log("Login API Response:", res);
+      
       if (res.error) {
+        console.warn("Login API error returned:", res.error);
         if (res.error.status === 403 && res.error.message?.includes("two_factor")) {
           setTwoFactorStep(true);
         } else {
@@ -74,9 +78,11 @@ export function LoginForm({
       } else {
         const params = new URLSearchParams(window.location.search);
         const redirect = getSafeRedirectUrl(params.get("redirect"), "/dashboard");
+        console.log("Login success. Redirecting to:", redirect);
         window.location.href = redirect;
       }
-    } catch {
+    } catch (err) {
+      console.error("Login API Exception caught:", err);
       setError("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
