@@ -79,7 +79,7 @@ export function LoginForm({
         const params = new URLSearchParams(window.location.search);
         const redirect = getSafeRedirectUrl(params.get("redirect"), "/dashboard");
         console.log("Login success. Redirecting to:", redirect);
-        window.location.href = redirect;
+        navigate(redirect, { replace: true });
       }
     } catch (err) {
       console.error("Login API Exception caught:", err);
