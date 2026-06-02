@@ -306,7 +306,7 @@ export function TelemetryMap({
                 zoom: 14,
               }}
               mapboxAccessToken={MAPBOX_TOKEN}
-              mapStyle="mapbox://styles/mapbox/dark-v11"
+              mapStyle="mapbox://styles/mapbox/navigation-preview-night-v4"
               style={{ width: "100%", height: "100%" }}
               onLoad={onMapLoad}
               attributionControl={false}
@@ -364,9 +364,9 @@ export function TelemetryMap({
                     id="telemetry-full-line"
                     type="line"
                     paint={{
-                      "line-color": "#6366f1",
-                      "line-width": 3,
-                      "line-opacity": 0.25,
+                      "line-color": "#ff6b00",
+                      "line-width": 4,
+                      "line-opacity": 0.45,
                     }}
                   />
                 </Source>
@@ -383,9 +383,9 @@ export function TelemetryMap({
                     id="telemetry-played-line"
                     type="line"
                     paint={{
-                      "line-color": "#818cf8",
-                      "line-width": 4,
-                      "line-opacity": 0.9,
+                      "line-color": "#ff8f00",
+                      "line-width": 5,
+                      "line-opacity": 0.95,
                     }}
                   />
                 </Source>

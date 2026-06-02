@@ -133,7 +133,7 @@ export function GlobalMap({ devices }: GlobalMapProps) {
         <div className="h-[550px] w-full">
           <Map ref={mapRef}
             initialViewState={{ latitude: 21.028, longitude: 105.854, zoom: 12 }}
-            mapboxAccessToken={MAPBOX_TOKEN} mapStyle="mapbox://styles/mapbox/navigation-night-v1"
+            mapboxAccessToken={MAPBOX_TOKEN} mapStyle="mapbox://styles/mapbox/navigation-preview-night-v4"
             style={{ width: "100%", height: "100%", cursor: isSearchMode ? "crosshair" : "grab" }}
             onLoad={onMapLoad} onClick={handleMapClick} attributionControl={false}
           >

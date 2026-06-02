@@ -138,7 +138,7 @@ export default function RealTimeMap() {
           ref={mapRef}
           initialViewState={initialViewState}
           mapboxAccessToken={MAPBOX_TOKEN}
-          mapStyle="mapbox://styles/mapbox/navigation-night-v1"
+          mapStyle="mapbox://styles/mapbox/navigation-preview-night-v4"
           style={{ width: "100%", height: "100%" }}
         >
           <NavigationControl position="top-right" showCompass={false} />

@@ -113,7 +113,7 @@ export function MapView({ devices, geofences }: MapViewProps) {
             ref={mapRef}
             initialViewState={INITIAL_VIEW}
             mapboxAccessToken={MAPBOX_TOKEN}
-            mapStyle="mapbox://styles/mapbox/navigation-night-v1"
+            mapStyle="mapbox://styles/mapbox/navigation-preview-night-v4"
             style={{ width: "100%", height: "100%" }}
             onLoad={onMapLoad}
             attributionControl={false}

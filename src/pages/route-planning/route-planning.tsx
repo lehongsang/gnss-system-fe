@@ -713,7 +713,7 @@ export default function RoutePlanningPage() {
             zoom: 11,
           }}
           mapboxAccessToken={MAPBOX_TOKEN}
-          mapStyle="mapbox://styles/mapbox/navigation-night-v1"
+          mapStyle="mapbox://styles/mapbox/navigation-preview-night-v4"
           style={{ width: "100%", height: "100%" }}
           onClick={handleMapClick}
         >
@@ -767,7 +767,7 @@ export default function RoutePlanningPage() {
                 id="route-path-line"
                 type="line"
                 paint={{
-                  "line-color": activeRoutePlan?.id === selectedRouteId ? "#10b981" : "#3b82f6",
+                  "line-color": activeRoutePlan?.id === selectedRouteId ? "#10b981" : "#ff6b00",
                   "line-width": 5,
                   "line-opacity": 0.85,
                 }}
