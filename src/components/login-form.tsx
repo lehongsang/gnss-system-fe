@@ -60,7 +60,7 @@ export function LoginForm({
            return;
         }
         const params = new URLSearchParams(window.location.search);
-        navigate(getSafeRedirectUrl(params.get("redirect")), { replace: true });
+        navigate(getSafeRedirectUrl(params.get("redirect"), "/dashboard"), { replace: true });
         return;
       }
 
@@ -73,7 +73,7 @@ export function LoginForm({
         }
       } else {
         const params = new URLSearchParams(window.location.search);
-        const redirect = getSafeRedirectUrl(params.get("redirect"));
+        const redirect = getSafeRedirectUrl(params.get("redirect"), "/dashboard");
         window.location.href = redirect;
       }
     } catch {
