@@ -355,6 +355,8 @@ export type ConfirmUploadDto = {
   mediaType: ConfirmUploadDtoMediaType;
   /** Optional correlation ID used to link this upload to an alert */
   snapshotId?: string;
+  lat?: number;
+  lng?: number;
 };
 
 export type SystemOverviewResponse = {
@@ -702,6 +704,27 @@ export const MediaLogsControllerFindMineMediaType = {
   video_chunk: "video_chunk",
   image_frame: "image_frame",
 } as const;
+
+export type MediaLogsControllerMapPinsParams = {
+  deviceId?: string;
+  from?: string;
+  to?: string;
+};
+
+export type MediaPinDto = {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  deviceId: string;
+  startTime: string;
+  endTime: string;
+  mediaType: "image_frame" | "video_chunk" | "video" | "image";
+  s3Key: string;
+  fileUrl: string;
+  snapshotId: string | null;
+  lat: number;
+  lng: number;
+};
 
 export type StatisticsControllerGetTelemetryStats200 =
   AppResponseSerialization & {
@@ -9325,6 +9348,172 @@ export function useMediaLogsControllerFindAll<
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
   const queryOptions = getMediaLogsControllerFindAllQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Role: All - Get media pins for map
+ */
+export const mediaLogsControllerMapPins = (
+  params?: MediaLogsControllerMapPinsParams,
+  options?: SecondParameter<typeof orvalClient>,
+  signal?: AbortSignal,
+) => {
+  return orvalClient<MediaPinDto[]>(
+    { url: `/api/media-logs/map-pins`, method: "GET", params, signal },
+    options,
+  );
+};
+
+export const getMediaLogsControllerMapPinsQueryKey = (
+  params?: MediaLogsControllerMapPinsParams,
+) => {
+  return [`/api/media-logs/map-pins`, ...(params ? [params] : [])] as const;
+};
+
+export const getMediaLogsControllerMapPinsQueryOptions = <
+  TData = Awaited<ReturnType<typeof mediaLogsControllerMapPins>>,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerMapPinsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerMapPins>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getMediaLogsControllerMapPinsQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof mediaLogsControllerMapPins>>
+  > = ({ signal }) =>
+    mediaLogsControllerMapPins(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof mediaLogsControllerMapPins>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type MediaLogsControllerMapPinsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof mediaLogsControllerMapPins>>
+>;
+export type MediaLogsControllerMapPinsQueryError = unknown;
+
+export function useMediaLogsControllerMapPins<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerMapPins>>,
+  TError = unknown,
+>(
+  params: undefined | MediaLogsControllerMapPinsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerMapPins>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaLogsControllerMapPins>>,
+          TError,
+          Awaited<ReturnType<typeof mediaLogsControllerMapPins>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMediaLogsControllerMapPins<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerMapPins>>,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerMapPinsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerMapPins>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mediaLogsControllerMapPins>>,
+          TError,
+          Awaited<ReturnType<typeof mediaLogsControllerMapPins>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMediaLogsControllerMapPins<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerMapPins>>,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerMapPinsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerMapPins>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+
+export function useMediaLogsControllerMapPins<
+  TData = Awaited<ReturnType<typeof mediaLogsControllerMapPins>>,
+  TError = unknown,
+>(
+  params?: MediaLogsControllerMapPinsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof mediaLogsControllerMapPins>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof orvalClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getMediaLogsControllerMapPinsQueryOptions(
     params,
     options,
   );
