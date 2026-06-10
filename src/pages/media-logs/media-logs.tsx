@@ -79,13 +79,14 @@ function MediaLogItem({
   const getUrl = () => {
     if (!streamResponse) return media.fileUrl;
     const res = streamResponse as Record<string, unknown>;
-    const data = res.data as Record<string, unknown> | undefined;
+    const data = (res.data as Record<string, unknown> | undefined) ?? res;
     const innerData = data?.data as Record<string, unknown> | undefined;
     const url = (data?.url as string | undefined) || (innerData?.url as string | undefined) || (typeof streamResponse === 'string' ? streamResponse : null);
     return url || media.fileUrl;
   };
 
   const streamUrl = getUrl();
+  console.log(streamUrl)
   const videoUrl = streamUrl ? streamUrl + "#t=0.001" : undefined;
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -153,7 +154,11 @@ function MediaLogItem({
             )}
           </>
         ) : (
+          <div>
+            <p>{streamUrl}</p>
           <img src={streamUrl} alt="Log" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity group-hover:scale-105 duration-300" />
+            <img src={"https://gnss.sang2004.io.vn/medias/media-logs/019eb0c5-933e-76c9-ae7d-e41348d5cb3c/1781084999070-019eb0c5-933e-76c9-ae7d-e41348d5cb3c.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=gnss_s3_admin%2F20260610%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260610T095805Z&X-Amz-Expires=3600&X-Amz-Signature=2dbe24b3dad2ddf6e5978ba15e6cd101383f7ef785bbe37929bc1f368c47d19e&X-Amz-SignedHeaders=host&x-id=GetObject"} alt="Log" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity group-hover:scale-105 duration-300" />
+        </div>
         )}
         <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-mono px-2 py-1 rounded-md flex items-center gap-1.5 shadow-sm">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
@@ -344,7 +349,7 @@ function MediaPinPopupContent({
   const getUrl = () => {
     if (!streamResponse) return media.fileUrl;
     const res = streamResponse as Record<string, unknown>;
-    const data = res.data as Record<string, unknown> | undefined;
+    const data = (res.data as Record<string, unknown> | undefined) ?? res;
     const innerData = data?.data as Record<string, unknown> | undefined;
     const url = (data?.url as string | undefined) || (innerData?.url as string | undefined) || (typeof streamResponse === 'string' ? streamResponse : null);
     return url || media.fileUrl;
