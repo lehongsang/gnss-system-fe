@@ -310,7 +310,11 @@ export function AlertsTable({
                 </TableRow>
               ) : (
                 paginated.map((alert) => {
-                  const typeConfig = ALERT_TYPE_CONFIG[alert.type];
+                  const typeConfig = ALERT_TYPE_CONFIG[alert.type] || {
+                    label: alert.type || "Cảnh báo",
+                    icon: "⚠️",
+                    badgeClass: "bg-red-500/10 text-red-400 border-red-500/20",
+                  };
 
                   return (
                     <TableRow

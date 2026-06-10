@@ -67,7 +67,11 @@ export function AlertDetailDialog({
 
   if (!alert) return null;
 
-  const typeConfig = ALERT_TYPE_CONFIG[alert.type];
+  const typeConfig = ALERT_TYPE_CONFIG[alert.type] || {
+    label: alert.type || "Cảnh báo",
+    icon: "⚠️",
+    badgeClass: "bg-red-500/10 text-red-400 border-red-500/20",
+  };
 
   return (
     <>
