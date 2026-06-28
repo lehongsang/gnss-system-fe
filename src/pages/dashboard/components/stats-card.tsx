@@ -21,9 +21,9 @@ export function StatsCard({
   trend,
 }: StatsCardProps) {
   return (
-    <Card className="group relative overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
+    <Card className="group relative overflow-hidden border border-border/45 bg-card/70 backdrop-blur-md transition-all duration-500 hover:border-primary/40 hover:shadow-[0_0_25px_rgba(99,102,241,0.12)] dark:hover:shadow-[0_0_30px_rgba(99,102,241,0.08)]">
       {/* Decorative gradient accent */}
-      <div className={`absolute top-0 right-0 h-24 w-24 rounded-full ${iconBg} opacity-20 blur-2xl transition-all duration-500 group-hover:opacity-40 group-hover:blur-3xl`} />
+      <div className={`absolute -right-4 -top-4 h-24 w-24 rounded-full ${iconBg} opacity-15 blur-2xl transition-all duration-700 group-hover:opacity-35 group-hover:blur-3xl group-hover:scale-125`} />
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div className="space-y-2">

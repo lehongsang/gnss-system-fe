@@ -686,15 +686,35 @@ export default function DeviceGroupsPage() {
                   <SkeletonGroupItem key={`skel-${i}`} />
                 ))
               ) : filtered.length === 0 ? (
-                <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
-                  <Folder className="h-8 w-8 text-muted-foreground/30" />
-                  <p className="text-sm font-medium">
-                    Chưa có nhóm thiết bị nào
-                  </p>
-                  <p className="text-xs text-muted-foreground/70">
-                    Hãy tạo nhóm mới để bắt đầu quản lý thiết bị.
-                  </p>
-                </div>
+                searchQuery ? (
+                  <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
+                    <Search className="h-8 w-8 text-muted-foreground/30" />
+                    <p className="text-sm font-medium">
+                      Không tìm thấy nhóm nào khớp với tìm kiếm
+                    </p>
+                    <p className="text-xs text-muted-foreground/70">
+                      Thử thay đổi từ khóa hoặc bộ lọc của bạn.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center gap-4 py-16 text-muted-foreground max-w-md mx-auto text-center">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-500 shadow-md">
+                      <Folder className="h-8 w-8" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-base font-semibold text-foreground">
+                        Chưa có nhóm thiết bị nào được tạo
+                      </p>
+                      <p className="text-xs text-muted-foreground max-w-[280px]">
+                        Tạo nhóm mới ngay để bắt đầu tổ chức và quản lý các thiết bị GNSS của bạn một cách dễ dàng.
+                      </p>
+                    </div>
+                    <Button onClick={openCreate} className="mt-2 gap-2 shadow-lg shadow-primary/20 cursor-pointer">
+                      <Plus className="h-4 w-4" />
+                      Tạo nhóm thiết bị đầu tiên
+                    </Button>
+                  </div>
+                )
               ) : (
                 filtered.map((group) => (
                   <GroupTreeItem

@@ -717,8 +717,8 @@ export default function RoutePlanningPage() {
           style={{ width: "100%", height: "100%" }}
           onClick={handleMapClick}
         >
-          <NavigationControl position="top-right" showCompass={false} />
-          <FullscreenControl position="top-right" />
+          <NavigationControl position="bottom-right" showCompass={false} />
+          <FullscreenControl position="bottom-right" />
 
           {/* Device Real-Time Marker */}
           {deviceMarkerCoords && (
@@ -923,19 +923,24 @@ export default function RoutePlanningPage() {
                   {/* Mode Selector */}
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold">Phương tiện</Label>
-                    <div className="grid grid-cols-3 gap-1">
-                      {["driving", "walking", "cycling"].map((m) => (
-                        <Button
-                          key={m}
-                          type="button"
-                          variant={mode === m ? "default" : "outline"}
-                          size="sm"
-                          className="text-[10px] py-1 h-8 capitalize"
-                          onClick={() => setMode(m as "driving" | "walking" | "cycling")}
-                        >
-                          {m}
-                        </Button>
-                      ))}
+                    <div className="flex bg-background/60 border border-border/40 rounded-lg p-0.5 select-none w-full">
+                      {(["driving", "walking", "cycling"] as const).map((m) => {
+                        const label = m === "driving" ? "🚗 Ô tô" : m === "walking" ? "🚶 Đi bộ" : "🚲 Xe đạp";
+                        return (
+                          <button
+                            key={m}
+                            type="button"
+                            className={`flex-1 py-1.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
+                              mode === m
+                                ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                            onClick={() => setMode(m)}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -961,7 +966,7 @@ export default function RoutePlanningPage() {
                 {destination && (
                   <Button
                     type="button"
-                    className="w-full text-xs gap-1.5 h-9 bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/20"
+                    className="w-full text-xs gap-1.5 h-9 bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/20 cursor-pointer"
                     onClick={handlePreviewRoute}
                     disabled={previewMutation.isPending}
                   >
@@ -973,7 +978,7 @@ export default function RoutePlanningPage() {
                   <Button
                     type="button"
                     variant="secondary"
-                    className="w-full text-xs gap-1.5 h-9 border border-primary/20"
+                    className="w-full text-xs gap-1.5 h-9 border border-primary/20 cursor-pointer"
                     onClick={handleSaveRoute}
                     disabled={createMutation.isPending}
                   >
@@ -984,14 +989,15 @@ export default function RoutePlanningPage() {
 
               {/* Preview Stats */}
               {previewRoute && (
-                <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-3 text-[11px] font-medium text-blue-400 space-y-1 mt-2">
-                  <div className="flex justify-between">
-                    <span>Quãng đường:</span>
-                    <span className="font-bold">{(previewRoute.distanceMeters / 1000).toFixed(2)} km</span>
+                <div className="rounded-xl border border-blue-500/15 bg-blue-500/5 dark:bg-blue-500/10 p-3.5 text-xs text-blue-400 mt-3 hover:shadow-[0_0_15px_rgba(59,130,246,0.1)] transition-all">
+                  <div className="flex justify-between items-center py-0.5">
+                    <span className="text-[11px] text-muted-foreground font-semibold">Quãng đường:</span>
+                    <span className="font-mono font-bold text-sm text-blue-400">{(previewRoute.distanceMeters / 1000).toFixed(2)} km</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Thời gian dự kiến:</span>
-                    <span className="font-bold">{formatTime(previewRoute.durationSeconds)}</span>
+                  <div className="h-px bg-blue-500/10 my-1.5" />
+                  <div className="flex justify-between items-center py-0.5">
+                    <span className="text-[11px] text-muted-foreground font-semibold">Thời gian dự kiến:</span>
+                    <span className="font-mono font-bold text-sm text-blue-400">{formatTime(previewRoute.durationSeconds)}</span>
                   </div>
                 </div>
               )}
@@ -1007,17 +1013,30 @@ export default function RoutePlanningPage() {
           }`}
         >
           <div className="flex items-center justify-between gap-4 mb-3 shrink-0">
-            <h2 className="font-semibold text-sm flex items-center gap-2">
-              <Compass className="h-4.5 w-4.5 text-emerald-500" /> Tuyến đường đã lưu
-            </h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground shrink-0"
-              onClick={() => setIsRightPanelCollapsed(!isRightPanelCollapsed)}
-            >
-              {isRightPanelCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </Button>
+            {isRightPanelCollapsed ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground shrink-0"
+                onClick={() => setIsRightPanelCollapsed(false)}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            ) : (
+              <>
+                <h2 className="font-semibold text-sm flex items-center gap-2">
+                  <Compass className="h-4.5 w-4.5 text-emerald-500" /> Tuyến đường đã lưu
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground shrink-0"
+                  onClick={() => setIsRightPanelCollapsed(true)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </>
+            )}
           </div>
 
           {!isRightPanelCollapsed && (

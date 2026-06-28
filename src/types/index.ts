@@ -130,7 +130,7 @@ export const ALERT_TYPE_CONFIG: Record<
   low_battery: {
     label: "Pin yếu",
     icon: "🔋",
-    badgeClass: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+    badgeClass: "bg-red-500/10 text-red-400 border-red-500/20",
   },
 };
 

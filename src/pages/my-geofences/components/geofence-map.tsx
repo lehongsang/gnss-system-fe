@@ -11,7 +11,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Pentagon, MousePointer2, MapPin } from "lucide-react";
+import { Pentagon, MousePointer2 } from "lucide-react";
 import type { GeofenceZone } from "@/types";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN ?? "";
@@ -271,24 +271,16 @@ export function GeofenceMap({
                     key={`vertex-${selectedGeo.id}-${idx}`}
                     latitude={point.lat}
                     longitude={point.lng}
-                    anchor="bottom"
+                    anchor="center"
                   >
-                    <div className="flex flex-col items-center">
-                      <div
-                        className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md mb-0.5 shadow-lg border border-white/20"
-                        style={{
-                          backgroundColor: selectedGeo.color,
-                          color: "#fff",
-                        }}
-                      >
+                    <div className="flex flex-col items-center animate-in fade-in zoom-in duration-200">
+                      <div className="text-[8px] font-mono font-extrabold px-1 py-0.2 rounded bg-slate-950/90 border border-white/10 shadow-md text-slate-200 mb-0.5">
                         {idx + 1}
                       </div>
-                      <MapPin
-                        className="w-5 h-5 drop-shadow-lg"
-                        style={{ color: selectedGeo.color }}
-                        fill={selectedGeo.color}
-                        fillOpacity={0.3}
-                      />
+                      <div className="relative flex h-4 w-4 items-center justify-center">
+                        <span className="absolute rounded-full animate-ping opacity-65" style={{ width: 12, height: 12, backgroundColor: selectedGeo.color || '#ef4444' }} />
+                        <div className="h-2.5 w-2.5 rounded-full border border-white shadow-md" style={{ backgroundColor: selectedGeo.color || '#ef4444' }} />
+                      </div>
                     </div>
                   </Marker>
                 );
@@ -342,17 +334,16 @@ export function GeofenceMap({
                   key={`draw-point-${idx}`}
                   latitude={point.lat}
                   longitude={point.lng}
-                  anchor="bottom"
+                  anchor="center"
                 >
                   <div className="flex flex-col items-center animate-in fade-in zoom-in duration-200">
-                    <div className="text-[9px] font-mono font-bold bg-blue-500 text-white px-1.5 py-0.5 rounded-md mb-0.5 shadow-lg border border-blue-400/50">
+                    <div className="text-[8px] font-mono font-extrabold bg-blue-600 text-white px-1 py-0.2 rounded shadow-md border border-blue-400/50 mb-0.5">
                       {idx + 1}
                     </div>
-                    <MapPin
-                      className="w-5 h-5 text-blue-500 drop-shadow-lg"
-                      fill="#3b82f6"
-                      fillOpacity={0.3}
-                    />
+                    <div className="relative flex h-4 w-4 items-center justify-center">
+                      <span className="absolute rounded-full bg-blue-500 animate-ping opacity-65" style={{ width: 12, height: 12 }} />
+                      <div className="h-2.5 w-2.5 rounded-full border border-white bg-blue-500 shadow-md" />
+                    </div>
                   </div>
                 </Marker>
               ))}

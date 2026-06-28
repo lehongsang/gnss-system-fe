@@ -30,12 +30,20 @@ import {
   Image as ImageIcon,
   Video,
   Eye,
+  Loader2,
 } from "lucide-react";
 import {
   ALERT_TYPE_CONFIG,
   type UserAlert,
   type AlertType,
 } from "@/types";
+import { useMediaLogsControllerGetStreamUrl } from "@/services/apis/gen/queries";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface AlertsTableProps {
   alerts: UserAlert[];
@@ -93,6 +101,124 @@ function SkeletonRow() {
         <Skeleton className="h-8 w-16 rounded-md" />
       </TableCell>
     </TableRow>
+  );
+}
+
+interface AlertMediaCellProps {
+  media: {
+    type: "image_frame" | "video_chunk";
+    url: string;
+    thumbnail: string;
+    mediaLogId?: string;
+  };
+}
+
+function AlertMediaCell({ media }: AlertMediaCellProps) {
+  const mediaLogId = media.mediaLogId || "";
+  const { data: streamResponse, isLoading } = useMediaLogsControllerGetStreamUrl(
+    mediaLogId,
+    { query: { enabled: !!mediaLogId } }
+  );
+
+  const getUrl = () => {
+    if (!mediaLogId) return media.thumbnail || media.url;
+    if (!streamResponse) return media.thumbnail || media.url;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = (streamResponse as any).data ?? streamResponse;
+    const url = data?.url || data?.data?.url || (typeof streamResponse === 'string' ? streamResponse : null);
+    return url || media.thumbnail || media.url;
+  };
+
+  const actualUrl = getUrl();
+  const isVideo = media.type === "video_chunk";
+
+  if (isLoading) {
+    return (
+      <div className="flex h-8 w-8 items-center justify-center rounded bg-muted/20">
+        <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground/40" />
+      </div>
+    );
+  }
+
+  if (!actualUrl) {
+    return (
+      <div className="flex h-8 w-8 items-center justify-center rounded bg-muted/20 border border-border/50">
+        {isVideo ? (
+          <Video className="h-3.5 w-3.5 text-violet-400/80" />
+        ) : (
+          <ImageIcon className="h-3.5 w-3.5 text-blue-400/80" />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            className="relative h-8 w-10 shrink-0 overflow-hidden rounded bg-black flex items-center justify-center border border-border/50 hover:border-primary/50 cursor-zoom-in transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {isVideo ? (
+              <>
+                <video
+                  src={actualUrl ? actualUrl + "#t=0.001" : undefined}
+                  className="h-full w-full object-cover opacity-80"
+                  preload="metadata"
+                  playsInline
+                  muted
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                  <Video className="h-3 w-3 text-white" />
+                </div>
+              </>
+            ) : (
+              <img
+                src={actualUrl}
+                alt="Alert media"
+                className="h-full w-full object-cover"
+              />
+            )}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent
+          side="left"
+          className="p-1 bg-slate-950/95 border border-slate-800 shadow-2xl rounded-lg max-w-[280px] backdrop-blur-md"
+        >
+          <div className="space-y-1.5 p-1">
+            <div className="h-[160px] w-[260px] overflow-hidden rounded bg-black flex items-center justify-center">
+              {isVideo ? (
+                <video
+                  src={actualUrl}
+                  className="h-full w-full object-contain"
+                  controls
+                  autoPlay
+                  muted
+                  playsInline
+                />
+              ) : (
+                <img
+                  src={actualUrl}
+                  alt="Alert media preview"
+                  className="h-full w-full object-contain"
+                />
+              )}
+            </div>
+            <div className="px-1 py-0.5 text-[10px] text-slate-400 flex items-center justify-between">
+              <span className="font-medium">
+                {isVideo ? "🎬 Clip Video" : "📸 Ảnh chụp"}
+              </span>
+              {mediaLogId && (
+                <span className="font-mono text-slate-500 text-[9px]">
+                  ID: {mediaLogId.slice(0, 8)}
+                </span>
+              )}
+            </div>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -392,13 +518,9 @@ export function AlertsTable({
                       {/* Media indicator */}
                       <TableCell>
                         {alert.media ? (
-                          alert.media.type === "image_frame" ? (
-                            <ImageIcon className="h-4 w-4 text-blue-400" />
-                          ) : (
-                            <Video className="h-4 w-4 text-violet-400" />
-                          )
+                          <AlertMediaCell media={alert.media} />
                         ) : (
-                          <span className="text-[10px] text-muted-foreground/40">
+                          <span className="text-[10px] text-muted-foreground/40 pl-2">
                             —
                           </span>
                         )}

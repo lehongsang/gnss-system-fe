@@ -202,3 +202,24 @@
   background: oklch(0.65 0.2 260 / 0.4);
 }
 
+/* Custom Dark Theme for Mapbox Controls */
+.mapboxgl-ctrl-group {
+  background-color: #0f172a !important; /* slate-900 / bg-card */
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+.mapboxgl-ctrl-group button {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+.mapboxgl-ctrl-group button:last-child {
+  border-bottom: none !important;
+}
+.mapboxgl-ctrl-group button span {
+  filter: invert(1) brightness(1.2) !important;
+}
+.mapboxgl-ctrl-group button:hover {
+  background-color: #1e293b !important; /* slate-800 */
+}
+.mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-top-right {
+  z-index: 5 !important;
+}

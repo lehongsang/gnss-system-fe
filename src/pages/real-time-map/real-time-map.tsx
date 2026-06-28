@@ -230,25 +230,25 @@ export default function RealTimeMap() {
               className="z-50"
               maxWidth="300px"
             >
-              <div className="flex flex-col gap-2 p-1 min-w-[200px] text-zinc-900">
-                <div className="flex items-center justify-between border-b pb-2">
-                  <h3 className="font-bold text-sm truncate pr-4">{selectedDevice.name}</h3>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-sm font-semibold text-white" style={{ backgroundColor: STATUS_COLORS[selectedDevice.status as DeviceStatus] }}>
+              <div className="flex flex-col gap-2.5 p-1.5 min-w-[210px] text-slate-100">
+                <div className="flex items-center justify-between border-b border-slate-700/50 pb-2">
+                  <h3 className="font-bold text-sm truncate pr-4 text-white">{selectedDevice.name}</h3>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold text-white shadow-xs" style={{ backgroundColor: STATUS_COLORS[selectedDevice.status as DeviceStatus] }}>
                     {selectedDevice.status.toUpperCase()}
                   </span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-xs mt-1">
+                <div className="grid grid-cols-2 gap-2.5 text-[11px] mt-1">
                   <div>
-                    <span className="text-zinc-500 font-medium">Vận tốc:</span>
-                    <p className="font-semibold font-mono">{selectedDevice.speed.toFixed(1)} km/h</p>
+                    <span className="text-slate-400 font-medium">Vận tốc:</span>
+                    <p className="font-bold font-mono text-slate-200 mt-0.5">{selectedDevice.speed.toFixed(1)} km/h</p>
                   </div>
                   <div>
-                    <span className="text-zinc-500 font-medium">Pin:</span>
-                    <p className="font-semibold font-mono">{selectedDevice.battery}%</p>
+                    <span className="text-slate-400 font-medium">Pin:</span>
+                    <p className="font-bold font-mono text-slate-200 mt-0.5">{selectedDevice.battery}%</p>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-zinc-500 font-medium">Tọa độ:</span>
-                    <p className="font-semibold font-mono">{selectedDevice.lat.toFixed(5)}, {selectedDevice.lng.toFixed(5)}</p>
+                    <span className="text-slate-400 font-medium">Tọa độ:</span>
+                    <p className="font-bold font-mono text-slate-200 mt-0.5">{selectedDevice.lat.toFixed(5)}, {selectedDevice.lng.toFixed(5)}</p>
                   </div>
                 </div>
               </div>

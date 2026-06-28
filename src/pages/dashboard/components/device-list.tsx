@@ -66,15 +66,15 @@ export function DeviceList({ devices }: DeviceListProps) {
         <ScrollArea className="h-[388px]">
           <div className="space-y-0.5 px-3 pb-3">
             {sorted.map((device) => {
-               const BatIcon = getBatteryIcon(device.battery);
-               const batColor = getBatteryColor(device.battery);
-               const TypeIcon = getTypeIcon(device.type);
                const isOnline = device.status === "online";
+               const BatIcon = getBatteryIcon(device.battery);
+               const batColor = isOnline ? getBatteryColor(device.battery) : "text-muted-foreground/50";
+               const TypeIcon = getTypeIcon(device.type);
 
                return (
                 <div
                   key={device.id}
-                  className="group rounded-lg p-3 transition-colors hover:bg-accent/50 cursor-pointer border border-transparent hover:border-border/50"
+                  className={`group rounded-lg p-3 transition-colors hover:bg-accent/50 cursor-pointer border border-transparent hover:border-border/50 ${!isOnline ? "opacity-70" : ""}`}
                 >
                   {/* Header row */}
                   <div className="flex items-center justify-between mb-2.5">
@@ -114,7 +114,7 @@ export function DeviceList({ devices }: DeviceListProps) {
                     {/* Satellites */}
                     <div className="space-y-1">
                       <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Satellites</p>
-                      <p className="text-xs font-bold font-mono">
+                      <p className={`text-xs font-bold font-mono ${isOnline ? "text-foreground" : "text-muted-foreground/50"}`}>
                         {device.satellites} vệ tinh
                       </p>
                     </div>

@@ -115,6 +115,7 @@ export function TelemetryMap({
   const mapRef = useRef<MapRef>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playIndex, setPlayIndex] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Fly to focusedPoint when updated
@@ -128,27 +129,34 @@ export function TelemetryMap({
     }
   }, [focusedPoint]);
 
-  // Playback logic
-  const startPlayback = () => {
+  // Playback logic controlled by speed and isPlaying state
+  useEffect(() => {
     if (isPlaying) {
       if (intervalRef.current) clearInterval(intervalRef.current);
-      setIsPlaying(false);
-      return;
+      intervalRef.current = setInterval(() => {
+        setPlayIndex((prev) => {
+          if (prev >= telemetry.length - 1) {
+            setIsPlaying(false);
+            return telemetry.length - 1;
+          }
+          return prev + 1;
+        });
+      }, 500 / playbackSpeed);
     }
-    setIsPlaying(true);
-    setPlayIndex((prev) => {
-      return prev >= telemetry.length - 1 ? 0 : prev;
-    });
-    intervalRef.current = setInterval(() => {
-      setPlayIndex((prev) => {
-        if (prev >= telemetry.length - 1) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          setIsPlaying(false);
-          return telemetry.length - 1;
-        }
-        return prev + 1;
-      });
-    }, 500);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isPlaying, playbackSpeed, telemetry.length]);
+
+  const startPlayback = () => {
+    if (isPlaying) {
+      setIsPlaying(false);
+    } else {
+      if (playIndex >= telemetry.length - 1) {
+        setPlayIndex(0);
+      }
+      setIsPlaying(true);
+    }
   };
 
   const currentPoint = telemetry[playIndex];
@@ -269,10 +277,28 @@ export function TelemetryMap({
             )}
 
             <div className="flex items-center gap-2">
+              {telemetry.length > 0 && (
+                <div className="flex items-center bg-background/50 border rounded-lg p-0.5 mr-1 select-none">
+                  {([1, 2, 4, 8] as const).map((speed) => (
+                    <button
+                      key={speed}
+                      type="button"
+                      onClick={() => setPlaybackSpeed(speed)}
+                      className={`px-2 py-0.5 text-[10px] font-bold rounded transition-all cursor-pointer ${
+                        playbackSpeed === speed
+                          ? "bg-indigo-600 text-white shadow-xs"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {speed}x
+                    </button>
+                  ))}
+                </div>
+              )}
               <Button
                 variant={isPlaying ? "destructive" : "default"}
                 size="sm"
-                className="h-8 text-xs gap-1.5"
+                className="h-8 text-xs gap-1.5 cursor-pointer"
                 onClick={startPlayback}
                 disabled={telemetry.length === 0}
               >

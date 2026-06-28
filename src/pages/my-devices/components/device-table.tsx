@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Cpu,
   Search,
-  Filter,
   MoreHorizontal,
   Pencil,
   Trash2,
@@ -75,17 +73,20 @@ const STATUS_CONFIG: Record<
 const ITEMS_PER_PAGE = 5;
 
 function getBatteryColor(level: number) {
-  if (level > 20) return "bg-emerald-500";
-  return "bg-red-400";
+  if (level > 60) return "bg-emerald-500";
+  if (level >= 20) return "bg-amber-500";
+  return "bg-red-500";
 }
 
 function getBatteryTextColor(level: number) {
-  if (level > 20) return "text-emerald-500";
+  if (level > 60) return "text-emerald-500";
+  if (level >= 20) return "text-amber-500";
   return "text-red-400";
 }
 
 function getBatteryBgColor(level: number) {
-  if (level > 20) return "bg-emerald-500/20";
+  if (level > 60) return "bg-emerald-500/20";
+  if (level >= 20) return "bg-amber-500/20";
   return "bg-red-500/20";
 }
 
@@ -149,6 +150,16 @@ export function DeviceTable({
   const [statusFilter, setStatusFilter] = useState<DeviceStatus | "all">("all");
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Calculate counts for filters
+  const counts = useMemo(() => {
+    return {
+      all: devices.length,
+      online: devices.filter((d) => d.status === "online").length,
+      offline: devices.filter((d) => d.status === "offline").length,
+      maintenance: devices.filter((d) => d.status === "maintenance").length,
+    };
+  }, [devices]);
+
   // Filter devices
   const filtered = devices.filter((d) => {
     const matchSearch =
@@ -176,7 +187,7 @@ export function DeviceTable({
   return (
     <Card className="overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm">
       <CardHeader className="px-5 pt-4 pb-3 space-y-0">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
               <Cpu className="h-4 w-4" />
@@ -192,8 +203,8 @@ export function DeviceTable({
             </Badge>
           </div>
 
-          {/* Search + Filter */}
-          <div className="flex items-center gap-2">
+          {/* Search + Filter Pills */}
+          <div className="flex items-center gap-3 flex-wrap">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
@@ -201,55 +212,59 @@ export function DeviceTable({
                 placeholder="Tìm theo tên thiết bị..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="pl-8 h-8 w-[200px] text-xs bg-background/50"
+                className="pl-8 h-8 w-[180px] sm:w-[220px] text-xs bg-background/50 focus-visible:ring-1 focus-visible:ring-primary/50"
               />
             </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  id="device-filter-status"
-                  variant="outline"
-                  size="sm"
-                  className="h-8 text-xs gap-1.5"
-                >
-                  <Filter className="h-3.5 w-3.5" />
-                  {statusFilter === "all"
-                    ? "Tất cả"
-                    : STATUS_CONFIG[statusFilter].label}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem
-                  onClick={() => handleStatusFilter("all")}
-                  className="text-xs"
-                >
-                  Tất cả
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => handleStatusFilter("online")}
-                  className="text-xs"
-                >
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 mr-2" />
-                  Online
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleStatusFilter("offline")}
-                  className="text-xs"
-                >
-                  <span className="h-2 w-2 rounded-full bg-red-400 mr-2" />
-                  Offline
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleStatusFilter("maintenance")}
-                  className="text-xs"
-                >
-                  <span className="h-2 w-2 rounded-full bg-amber-500 mr-2" />
-                  Maintenance
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-1 bg-background/30 p-0.5 rounded-lg border border-border/40 flex-wrap">
+              <button
+                type="button"
+                onClick={() => handleStatusFilter("all")}
+                className={`px-2.5 py-1 text-[11px] rounded-md font-semibold transition-all cursor-pointer ${
+                  statusFilter === "all"
+                    ? "bg-primary/15 text-primary shadow-xs border border-primary/20"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/30 border border-transparent"
+                }`}
+              >
+                Tất cả ({counts.all})
+              </button>
+              <button
+                type="button"
+                onClick={() => handleStatusFilter("online")}
+                className={`px-2.5 py-1 text-[11px] rounded-md font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  statusFilter === "online"
+                    ? "bg-emerald-500/15 text-emerald-500 shadow-xs border border-emerald-500/25"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/30 border border-transparent"
+                }`}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Online ({counts.online})
+              </button>
+              <button
+                type="button"
+                onClick={() => handleStatusFilter("offline")}
+                className={`px-2.5 py-1 text-[11px] rounded-md font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  statusFilter === "offline"
+                    ? "bg-red-500/15 text-red-400 shadow-xs border border-red-500/25"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/30 border border-transparent"
+                }`}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+                Offline ({counts.offline})
+              </button>
+              <button
+                type="button"
+                onClick={() => handleStatusFilter("maintenance")}
+                className={`px-2.5 py-1 text-[11px] rounded-md font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  statusFilter === "maintenance"
+                    ? "bg-amber-500/15 text-amber-500 shadow-xs border border-amber-500/25"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/30 border border-transparent"
+                }`}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                Bảo trì ({counts.maintenance})
+              </button>
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -364,13 +379,13 @@ export function DeviceTable({
 
                       {/* Battery */}
                       <TableCell>
-                        {device.battery === 0 ? (
-                          <div className="flex items-center gap-1.5 bg-red-500/10 border border-red-500/20 rounded px-2 py-0.5 w-fit text-red-500 animate-pulse">
-                            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                            <span className="text-[9px] font-extrabold uppercase tracking-wider">CẦN SẠC!</span>
+                        {device.battery < 20 ? (
+                          <div className="flex items-center gap-1.5 bg-red-500/10 border border-red-500/25 rounded px-2.5 py-1 w-fit text-red-500 animate-pulse">
+                            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-red-500" />
+                            <span className="text-[9px] font-black uppercase tracking-wider font-mono">Pin yếu: {device.battery}%</span>
                           </div>
                         ) : (
-                          <div className="space-y-1 w-[100px]">
+                          <div className="space-y-1.5 w-[100px]">
                             <div className="flex items-center justify-between">
                               <span
                                 className={`text-[11px] font-bold font-mono ${getBatteryTextColor(

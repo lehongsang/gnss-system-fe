@@ -177,19 +177,34 @@ export default function TelemetryCharts() {
   );
 
   // Transform for chart
-  const chartData = useMemo(
-    () =>
-      rawData.map((r) => ({
-        time: formatTime(r.timestamp),
-        date: formatShortDate(r.timestamp),
-        speed: Number(r.speed) || 0,
-        heading: Number(r.heading) || 0,
-        lat: Number(r.lat) || 0,
-        lng: Number(r.lng) || 0,
-        altitude: Number(r.altitude) || 0,
-      })),
-    [rawData]
-  );
+  // Transform for chart (with adaptive downsampling for performance & visual smoothing)
+  const chartData = useMemo(() => {
+    if (rawData.length === 0) return [];
+    
+    // If we have too many points, downsample (e.g., take every N-th point) to smooth out trends
+    const maxPoints = 120;
+    const step = Math.max(1, Math.ceil(rawData.length / maxPoints));
+    
+    const sampled = [];
+    for (let i = 0; i < rawData.length; i += step) {
+      sampled.push(rawData[i]);
+    }
+    
+    // Always ensure the last telemetry point is included
+    if (rawData.length > 0 && sampled[sampled.length - 1]?.timestamp !== rawData[rawData.length - 1]?.timestamp) {
+      sampled.push(rawData[rawData.length - 1]);
+    }
+
+    return sampled.map((r) => ({
+      time: formatTime(r.timestamp),
+      date: formatShortDate(r.timestamp),
+      speed: Number(r.speed) || 0,
+      heading: Number(r.heading) || 0,
+      lat: Number(r.lat) || 0,
+      lng: Number(r.lng) || 0,
+      altitude: Number(r.altitude) || 0,
+    }));
+  }, [rawData]);
 
   // Compute stats
   const stats = useMemo(() => {
@@ -513,7 +528,27 @@ export default function TelemetryCharts() {
               <CardContent className="px-2 pb-4">
                 <div className="h-[250px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient
+                          id="headingGradient"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#06b6d4"
+                            stopOpacity={0.25}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#06b6d4"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
                       <CartesianGrid
                         strokeDasharray="3 3"
                         stroke="#27272a"
@@ -535,11 +570,12 @@ export default function TelemetryCharts() {
                         ticks={[0, 90, 180, 270, 360]}
                       />
                       <Tooltip content={<CustomTooltip />} />
-                      <Line
+                      <Area
                         type="monotone"
                         dataKey="heading"
                         stroke="#06b6d4"
-                        strokeWidth={1.5}
+                        strokeWidth={1.8}
+                        fill="url(#headingGradient)"
                         name="Hướng (°)"
                         dot={false}
                         activeDot={{
@@ -549,7 +585,7 @@ export default function TelemetryCharts() {
                           strokeWidth: 2,
                         }}
                       />
-                    </LineChart>
+                    </AreaChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>

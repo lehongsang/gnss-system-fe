@@ -60,15 +60,15 @@ function formatCoord(val: number) {
 }
 
 function getSpeedColor(speed: number) {
-  if (speed >= 80) return "text-red-400";
-  if (speed >= 50) return "text-amber-500";
-  return "text-emerald-500";
+  if (speed >= 80) return "text-red-500 dark:text-red-400 font-extrabold";
+  if (speed >= 50) return "text-amber-500 dark:text-amber-400 font-bold";
+  return "text-emerald-500 dark:text-emerald-400 font-bold";
 }
 
 function getSpeedBg(speed: number) {
-  if (speed >= 80) return "bg-red-500/10 border-red-500/20";
-  if (speed >= 50) return "bg-amber-500/10 border-amber-500/20";
-  return "bg-emerald-500/10 border-emerald-500/20";
+  if (speed >= 80) return "bg-red-500/15 border-red-500/25";
+  if (speed >= 50) return "bg-amber-500/15 border-amber-500/25";
+  return "bg-emerald-500/15 border-emerald-500/25";
 }
 
 function getHeadingLabel(heading: number) {
@@ -87,22 +87,22 @@ function getAccuracyBadge(status: string) {
     case "rtk_fixed":
       return {
         label: "RTK Fixed",
-        className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+        className: "bg-emerald-500/15 text-emerald-550 dark:text-emerald-400 border-emerald-500/25 font-bold",
       };
     case "rtk_float":
       return {
         label: "RTK Float",
-        className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+        className: "bg-blue-500/15 text-blue-550 dark:text-blue-400 border-blue-500/25 font-semibold",
       };
     case "dgps":
       return {
         label: "DGPS",
-        className: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
+        className: "bg-cyan-500/15 text-cyan-550 dark:text-cyan-400 border-cyan-500/25",
       };
     case "gnss_only":
       return {
         label: "GNSS Only",
-        className: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+        className: "bg-slate-500/10 text-slate-400 border-slate-500/20 font-medium",
       };
     default:
       return {

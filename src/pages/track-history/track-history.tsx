@@ -200,7 +200,7 @@ export default function TrackHistory() {
               <Clock className="w-5 h-5 text-blue-500"/> Nhật ký hành trình
             </h3>
             
-            <div className="overflow-auto pr-2 flex-1 relative before:absolute before:inset-y-0 before:left-5 before:w-0.5 before:bg-border/50 space-y-3">
+            <div className="overflow-auto pr-2 flex-1 relative before:absolute before:inset-y-0 before:left-[16px] before:w-0.5 before:bg-border/50 space-y-3">
               {isLoadingHistory ? (
                  <div className="flex justify-center p-4"><span className="text-sm text-muted-foreground">Đang tải...</span></div>
               ) : logRows.length === 0 ? (
