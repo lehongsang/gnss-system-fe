@@ -338,7 +338,7 @@ export default function AlertRulesPage() {
                       Quy tắc vượt tốc độ giới hạn (Speed Limit Rule)
                     </CardTitle>
                     <CardDescription className="text-xs">
-                      Mỗi thiết bị có một thuộc tính tốc độ tối đa. Khi thiết bị gửi tọa độ có <code className="px-1 py-0.5 rounded bg-muted font-mono text-[10px]">speed &gt; speedLimitKmh</code>, backend lập tức tạo cảnh báo loại <Badge variant="secondary" className="text-[10px]">speeding</Badge>. Thời gian chờ giữa 2 cảnh báo quá tốc độ liên tiếp của một thiết bị là 60 giây để tránh spam dữ liệu.
+                      Mỗi thiết bị có cấu hình tốc độ giới hạn riêng. Khi thiết bị di chuyển vượt quá tốc độ này, hệ thống sẽ tự động kích hoạt cảnh báo vượt giới hạn tốc độ. Thời gian giãn cách giữa hai cảnh báo liên tiếp là 60 giây để tối ưu dữ liệu truyền tải.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -443,10 +443,10 @@ export default function AlertRulesPage() {
                       <div>
                         <CardTitle className="text-base font-semibold flex items-center gap-2">
                           <span className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500">🗺️</span>
-                          Quy tắc vùng địa lý (Geofencing Rules)
+                          Quy tắc vùng giám sát (Geofencing Rules)
                         </CardTitle>
                         <CardDescription className="text-xs mt-1">
-                          Hỗ trợ kiểm tra hình học thời gian thực (PostGIS) trên 2 cơ chế vùng:
+                          Hỗ trợ tự động phát hiện vi phạm ranh giới thời gian thực trên 2 cơ chế vùng:
                         </CardDescription>
                       </div>
                       <Button
@@ -485,11 +485,11 @@ export default function AlertRulesPage() {
 
                       {isLoadingGeofences ? (
                         <div className="text-center py-4 text-sm text-muted-foreground animate-pulse">
-                          Đang tải danh sách vùng địa lý...
+                          Đang tải danh sách vùng giám sát...
                         </div>
                       ) : rawGeofences.length === 0 ? (
                         <div className="text-center py-6 text-xs text-muted-foreground border border-dashed rounded-xl">
-                          Chưa có vùng địa lý nào được tạo. Click "Vẽ vùng mới" để bắt đầu thiết lập.
+                          Chưa có vùng giám sát nào được tạo. Click "Vẽ vùng mới" để bắt đầu thiết lập.
                         </div>
                       ) : (
                         <div className="border border-border/50 rounded-xl overflow-hidden max-h-60 overflow-y-auto">

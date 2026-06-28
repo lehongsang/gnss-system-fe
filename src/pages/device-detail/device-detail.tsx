@@ -56,12 +56,13 @@ export default function DeviceDetailPage() {
 
   const regenerateMutation = useMutation({
     mutationFn: async () => {
-      return axiosInstance.post<MqttCredentials>(
+      const response = await axiosInstance.post<unknown>(
         `/api/devices/${deviceId}/mqtt-credentials/regenerate`
       );
+      return response as unknown as { device: unknown; mqttCredentials: MqttCredentials };
     },
     onSuccess: (res) => {
-      setRegeneratedMqttCredentials(res.data);
+      setRegeneratedMqttCredentials(res?.mqttCredentials ?? null);
       setCredentialDialogOpen(true);
       queryClient.invalidateQueries({
         queryKey: getDevicesControllerFindOneQueryKey(deviceId),
@@ -75,8 +76,7 @@ export default function DeviceDetailPage() {
       });
     },
     onError: (error: unknown) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const err = error as any;
+      const err = error as { response?: { status?: number } };
       if (err?.response?.status === 403) {
         toast.error("Không được phép. Vui lòng đăng nhập lại hoặc liên hệ quản trị.");
       } else {

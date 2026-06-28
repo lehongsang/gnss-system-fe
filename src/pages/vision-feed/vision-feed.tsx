@@ -85,14 +85,15 @@ function DeviceCameraCard({
       {/* Camera Header Overlay */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-3 py-2 bg-gradient-to-b from-black/70 via-black/30 to-transparent">
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <div
-              className={`w-2 h-2 rounded-full ${
-                hasMedia
-                  ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]"
-                  : "bg-zinc-500"
-              }`}
-            />
+          <div className="relative flex h-2.5 w-2.5 items-center justify-center">
+            {hasMedia ? (
+              <>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]"></span>
+              </>
+            ) : (
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-zinc-500" />
+            )}
           </div>
           <span className="text-xs font-semibold text-white truncate max-w-[180px]">
             {device.name}
@@ -201,7 +202,7 @@ function RecentActivityRow({
     media.mediaType === "video_chunk" || media.mediaType === "video";
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-accent/30 transition-colors border-b border-border/20 last:border-b-0">
+    <div className="flex items-center gap-3 px-4 py-3 hover:bg-accent/40 hover:translate-x-1 transition-all duration-300 border-b border-border/20 last:border-b-0">
       <div
         className={`flex h-8 w-8 items-center justify-center rounded-lg shrink-0 ${
           isVideo ? "bg-blue-500/10 text-blue-400" : "bg-violet-500/10 text-violet-400"

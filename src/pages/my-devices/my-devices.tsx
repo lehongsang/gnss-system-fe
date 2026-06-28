@@ -319,8 +319,8 @@ export default function MyDevicesPage() {
           setCredentialsOpen(value);
         }}
       >
-        <DialogContent className="sm:max-w-[560px] border-border/50 bg-card/95 backdrop-blur-xl">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-[560px] max-h-[85vh] flex flex-col overflow-hidden border-border/50 bg-card/95 backdrop-blur-xl">
+          <DialogHeader className="shrink-0">
             <DialogTitle className="text-lg font-semibold">
               Thông tin MQTT thiết bị
             </DialogTitle>
@@ -329,7 +329,7 @@ export default function MyDevicesPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-3">
+          <div className="space-y-4 py-3 flex-1 overflow-y-auto pr-1">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-border/50 bg-muted p-4">
                 <p className="text-[11px] uppercase tracking-[.2em] text-muted-foreground">
@@ -353,7 +353,7 @@ export default function MyDevicesPage() {
                   <Server className="h-3.5 w-3.5" />
                   <span>Broker</span>
                 </div>
-                <p className="mt-2 text-sm">
+                <p className="mt-2 text-sm break-all">
                   {createdMqttCredentials?.mqttProtocol ?? "-"}://{createdMqttCredentials?.mqttHost ?? "-"}:{createdMqttCredentials?.mqttPort ?? "-"}
                 </p>
               </div>
@@ -420,7 +420,7 @@ export default function MyDevicesPage() {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="shrink-0 pt-3 border-t border-border/20">
             <Button
               type="button"
               variant="ghost"

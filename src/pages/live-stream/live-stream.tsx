@@ -198,9 +198,9 @@ export default function LiveStreamPage() {
 
       <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Live Stream thiết bị</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Xem trực tuyến (Live Stream)</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Quản lý session WebRTC riêng biệt, chỉ dùng `webrtcUrl` từ backend.
+            Truy cập luồng truyền phát video trực tiếp thời gian thực từ camera của thiết bị giám sát.
           </p>
         </div>
 
@@ -290,16 +290,6 @@ export default function LiveStreamPage() {
                     Làm mới
                   </Button>
                 </div>
-
-                <div className="rounded-xl border border-border/50 bg-muted/50 p-4 text-sm space-y-2">
-                  <p className="font-medium">Lưu ý</p>
-                  <p className="text-xs text-muted-foreground">
-                    Trang này sử dụng `webrtcUrl` từ backend để hiển thị luồng video. FE không dùng `rtspUrl`.
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Mqtt chỉ dùng để điều khiển stream, backend sẽ quản lý trạng thái và phiên phát.
-                  </p>
-                </div>
               </CardContent>
             </Card>
 
@@ -314,7 +304,7 @@ export default function LiveStreamPage() {
                   </Badge>
                   {session?.status === "starting" && (
                     <div className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang chờ backend trả webrtcUrl...
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang khởi tạo luồng video...
                     </div>
                   )}
                 </div>
@@ -391,9 +381,9 @@ export default function LiveStreamPage() {
                     <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-900/10 text-slate-600">
                       <Globe className="h-5 w-5" />
                     </div>
-                    <p className="font-medium text-foreground">Chờ luồng WebRTC sẵn sàng</p>
+                    <p className="font-medium text-foreground">Chờ khởi tạo camera hành trình</p>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Nhấn "Bắt đầu" để kích hoạt yêu cầu stream. Khi backend trả `webrtcUrl` và trạng thái `ready`, player sẽ hiển thị.
+                      Nhấn "Bắt đầu" để kết nối và hiển thị camera hành trình trực tiếp của thiết bị.
                     </p>
                   </div>
                 )}

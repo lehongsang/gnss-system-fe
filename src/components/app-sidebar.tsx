@@ -68,7 +68,7 @@ const userNavMain = [
     ],
   },
   {
-    title: "Vùng địa lý",
+    title: "Vùng giám sát",
     url: "/my-geofences",
     icon: Pentagon,
   },

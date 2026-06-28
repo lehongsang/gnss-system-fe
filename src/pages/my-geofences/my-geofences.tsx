@@ -301,10 +301,10 @@ export default function MyGeofencesPage() {
   return (
     <>
       <AppHeader
-        title="Vùng địa lý của tôi"
+        title="Vùng giám sát của tôi"
         breadcrumbs={[
-          { label: "Vùng địa lý" },
-          { label: "Vùng địa lý của tôi" },
+          { label: "Vùng giám sát" },
+          { label: "Vùng giám sát của tôi" },
         ]}
       />
 
@@ -312,7 +312,7 @@ export default function MyGeofencesPage() {
         {/* Page title + Draw button */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Vùng địa lý của tôi</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Vùng giám sát của tôi</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Tạo và quản lý các vùng giám sát trên bản đồ.
             </p>
