@@ -66,6 +66,9 @@ function MediaLogItem({
 
   const queryClient = useQueryClient();
   const { mutate: analyzeMutate, isPending: isAnalyzing } = useAnalyzeMediaLog();
+  const { data: devicesResponse } = useDevicesControllerFindMine();
+  const rawDevices = (devicesResponse as { data?: { id: string; name: string }[] })?.data ?? [];
+  const deviceName = rawDevices.find((d) => d.id === media.deviceId)?.name ?? media.deviceId;
 
   const { data: streamResponse, isLoading } = useMediaLogsControllerGetStreamUrl(media.id, {
     query: {
@@ -157,7 +160,7 @@ function MediaLogItem({
         )}
         <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-mono px-2 py-1 rounded-md flex items-center gap-1.5 shadow-sm">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-          {media.deviceId}
+          {deviceName}
         </div>
         <a 
           href={streamUrl} 
@@ -331,6 +334,9 @@ function MediaPinPopupContent({
   const [videoType, setVideoType] = useState<'raw' | 'processed'>('raw');
   const { mutate: analyzeMutate, isPending: isAnalyzing } = useAnalyzeMediaLog();
   const queryClient = useQueryClient();
+  const { data: devicesResponse } = useDevicesControllerFindMine();
+  const rawDevices = (devicesResponse as { data?: { id: string; name: string }[] })?.data ?? [];
+  const deviceName = rawDevices.find((d) => d.id === media.deviceId)?.name ?? media.deviceId;
 
   const { data: streamResponse, isLoading } = useMediaLogsControllerGetStreamUrl(media.id, {
     query: {
@@ -433,7 +439,7 @@ function MediaPinPopupContent({
         <div className="flex justify-between items-center">
           <div>
             <span className="font-semibold text-zinc-500">Thiết bị:</span>
-            <span className="ml-1 font-mono font-bold bg-zinc-100 px-1 py-0.2 rounded border border-zinc-200">{media.deviceId}</span>
+            <span className="ml-1 font-mono font-bold bg-zinc-100 px-1 py-0.2 rounded border border-zinc-200">{deviceName}</span>
           </div>
         </div>
 
@@ -609,7 +615,7 @@ export default function MediaLogs() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Nhật ký Media</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-cyan mt-1 opacity-85">
               Quản lý các đoạn video và hình ảnh được ghi lại từ các thiết bị.
             </p>
           </div>

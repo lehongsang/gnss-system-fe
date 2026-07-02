@@ -105,16 +105,14 @@ export default function MyAlertsPage() {
       value: totalAlerts,
       subtitle: "Toàn bộ cảnh báo trong hệ thống",
       icon: Bell,
-      iconColor: "text-blue-500",
-      iconBg: "bg-blue-500/10",
+      statClass: "s1",
     },
     {
       title: "Chưa xử lý",
       value: unresolvedCount,
       subtitle: "Cần xem xét và xử lý",
       icon: AlertTriangle,
-      iconColor: "text-amber-500",
-      iconBg: "bg-amber-500/10",
+      statClass: "s2",
     },
     {
       title: "Đã xử lý",
@@ -125,43 +123,40 @@ export default function MyAlertsPage() {
           : 0
       }% tổng cảnh báo`,
       icon: CheckCircle2,
-      iconColor: "text-emerald-500",
-      iconBg: "bg-emerald-500/10",
+      statClass: "s3",
     },
     {
       title: "Có Media",
       value: mediaCount,
       subtitle: "Ảnh snapshot hoặc video clip",
       icon: ImageIcon,
-      iconColor: "text-violet-500",
-      iconBg: "bg-violet-500/10",
+      statClass: "s4",
     },
   ];
 
   return (
     <>
       <AppHeader
-        title="Cảnh báo & Media của tôi"
+        title="Cảnh báo & Media"
         breadcrumbs={[
           { label: "Cảnh báo & Media" },
-          { label: "Cảnh báo & Media của tôi" },
+          { label: "Cảnh báo" },
         ]}
       />
 
-      <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
+      <div className="my-devices-page flex flex-1 flex-col gap-5 min-h-full overflow-auto">
         {/* Page title */}
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Cảnh báo & Media của tôi
+            Cảnh báo & Media
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Xem và quản lý cảnh báo từ các thiết bị, bao gồm ảnh và video đính
-            kèm.
+          <p className="text-sm text-cyan mt-1 opacity-85">
+            Xem và quản lý cảnh báo từ các thiết bị, bao gồm ảnh và video đính kèm.
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="stats">
           {stats.map((stat) => (
             <DeviceStatsCard key={stat.title} {...stat} />
           ))}

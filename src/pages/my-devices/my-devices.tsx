@@ -215,8 +215,7 @@ export default function MyDevicesPage() {
       value: totalDevices,
       subtitle: `${onlineCount} online · ${offlineCount} offline · ${maintenanceCount} bảo trì`,
       icon: Cpu,
-      iconColor: "text-blue-500",
-      iconBg: "bg-blue-500/10",
+      statClass: "s1",
     },
     {
       title: "Đang hoạt động",
@@ -227,24 +226,21 @@ export default function MyDevicesPage() {
           : 0
       }% thiết bị online`,
       icon: Wifi,
-      iconColor: "text-emerald-500",
-      iconBg: "bg-emerald-500/10",
+      statClass: "s2",
     },
     {
       title: "Mất kết nối",
       value: offlineCount,
       subtitle: `Cần kiểm tra kết nối`,
       icon: WifiOff,
-      iconColor: "text-red-400",
-      iconBg: "bg-red-500/10",
+      statClass: "s3",
     },
     {
       title: "Đang bảo trì",
       value: maintenanceCount,
       subtitle: `Pin trung bình: ${avgBattery}%`,
       icon: Wrench,
-      iconColor: "text-amber-500",
-      iconBg: "bg-amber-500/10",
+      statClass: "s4",
     },
   ];
 
@@ -258,27 +254,27 @@ export default function MyDevicesPage() {
         ]}
       />
 
-      <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
+      <div className="my-devices-page flex flex-1 flex-col gap-5 min-h-full overflow-auto">
         {/* Page title + Add button */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Thiết bị của tôi</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-cyan mt-1 opacity-85">
               Quản lý và giám sát tất cả các thiết bị GNSS của bạn.
             </p>
           </div>
-          <Button
+          <button
             id="add-device-btn"
             onClick={handleCreate}
-            className="gap-2 text-sm shadow-lg shadow-primary/20"
+            className="btn-primary"
           >
             <Plus className="h-4 w-4" />
             Thêm thiết bị
-          </Button>
+          </button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="stats">
           {stats.map((stat) => (
             <DeviceStatsCard key={stat.title} {...stat} />
           ))}

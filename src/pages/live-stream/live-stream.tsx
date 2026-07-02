@@ -196,10 +196,10 @@ export default function LiveStreamPage() {
         ]}
       />
 
-      <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
+      <div className="my-devices-page flex flex-1 flex-col gap-5 min-h-full overflow-auto">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Xem trực tuyến (Live Stream)</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-cyan mt-1 opacity-85">
             Truy cập luồng truyền phát video trực tiếp thời gian thực từ camera của thiết bị giám sát.
           </p>
         </div>

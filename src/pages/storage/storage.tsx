@@ -100,8 +100,9 @@ export default function StoragePage() {
       queryClient.invalidateQueries({ queryKey: ["storage-files"] });
       queryClient.invalidateQueries({ queryKey: ["storage-quota"] });
     },
-    onError: (error: any) => {
-      toast.error(error.message || "Xóa tệp tin thất bại");
+    onError: (error: unknown) => {
+      const err = error as { message?: string };
+      toast.error(err.message || "Xóa tệp tin thất bại");
     },
   });
 
@@ -121,8 +122,9 @@ export default function StoragePage() {
       } else {
         toast.error("Không thể lấy liên kết tải xuống");
       }
-    } catch (error: any) {
-      toast.error(error.message || "Lỗi khi tải xuống tệp tin");
+    } catch (error) {
+      const err = error as { message?: string };
+      toast.error(err.message || "Lỗi khi tải xuống tệp tin");
     }
   };
 
@@ -149,27 +151,25 @@ export default function StoragePage() {
           { label: "Lưu trữ" },
         ]}
       />
-      <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
+      <div className="my-devices-page flex flex-1 flex-col gap-5 min-h-full overflow-auto">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Lưu trữ & Tệp</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-cyan mt-1 opacity-85">
             Quản lý dung lượng lưu trữ đám mây và các tệp tin hệ thống.
           </p>
         </div>
 
-
-
         {/* Quota cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-1">
           {/* Cloud Storage Card */}
-          <div className="bg-card border rounded-xl p-5 flex flex-col gap-3 relative overflow-hidden group hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300">
+          <div className="stat s2 relative overflow-hidden">
             <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
               <Cloud className="w-32 h-32" />
             </div>
-            <div className="flex items-center justify-between relative z-10">
-              <h3 className="font-semibold flex items-center gap-2">
-                <Cloud className="w-5 h-5 text-blue-500" /> Cloud Storage
-              </h3>
+            <div className="stat-top">
+              <span className="stat-label flex items-center gap-2">
+                <Cloud className="w-4 h-4" /> Cloud Storage
+              </span>
             </div>
             {isQuotaLoading ? (
               <div className="h-10 flex items-center">
@@ -177,7 +177,7 @@ export default function StoragePage() {
               </div>
             ) : (
               <>
-                <div className="text-3xl font-bold relative z-10">
+                <div className="stat-val relative z-10">
                   {formatBytes(cloudUsage)}{" "}
                   <span className="text-base font-normal text-muted-foreground">
                     / {formatBytes(cloudTotal)}
@@ -189,23 +189,23 @@ export default function StoragePage() {
                     style={{ width: `${cloudUsagePercent}%` }}
                   ></div>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1 relative z-10 flex justify-between">
+                <div className="stat-sub mt-2 relative z-10 flex justify-between">
                   <span>Đã sử dụng {cloudUsagePercent}%</span>
-                </p>
+                </div>
               </>
             )}
           </div>
 
           {/* Local Backup Card */}
-          <div className="bg-card border rounded-xl p-5 flex flex-col gap-3 relative overflow-hidden group hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300">
+          <div className="stat s3 relative overflow-hidden">
             <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
               <HardDrive className="w-32 h-32" />
             </div>
-            <div className="flex items-center justify-between relative z-10">
-              <h3 className="font-semibold flex items-center gap-2">
-                <HardDrive className="w-5 h-5 text-emerald-500" /> Local Backup
-              </h3>
-              <span className="text-xs font-medium px-2 py-1 bg-emerald-500/10 text-emerald-600 rounded-full">
+            <div className="stat-top">
+              <span className="stat-label flex items-center gap-2">
+                <HardDrive className="w-4 h-4" /> Local Backup
+              </span>
+              <span className="text-xs font-semibold px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-full">
                 Active
               </span>
             </div>
@@ -215,7 +215,7 @@ export default function StoragePage() {
               </div>
             ) : (
               <>
-                <div className="text-3xl font-bold relative z-10">
+                <div className="stat-val relative z-10">
                   {formatBytes(localBackup)}
                 </div>
                 <div className="w-full bg-secondary h-2.5 rounded-full overflow-hidden mt-2 relative z-10">
@@ -224,27 +224,28 @@ export default function StoragePage() {
                     style={{ width: `${localUsagePercent}%` }}
                   ></div>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1 relative z-10 flex items-center gap-1">
+                <div className="stat-sub mt-2 relative z-10 flex items-center gap-1">
                   <History className="w-3.5 h-3.5" /> Đồng bộ gần nhất:{" "}
                   {formatLastSync(quota?.lastSync)}
-                </p>
+                </div>
               </>
             )}
           </div>
         </div>
 
         {/* Files manager table card */}
-        <div className="bg-card border rounded-xl mt-2 overflow-hidden flex flex-col">
-          <div className="p-4 border-b flex justify-between items-center bg-muted/10">
-            <h3 className="font-semibold flex items-center gap-2">
-              <Database className="w-4 h-4 text-muted-foreground" /> Danh sách tệp tin thiết bị
-            </h3>
+        <div className="panel mt-2">
+          <div className="panel-head">
+            <div className="left">
+              <Database className="w-4 h-4" />
+              <h2>Danh sách tệp tin thiết bị</h2>
+            </div>
           </div>
 
           {/* Search and Filters Bar */}
-          <div className="flex flex-col sm:flex-row gap-3 p-4 border-b bg-muted/5">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+          <div className="flex flex-col sm:flex-row gap-3 p-4 border-b border-border/30 bg-card/40">
+            <div className="search-box flex-1">
+              <Search />
               <input
                 type="text"
                 placeholder="Tìm kiếm tệp tin..."
@@ -253,7 +254,6 @@ export default function StoragePage() {
                   setSearch(e.target.value);
                   setPage(1); // Reset to page 1 on search change
                 }}
-                className="w-full bg-background border rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <select
@@ -285,24 +285,19 @@ export default function StoragePage() {
                 </p>
               </div>
             ) : (
-              <table className="w-full text-sm text-left whitespace-nowrap">
-                <thead className="bg-muted/30 text-muted-foreground">
+              <table>
+                <thead>
                   <tr>
-                    <th className="px-5 py-3.5 font-medium">Tên tệp</th>
-                    <th className="px-5 py-3.5 font-medium">Kích thước</th>
-                    <th className="px-5 py-3.5 font-medium">Ngày tạo</th>
-                    <th className="px-5 py-3.5 font-medium text-right">
-                      Thao tác
-                    </th>
+                    <th>Tên tệp</th>
+                    <th>Kích thước</th>
+                    <th>Ngày tạo</th>
+                    <th className="text-right">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
                   {files.map((file) => (
-                    <tr
-                      key={file.id}
-                      className="hover:bg-muted/30 transition-colors"
-                    >
-                      <td className="px-5 py-3.5">
+                    <tr key={file.id}>
+                      <td>
                         <div className="flex items-center gap-3">
                           <div
                             className={`p-2 rounded-lg ${
@@ -321,18 +316,18 @@ export default function StoragePage() {
                               <File className="w-4 h-4" />
                             )}
                           </div>
-                          <span className="font-medium text-foreground">
+                          <span className="font-semibold text-foreground">
                             {file.name}
                           </span>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5 text-muted-foreground">
+                      <td className="text-muted-foreground font-medium">
                         {formatBytes(file.size)}
                       </td>
-                      <td className="px-5 py-3.5 text-muted-foreground">
+                      <td className="text-muted-foreground font-medium">
                         {formatDate(file.createdAt)}
                       </td>
-                      <td className="px-5 py-3.5 text-right">
+                      <td className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => handleDownload(file.id)}

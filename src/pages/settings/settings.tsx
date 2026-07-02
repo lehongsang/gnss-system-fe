@@ -130,14 +130,14 @@ export default function SettingsPage() {
         ]}
       />
 
-      <div className="flex flex-1 flex-col gap-6 p-6 min-h-full overflow-auto bg-background text-foreground">
+      <div className="my-devices-page flex flex-1 flex-col gap-6 min-h-full overflow-auto">
         
         {/* Title */}
         <div>
           <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
             Cài đặt Tài khoản & Hệ thống
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-cyan mt-1 opacity-85">
             Quản lý thông tin hồ sơ cá nhân, đổi mật khẩu và tùy biến giao diện hiển thị.
           </p>
         </div>

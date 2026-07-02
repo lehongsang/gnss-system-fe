@@ -28,6 +28,10 @@ interface TelemetryMapProps {
   onDateFromChange: (val: string) => void;
   onDateToChange: (val: string) => void;
   focusedPoint?: TelemetryPoint | null;
+  hideHeader?: boolean;
+  externalIsPlaying?: boolean;
+  externalPlayIndex?: number;
+  externalPlaybackSpeed?: number;
 }
 
 // ---------- Trip Calculation Helpers ----------
@@ -111,11 +115,25 @@ export function TelemetryMap({
   onDateFromChange,
   onDateToChange,
   focusedPoint,
+  hideHeader = false,
+  externalIsPlaying,
+  externalPlayIndex,
+  externalPlaybackSpeed,
 }: TelemetryMapProps) {
   const mapRef = useRef<MapRef>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [playIndex, setPlayIndex] = useState(0);
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
+  const [internalIsPlaying, setInternalIsPlaying] = useState(false);
+  const [internalPlayIndex, setInternalPlayIndex] = useState(0);
+  const [internalPlaybackSpeed, setInternalPlaybackSpeed] = useState<number>(1);
+
+  const isPlaying = externalIsPlaying !== undefined ? externalIsPlaying : internalIsPlaying;
+  const setIsPlaying = externalIsPlaying !== undefined ? () => {} : setInternalIsPlaying;
+
+  const playIndex = externalPlayIndex !== undefined ? externalPlayIndex : internalPlayIndex;
+  const setPlayIndex = externalPlayIndex !== undefined ? () => {} : setInternalPlayIndex;
+
+  const playbackSpeed = externalPlaybackSpeed !== undefined ? externalPlaybackSpeed : internalPlaybackSpeed;
+  const setPlaybackSpeed = externalPlaybackSpeed !== undefined ? () => {} : setInternalPlaybackSpeed;
+
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Fly to focusedPoint when updated
@@ -131,12 +149,12 @@ export function TelemetryMap({
 
   // Playback logic controlled by speed and isPlaying state
   useEffect(() => {
-    if (isPlaying) {
+    if (isPlaying && externalIsPlaying === undefined) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       intervalRef.current = setInterval(() => {
-        setPlayIndex((prev) => {
+        setInternalPlayIndex((prev) => {
           if (prev >= telemetry.length - 1) {
-            setIsPlaying(false);
+            setInternalIsPlaying(false);
             return telemetry.length - 1;
           }
           return prev + 1;
@@ -146,7 +164,7 @@ export function TelemetryMap({
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isPlaying, playbackSpeed, telemetry.length]);
+  }, [isPlaying, playbackSpeed, telemetry.length, externalIsPlaying]);
 
   const startPlayback = () => {
     if (isPlaying) {
@@ -202,6 +220,174 @@ export function TelemetryMap({
   const tripDistance = useMemo(() => calculateTotalDistance(telemetry), [telemetry]);
   const tripDuration = useMemo(() => calculateDuration(telemetry), [telemetry]);
   const tripAvgSpeed = useMemo(() => calculateAvgSpeed(telemetry), [telemetry]);
+
+  if (hideHeader) {
+    return (
+      <div className="h-full w-full relative">
+        {isLoading ? (
+          <div className="h-full w-full flex items-center justify-center bg-muted/20">
+            <div className="flex flex-col items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          </div>
+        ) : telemetry.length === 0 ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted/10">
+            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <Route className="h-8 w-8 text-muted-foreground/30" />
+              <p className="text-sm font-medium">Chưa có dữ liệu hành trình</p>
+              <p className="text-xs text-muted-foreground/70">
+                Thử thay đổi khoảng thời gian
+              </p>
+            </div>
+          </div>
+        ) : (
+          <Map
+            ref={mapRef}
+            initialViewState={{
+              latitude: telemetry[0]?.lat ?? 21.028,
+              longitude: telemetry[0]?.lng ?? 105.854,
+              zoom: 14,
+            }}
+            mapboxAccessToken={MAPBOX_TOKEN}
+            mapStyle="mapbox://styles/mapbox/navigation-preview-night-v4"
+            style={{ width: "100%", height: "100%" }}
+            onLoad={onMapLoad}
+            attributionControl={false}
+          >
+            <NavigationControl position="top-right" showCompass={false} />
+            <FullscreenControl position="top-right" />
+
+            {/* Focused Point Glow Marker */}
+            {focusedPoint && (
+              <Marker latitude={focusedPoint.lat} longitude={focusedPoint.lng} anchor="center">
+                <div className="relative flex h-10 w-10 items-center justify-center">
+                  <span className="absolute rounded-full bg-cyan-500/40 animate-ping" style={{ width: 40, height: 40 }} />
+                  <div className="h-6 w-6 rounded-full bg-cyan-500 border-2 border-white shadow-xl flex items-center justify-center animate-pulse">
+                    <MapPin className="h-3.5 w-3.5 text-white" />
+                  </div>
+                </div>
+              </Marker>
+            )}
+
+            {/* Geofences */}
+            {geofences.map((geo) => (
+              <Source
+                key={`geo-${geo.id}`}
+                id={`geo-${geo.id}`}
+                type="geojson"
+                data={toGeoJSONPolygon(geo.paths)}
+              >
+                <Layer
+                  id={`geo-fill-${geo.id}`}
+                  type="fill"
+                  paint={{
+                    "fill-color": geo.color || "#3b82f6",
+                    "fill-opacity": 0.2,
+                  }}
+                />
+                <Layer
+                  id={`geo-line-${geo.id}`}
+                  type="line"
+                  paint={{
+                    "line-color": geo.color || "#3b82f6",
+                    "line-width": 2,
+                  }}
+                />
+              </Source>
+            ))}
+
+            {/* Full route polyline (dimmed) */}
+            {telemetry.length > 1 && (
+              <Source
+                id="telemetry-full"
+                type="geojson"
+                data={toGeoJSONLine(telemetry)}
+              >
+                <Layer
+                  id="telemetry-full-line"
+                  type="line"
+                  paint={{
+                    "line-color": "#ff6b00",
+                    "line-width": 4,
+                    "line-opacity": 0.45,
+                  }}
+                />
+              </Source>
+            )}
+
+            {/* Played route polyline (bright) */}
+            {isPlaying && visiblePoints.length > 1 && (
+              <Source
+                id="telemetry-played"
+                type="geojson"
+                data={toGeoJSONLine(visiblePoints)}
+              >
+                <Layer
+                  id="telemetry-played-line"
+                  type="line"
+                  paint={{
+                    "line-color": "#ff8f00",
+                    "line-width": 5,
+                    "line-opacity": 0.95,
+                  }}
+                />
+              </Source>
+            )}
+
+            {/* Start Marker */}
+            {telemetry.length > 0 && (
+              <Marker
+                latitude={telemetry[0].lat}
+                longitude={telemetry[0].lng}
+                anchor="center"
+              >
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 border-2 border-emerald-300 shadow-lg">
+                  <span className="text-[8px] font-bold text-white">S</span>
+                </div>
+              </Marker>
+            )}
+
+            {/* End Marker */}
+            {telemetry.length > 1 && (
+              <Marker
+                latitude={telemetry[telemetry.length - 1].lat}
+                longitude={telemetry[telemetry.length - 1].lng}
+                anchor="center"
+              >
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 border-2 border-red-300 shadow-lg">
+                  <span className="text-[8px] font-bold text-white">E</span>
+                </div>
+              </Marker>
+            )}
+
+            {/* Current playback position marker */}
+            {isPlaying && currentPoint && (
+              <Marker
+                latitude={currentPoint.lat}
+                longitude={currentPoint.lng}
+                anchor="center"
+              >
+                <div className="relative">
+                  <span
+                    className="absolute rounded-full bg-indigo-500/30 animate-ping"
+                    style={{
+                      width: 28,
+                      height: 28,
+                      top: -8,
+                      left: -8,
+                      animationDuration: "1.5s",
+                    }}
+                  />
+                  <div className="flex h-3 w-3 items-center justify-center rounded-full bg-indigo-500 border-2 border-white shadow-lg" />
+                </div>
+              </Marker>
+            )}
+          </Map>
+        )}
+      </div>
+    );
+  }
 
   return (
     <Card className="flex flex-col overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm h-full">

@@ -39,8 +39,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { UserDevice } from "@/types";
 import { authClient } from "@/utils/auth-client";
 
@@ -777,291 +781,297 @@ export default function RoutePlanningPage() {
         </Map>
 
         {/* LEFT FLOATING CONTROL PANEL */}
-        <div 
-          className={`absolute top-4 left-4 bg-card/95 backdrop-blur-md border rounded-xl p-4 shadow-xl z-10 w-[300px] sm:w-[320px] transition-all duration-300 ${
-            isLeftPanelCollapsed ? "-translate-x-[calc(100%-40px)] opacity-60" : ""
-          }`}
-        >
-          <div className="flex items-center justify-between gap-4 mb-3">
-            <h2 className="font-semibold text-sm flex items-center gap-2">
-              <Route className="h-4.5 w-4.5 text-blue-500 animate-pulse" /> Thiết lập lộ trình
-            </h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground shrink-0"
-              onClick={() => setIsLeftPanelCollapsed(!isLeftPanelCollapsed)}
+        <div className={`route-panel ${isLeftPanelCollapsed ? "collapsed" : ""}`}>
+          {isLeftPanelCollapsed ? (
+            <button
+              type="button"
+              className="w-full h-full flex items-center justify-center text-foreground hover:bg-white/5 transition-colors border-none bg-transparent cursor-pointer"
+              onClick={() => setIsLeftPanelCollapsed(false)}
+              title="Mở rộng Thiết lập lộ trình"
             >
-              {isLeftPanelCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-            </Button>
-          </div>
-
-          {!isLeftPanelCollapsed && (
-            <div className="space-y-4 pt-2 border-t border-border/30">
-              
-              {/* Device Selector */}
-              <div className="space-y-1.5">
-                <Label htmlFor="device-select" className="text-xs font-semibold">Chọn thiết bị</Label>
-                <select
-                  id="device-select"
-                  value={selectedDeviceId}
-                  onChange={(e) => setManualSelectedId(e.target.value)}
-                  className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  disabled={isLoadingDevices || devices.length === 0}
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          ) : (
+            <>
+              <div className="rp-head">
+                <div className="left">
+                  <div className="rp-icon">
+                    <Route className="h-4 w-4" />
+                  </div>
+                  <h3>Thiết lập lộ trình</h3>
+                </div>
+                <button
+                  type="button"
+                  className="collapse-btn"
+                  onClick={() => setIsLeftPanelCollapsed(true)}
                 >
-                  {devices.length === 0 ? (
-                    <option value="">Không có thiết bị</option>
-                  ) : (
-                    devices.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name || d.id}
-                      </option>
-                    ))
-                  )}
-                </select>
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
               </div>
 
-              {/* Status Warning if device has no telemetry */}
-              {!origin && selectedDeviceId && (
-                <div className="p-2.5 rounded-lg border border-amber-500/20 bg-amber-500/5 text-[11px] text-amber-500 flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                  <span>Thiết bị chưa có vị trí mới nhất để tạo tuyến.</span>
-                </div>
-              )}
-
-              {/* Destination configuration (Search & Click map) */}
-              {origin && (
-                <div className="space-y-2.5 relative">
-                  <Label className="text-xs font-semibold">Cấu hình điểm đến</Label>
-                  
-                  {/* Search input field */}
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                      <Search className="h-3.5 w-3.5 text-muted-foreground" />
-                    </div>
-                    <Input
-                      type="text"
-                      className="pl-8 pr-8 h-9 text-xs"
-                      placeholder="Tìm địa điểm đến..."
-                      value={searchText}
-                      onChange={(e) => setSearchText(e.target.value)}
-                    />
-                    {(searchText.trim() || destination) && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute inset-y-0 right-0 h-9 w-9 text-muted-foreground hover:text-foreground"
-                        onClick={handleClearDestination}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
-                  </div>
-
-                  {/* Suggestions dropdown */}
-                  {(suggestions.length > 0 || isSearching) && (
-                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-card border rounded-lg shadow-2xl z-50 max-h-48 overflow-y-auto divide-y divide-border/20 backdrop-blur-md">
-                      {isSearching ? (
-                        <div className="p-3 text-[10px] text-muted-foreground text-center animate-pulse">
-                          Đang tìm kiếm địa điểm...
+              <div className="rp-body">
+                
+                {/* Device Selector */}
+                <div className="rp-field">
+                  <div className="rp-label">Chọn thiết bị</div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button type="button" className="device-select-mock" disabled={isLoadingDevices || devices.length === 0}>
+                        <div className="left">
+                          <span className="dot"></span>
+                          {activeDevice ? activeDevice.name : "Chọn thiết bị..."}
                         </div>
-                      ) : (
-                        suggestions.map((suggestion) => (
-                          <div
-                            key={suggestion.id}
-                            className="p-2 hover:bg-accent/40 cursor-pointer text-left transition-colors"
-                            onClick={() => handleSelectSuggestion(suggestion)}
-                          >
-                            <div className="text-[11px] font-bold text-foreground truncate">{suggestion.name}</div>
-                            {suggestion.fullAddress && (
-                              <div className="text-[9px] text-muted-foreground truncate mt-0.5">{suggestion.fullAddress}</div>
-                            )}
-                          </div>
-                        ))
+                        <ChevronRight className="chev h-4 w-4 rotate-90" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[340px]">
+                      {devices.map((d) => (
+                        <DropdownMenuItem
+                          key={d.id}
+                          onClick={() => setManualSelectedId(d.id)}
+                          className="cursor-pointer"
+                        >
+                          {d.name || d.id}
+                        </DropdownMenuItem>
+                      ))}
+                      {devices.length === 0 && (
+                        <div className="text-sm text-muted-foreground p-2 text-center">
+                          Không có thiết bị
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Status Warning if device has no telemetry */}
+                {!origin && selectedDeviceId && (
+                  <div className="rp-field p-2.5 rounded-lg border border-amber-500/20 bg-amber-500/5 text-[11px] text-amber-500 flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>Thiết bị chưa có vị trí mới nhất để tạo tuyến.</span>
+                  </div>
+                )}
+
+                {/* Destination configuration (Search & Click map) */}
+                {origin && (
+                  <div className="rp-field relative">
+                    <div className="rp-label">Cấu hình điểm đến</div>
+                    
+                    {/* Search input field */}
+                    <div className="search-input">
+                      <Search className="h-[15px] w-[15px] text-muted-foreground flex-shrink-0" />
+                      <input
+                        type="text"
+                        placeholder="Tìm địa điểm đến..."
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                      />
+                      {(searchText.trim() || destination) && (
+                        <button
+                          type="button"
+                          className="text-muted-foreground hover:text-foreground shrink-0 ml-1"
+                          onClick={handleClearDestination}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
                       )}
                     </div>
-                  )}
 
-                  {/* OR Select from map option */}
-                  <div className="flex gap-2 items-center justify-between">
-                    <Button
-                      type="button"
-                      variant={isChoosingDest ? "destructive" : "outline"}
-                      size="sm"
-                      className="flex-1 text-[11px] gap-1.5 h-8.5"
-                      onClick={() => setIsChoosingDest(!isChoosingDest)}
-                    >
-                      <MapPin className="h-3.5 w-3.5" />
-                      {isChoosingDest ? "Nhấp trên bản đồ..." : "Chọn từ bản đồ"}
-                    </Button>
-                    {destination && (
-                      <Badge variant="outline" className="text-[10px] py-1 px-2.5 bg-rose-500/5 border-rose-500/20 text-rose-500 flex items-center justify-center shrink-0">
-                        🚩 Đã chọn
-                      </Badge>
+                    {/* Suggestions dropdown */}
+                    {(suggestions.length > 0 || isSearching) && (
+                      <div className="absolute left-0 right-0 top-full mt-1.5 bg-card border rounded-lg shadow-2xl z-50 max-h-48 overflow-y-auto divide-y divide-border/20 backdrop-blur-md">
+                        {isSearching ? (
+                          <div className="p-3 text-[10px] text-muted-foreground text-center animate-pulse">
+                            Đang tìm kiếm địa điểm...
+                          </div>
+                        ) : (
+                          suggestions.map((suggestion) => (
+                            <div
+                              key={suggestion.id}
+                              className="p-2 hover:bg-accent/40 cursor-pointer text-left transition-colors"
+                              onClick={() => handleSelectSuggestion(suggestion)}
+                            >
+                              <div className="text-[11px] font-bold text-foreground truncate">{suggestion.name}</div>
+                              {suggestion.fullAddress && (
+                                <div className="text-[9px] text-muted-foreground truncate mt-0.5">{suggestion.fullAddress}</div>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
                     )}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Mode & Threshold Config */}
-              {destination && (
-                <>
-                  {/* Route Name Input */}
-                  <div className="space-y-1.5">
-                    <Label htmlFor="route-name" className="text-xs font-semibold">Tên tuyến đường</Label>
-                    <Input
-                      id="route-name"
-                      type="text"
-                      className="h-9 text-xs"
-                      placeholder="Ví dụ: Tuyến đến kho A..."
-                      value={routeName}
-                      onChange={(e) => setRouteName(e.target.value)}
-                    />
-                  </div>
-
-                  {/* Mode Selector */}
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Phương tiện</Label>
-                    <div className="flex bg-background/60 border border-border/40 rounded-lg p-0.5 select-none w-full">
-                      {(["driving", "walking", "cycling"] as const).map((m) => {
-                        const label = m === "driving" ? "🚗 Ô tô" : m === "walking" ? "🚶 Đi bộ" : "🚲 Xe đạp";
-                        return (
-                          <button
-                            key={m}
-                            type="button"
-                            className={`flex-1 py-1.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
-                              mode === m
-                                ? "bg-primary text-primary-foreground shadow-xs font-semibold"
-                                : "text-muted-foreground hover:text-foreground"
-                            }`}
-                            onClick={() => setMode(m)}
-                          >
-                            {label}
-                          </button>
-                        );
-                      })}
+                {/* OR Select from map option */}
+                {origin && (
+                  <div className="rp-field">
+                    <div className="flex gap-2 items-center justify-between">
+                      <button
+                        type="button"
+                        className="btn-map-pick"
+                        onClick={() => setIsChoosingDest(!isChoosingDest)}
+                        style={isChoosingDest ? { background: "#ef4444" } : undefined}
+                      >
+                        <MapPin className="h-4 w-4" />
+                        {isChoosingDest ? "Nhấp trên bản đồ..." : "Chọn từ bản đồ"}
+                      </button>
+                      {destination && (
+                        <span className="polyline-tag shrink-0">
+                          🚩 Đã chọn
+                        </span>
+                      )}
                     </div>
                   </div>
+                )}
 
-                  {/* Deviation Threshold Input */}
-                  <div className="space-y-1.5">
-                    <Label htmlFor="threshold" className="text-xs font-semibold">Ngưỡng lệch tuyến (mét)</Label>
-                    <Input
-                      id="threshold"
-                      type="number"
-                      className="h-9 text-xs"
-                      value={deviationThresholdMeters}
-                      onChange={(e) => setDeviationThresholdMeters(Math.max(10, Number(e.target.value)))}
-                      min={10}
-                      max={1000}
-                    />
-                    <p className="text-[10px] text-muted-foreground">Kích hoạt cảnh báo lệch tuyến khi đi quá {deviationThresholdMeters}m.</p>
-                  </div>
-                </>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex flex-col gap-2 pt-2 border-t border-border/20">
+                {/* Mode & Threshold Config */}
                 {destination && (
-                  <Button
-                    type="button"
-                    className="w-full text-xs gap-1.5 h-9 bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/20 cursor-pointer"
-                    onClick={handlePreviewRoute}
-                    disabled={previewMutation.isPending}
-                  >
-                    {previewMutation.isPending ? "Đang tìm đường..." : "Xem trước tuyến"}
-                  </Button>
+                  <>
+                    {/* Route Name Input */}
+                    <div className="rp-field">
+                      <div className="rp-label">Tên tuyến đường</div>
+                      <Input
+                        id="route-name"
+                        type="text"
+                        className="h-9 text-xs"
+                        placeholder="Ví dụ: Tuyến đến kho A..."
+                        value={routeName}
+                        onChange={(e) => setRouteName(e.target.value)}
+                      />
+                    </div>
+
+                    {/* Mode Selector */}
+                    <div className="rp-field">
+                      <div className="rp-label">Phương tiện</div>
+                      <div className="flex bg-background/60 border border-border/40 rounded-lg p-0.5 select-none w-full">
+                        {(["driving", "walking", "cycling"] as const).map((m) => {
+                          const label = m === "driving" ? "🚗 Ô tô" : m === "walking" ? "🚶 Đi bộ" : "🚲 Xe đạp";
+                          return (
+                            <button
+                              key={m}
+                              type="button"
+                              className={`flex-1 py-1.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
+                                mode === m
+                                  ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                              onClick={() => setMode(m)}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Deviation Threshold Input */}
+                    <div className="rp-field">
+                      <div className="rp-label">Ngưỡng lệch tuyến (mét)</div>
+                      <Input
+                        id="threshold"
+                        type="number"
+                        className="h-9 text-xs"
+                        value={deviationThresholdMeters}
+                        onChange={(e) => setDeviationThresholdMeters(Math.max(10, Number(e.target.value)))}
+                        min={10}
+                        max={1000}
+                      />
+                      <p className="text-[10px] text-muted-foreground mt-1">Kích hoạt cảnh báo lệch tuyến khi đi quá {deviationThresholdMeters}m.</p>
+                    </div>
+                  </>
                 )}
 
-                {previewRoute && !selectedRouteId && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="w-full text-xs gap-1.5 h-9 border border-primary/20 cursor-pointer"
-                    onClick={handleSaveRoute}
-                    disabled={createMutation.isPending}
-                  >
-                    Lưu tuyến đường
-                  </Button>
-                )}
-              </div>
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-2 pt-2 border-t border-border/20">
+                  {destination && (
+                    <Button
+                      type="button"
+                      className="w-full text-xs gap-1.5 h-9 bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/20 cursor-pointer"
+                      onClick={handlePreviewRoute}
+                      disabled={previewMutation.isPending}
+                    >
+                      {previewMutation.isPending ? "Đang tìm đường..." : "Xem trước tuyến"}
+                    </Button>
+                  )}
 
-              {/* Preview Stats */}
-              {previewRoute && (
-                <div className="rounded-xl border border-blue-500/15 bg-blue-500/5 dark:bg-blue-500/10 p-3.5 text-xs text-blue-400 mt-3 hover:shadow-[0_0_15px_rgba(59,130,246,0.1)] transition-all">
-                  <div className="flex justify-between items-center py-0.5">
-                    <span className="text-[11px] text-muted-foreground font-semibold">Quãng đường:</span>
-                    <span className="font-mono font-bold text-sm text-blue-400">{(previewRoute.distanceMeters / 1000).toFixed(2)} km</span>
-                  </div>
-                  <div className="h-px bg-blue-500/10 my-1.5" />
-                  <div className="flex justify-between items-center py-0.5">
-                    <span className="text-[11px] text-muted-foreground font-semibold">Thời gian dự kiến:</span>
-                    <span className="font-mono font-bold text-sm text-blue-400">{formatTime(previewRoute.durationSeconds)}</span>
-                  </div>
+                  {previewRoute && !selectedRouteId && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="w-full text-xs gap-1.5 h-9 border border-primary/20 cursor-pointer"
+                      onClick={handleSaveRoute}
+                      disabled={createMutation.isPending}
+                    >
+                      Lưu tuyến đường
+                    </Button>
+                  )}
                 </div>
-              )}
 
-            </div>
+                {/* Preview Stats */}
+                {previewRoute && (
+                  <div className="rounded-xl border border-blue-500/15 bg-blue-500/5 dark:bg-blue-500/10 p-3.5 text-xs text-blue-400 mt-3 hover:shadow-[0_0_15px_rgba(59,130,246,0.1)] transition-all">
+                    <div className="flex justify-between items-center py-0.5">
+                      <span className="text-[11px] text-muted-foreground font-semibold">Quãng đường:</span>
+                      <span className="font-mono font-bold text-sm text-blue-400">{(previewRoute.distanceMeters / 1000).toFixed(2)} km</span>
+                    </div>
+                    <div className="h-px bg-blue-500/10 my-1.5" />
+                    <div className="flex justify-between items-center py-0.5">
+                      <span className="text-[11px] text-muted-foreground font-semibold">Thời gian dự kiến:</span>
+                      <span className="font-mono font-bold text-sm text-blue-400">{formatTime(previewRoute.durationSeconds)}</span>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </>
           )}
         </div>
 
         {/* RIGHT FLOATING SAVED ROUTES PANEL */}
-        <div 
-          className={`absolute top-4 right-4 bg-card/95 backdrop-blur-md border rounded-xl p-4 shadow-xl z-10 w-[300px] sm:w-[320px] max-h-[500px] flex flex-col transition-all duration-300 ${
-            isRightPanelCollapsed ? "translate-x-[calc(100%-40px)] opacity-60" : ""
-          }`}
-        >
-          <div className="flex items-center justify-between gap-4 mb-3 shrink-0">
-            {isRightPanelCollapsed ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground shrink-0"
-                onClick={() => setIsRightPanelCollapsed(false)}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            ) : (
-              <>
-                <h2 className="font-semibold text-sm flex items-center gap-2">
-                  <Compass className="h-4.5 w-4.5 text-emerald-500" /> Tuyến đường đã lưu
-                </h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground shrink-0"
+        <div className={`saved-panel ${isRightPanelCollapsed ? "collapsed" : ""}`}>
+          {isRightPanelCollapsed ? (
+            <button
+              type="button"
+              className="w-full h-full flex items-center justify-center text-foreground hover:bg-white/5 transition-colors border-none bg-transparent cursor-pointer"
+              onClick={() => setIsRightPanelCollapsed(false)}
+              title="Mở rộng Tuyến đường đã lưu"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+          ) : (
+            <>
+              <div className="sp-head">
+                <div className="left">
+                  <div className="sp-icon">
+                    <Compass className="h-4 w-4" />
+                  </div>
+                  <h3>Tuyến đường đã lưu</h3>
+                </div>
+                <button
+                  type="button"
+                  className="chev-btn"
                   onClick={() => setIsRightPanelCollapsed(true)}
                 >
                   <ChevronRight className="h-4 w-4" />
-                </Button>
-              </>
-            )}
-          </div>
-
-          {!isRightPanelCollapsed && (
-            <div className="flex-1 flex flex-col min-h-0 border-t border-border/30 pt-2 space-y-3">
-              
-              {/* Refresh list button */}
-              <div className="flex justify-between items-center text-xs text-muted-foreground shrink-0">
-                <span>{routePlans.length} tuyến đường</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 gap-1 px-2 text-[10px]"
-                  onClick={() => refetchRoutes()}
-                >
+                </button>
+              </div>
+              <div className="sp-toolbar">
+                <span className="sp-count">{routePlans.length} tuyến đường</span>
+                <div className="sp-reload" onClick={() => refetchRoutes()}>
                   <RefreshCcw className="h-3 w-3" /> Tải lại
-                </Button>
+                </div>
               </div>
 
               {/* Scrollable list */}
-              <div className="flex-1 overflow-auto pr-1 space-y-2.5">
+              <div className="saved-list-wrap flex-1 overflow-y-auto p-3.5 space-y-2.5">
                 {isLoadingRoutes ? (
                   <div className="text-center py-6 text-xs text-muted-foreground animate-pulse">Đang tải danh sách...</div>
                 ) : routePlans.length === 0 ? (
-                  <div className="text-center py-8 text-xs text-muted-foreground border border-dashed rounded-xl leading-relaxed">
-                    Chưa có tuyến đường nào được thiết lập cho thiết bị này.
+                  <div className="sp-empty">
+                    <div className="sp-empty-icon">
+                      <Compass className="h-[22px] w-[22px]" />
+                    </div>
+                    <p>Chưa có tuyến đường nào được thiết lập cho thiết bị này.</p>
                   </div>
                 ) : (
                   routePlans.map((route: RoutePlan) => {
@@ -1151,8 +1161,7 @@ export default function RoutePlanningPage() {
                   })
                 )}
               </div>
-
-            </div>
+            </>
           )}
         </div>
 

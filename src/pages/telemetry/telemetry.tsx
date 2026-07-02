@@ -1,18 +1,6 @@
 import { useState, useMemo } from "react";
 import { AppHeader } from "@/components/app-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,13 +23,13 @@ import {
   Satellite,
   TrendingUp,
 } from "lucide-react";
-import { DeviceStatsCard } from "../my-devices/components/device-stats-card";
 import {
   useDevicesControllerFindMine,
   useTelemetryControllerGetHistory,
   useTelemetryControllerGetLatest,
   SortOrder,
 } from "@/services/apis/gen/queries";
+import type { UserDevice } from "@/types";
 
 // ---------- Helpers ----------
 function formatDateTime(dateStr: string) {
@@ -59,16 +47,15 @@ function formatCoord(val: number) {
   return val.toFixed(6);
 }
 
-function getSpeedColor(speed: number) {
-  if (speed >= 80) return "text-red-500 dark:text-red-400 font-extrabold";
-  if (speed >= 50) return "text-amber-500 dark:text-amber-400 font-bold";
-  return "text-emerald-500 dark:text-emerald-400 font-bold";
-}
-
-function getSpeedBg(speed: number) {
-  if (speed >= 80) return "bg-red-500/15 border-red-500/25";
-  if (speed >= 50) return "bg-amber-500/15 border-amber-500/25";
-  return "bg-emerald-500/15 border-emerald-500/25";
+interface TelemetryHistoryRow {
+  id: string;
+  timestamp: string;
+  lat: number;
+  lng: number;
+  speed: number;
+  heading?: number;
+  accuracyStatus?: string;
+  battery?: number;
 }
 
 function getHeadingLabel(heading: number) {
@@ -80,50 +67,6 @@ function getHeadingLabel(heading: number) {
   if (heading >= 202.5 && heading < 247.5) return "SW";
   if (heading >= 247.5 && heading < 292.5) return "W";
   return "NW";
-}
-
-function getAccuracyBadge(status: string) {
-  switch (status) {
-    case "rtk_fixed":
-      return {
-        label: "RTK Fixed",
-        className: "bg-emerald-500/15 text-emerald-550 dark:text-emerald-400 border-emerald-500/25 font-bold",
-      };
-    case "rtk_float":
-      return {
-        label: "RTK Float",
-        className: "bg-blue-500/15 text-blue-550 dark:text-blue-400 border-blue-500/25 font-semibold",
-      };
-    case "dgps":
-      return {
-        label: "DGPS",
-        className: "bg-cyan-500/15 text-cyan-550 dark:text-cyan-400 border-cyan-500/25",
-      };
-    case "gnss_only":
-      return {
-        label: "GNSS Only",
-        className: "bg-slate-500/10 text-slate-400 border-slate-500/20 font-medium",
-      };
-    default:
-      return {
-        label: status,
-        className: "bg-muted text-muted-foreground",
-      };
-  }
-}
-
-// Skeleton Row
-function SkeletonRow() {
-  return (
-    <TableRow className="border-border/30">
-      <TableCell><Skeleton className="h-3.5 w-28" /></TableCell>
-      <TableCell><Skeleton className="h-3.5 w-24" /></TableCell>
-      <TableCell><Skeleton className="h-3.5 w-24" /></TableCell>
-      <TableCell><Skeleton className="h-5 w-16 rounded-md" /></TableCell>
-      <TableCell><Skeleton className="h-3.5 w-12" /></TableCell>
-      <TableCell><Skeleton className="h-5 w-16 rounded-md" /></TableCell>
-    </TableRow>
-  );
 }
 
 export default function TelemetryPage() {
@@ -140,8 +83,7 @@ export default function TelemetryPage() {
 
   // Fetch user's devices
   const { data: devicesResponse } = useDevicesControllerFindMine();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rawDevices: any[] = (devicesResponse as any)?.data ?? [];
+  const rawDevices = (devicesResponse as unknown as { data?: UserDevice[] })?.data ?? [];
 
   // Auto-select first device if none selected
   const activeDeviceId = selectedDeviceId || rawDevices[0]?.id || "";
@@ -174,15 +116,12 @@ export default function TelemetryPage() {
     { query: { enabled: !!activeDeviceId, refetchInterval: 15000 } }
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const historyData = historyResponse as any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const telemetryRows: any[] = historyData?.data ?? [];
-  const totalRows: number = historyData?.total ?? 0;
+  const historyData = historyResponse as unknown as { data?: TelemetryHistoryRow[]; total?: number; pageCount?: number } | undefined;
+  const telemetryRows = historyData?.data ?? [];
+  const totalRows = historyData?.total ?? 0;
   const totalPages = historyData?.pageCount ?? 1;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const latest = latestResponse as any;
+  const latest = latestResponse as unknown as TelemetryHistoryRow | undefined;
 
   // Filter telemetry rows by search
   const filtered = telemetryRows;
@@ -192,458 +131,354 @@ export default function TelemetryPage() {
     telemetryRows.length > 0
       ? Math.round(
           telemetryRows.reduce(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (sum: number, r: any) => sum + (r.speed ?? 0),
+            (sum: number, r) => sum + (r.speed ?? 0),
             0
           ) / telemetryRows.length
         )
       : 0;
   const maxSpeed =
     telemetryRows.length > 0
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ? Math.max(...telemetryRows.map((r: any) => r.speed ?? 0))
+      ? Math.max(...telemetryRows.map((r) => r.speed ?? 0))
       : 0;
-
-  const stats = [
-    {
-      title: "Tổng điểm dữ liệu",
-      value: totalRows,
-      subtitle: `Trang ${currentPage}/${totalPages}`,
-      icon: Activity,
-      iconColor: "text-indigo-500",
-      iconBg: "bg-indigo-500/10",
-    },
-    {
-      title: "Tốc độ TB",
-      value: `${avgSpeed} km/h`,
-      subtitle: `Trang hiện tại (${telemetryRows.length} điểm)`,
-      icon: Gauge,
-      iconColor: "text-emerald-500",
-      iconBg: "bg-emerald-500/10",
-    },
-    {
-      title: "Tốc độ cao nhất",
-      value: `${maxSpeed} km/h`,
-      subtitle: "Trong trang hiện tại",
-      icon: TrendingUp,
-      iconColor: "text-amber-500",
-      iconBg: "bg-amber-500/10",
-    },
-    {
-      title: "Vị trí hiện tại",
-      value: latest
-        ? `${Number(latest.lat).toFixed(4)}, ${Number(latest.lng).toFixed(4)}`
-        : "—",
-      subtitle: latest ? `${latest.speed ?? 0} km/h · ${latest.accuracyStatus ?? "—"}` : "Chưa có dữ liệu",
-      icon: Satellite,
-      iconColor: "text-cyan-500",
-      iconBg: "bg-cyan-500/10",
-    },
-  ];
 
   return (
     <>
       <AppHeader
         title="Khám phá dữ liệu viễn trắc"
         breadcrumbs={[
-          { label: "Viễn trắc" },
-          { label: "Khám phá dữ liệu" },
+          { label: "Theo dõi trực tiếp" },
+          { label: "Khám phá dữ liệu viễn trắc" },
         ]}
       />
 
-      <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
-        {/* Page title */}
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Khám phá dữ liệu viễn trắc
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Khám phá và phân tích dữ liệu telemetry từ các thiết bị GNSS.
-          </p>
+      <div className="my-devices-page flex flex-1 flex-col gap-5 min-h-full overflow-auto">
+        <div className="header">
+          <h1>Khám phá dữ liệu viễn trắc</h1>
+          <p>Khám phá và phân tích dữ liệu telemetry từ các thiết bị GNSS.</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <DeviceStatsCard key={stat.title} {...stat} />
-          ))}
-        </div>
-
-        {/* Filters Card */}
-        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="px-5 pt-4 pb-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
-                  <Crosshair className="h-4 w-4" />
-                </div>
-                <CardTitle className="text-sm font-semibold">
-                  Bộ lọc dữ liệu
-                </CardTitle>
+        <div className="stats">
+          <div className="stat s1">
+            <div className="stat-top">
+              <span className="stat-label">Tổng điểm dữ liệu</span>
+              <div className="stat-icon">
+                <Activity className="h-4 w-4" />
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="px-5 pb-4">
-            <div className="flex flex-wrap items-end gap-3">
-              {/* Device selector */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground">
-                  Thiết bị
-                </label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="h-9 min-w-[200px] justify-start gap-2 text-xs"
+            <div className="stat-val">{totalRows}</div>
+            <div className="stat-sub">Trang {currentPage}/{totalPages}</div>
+          </div>
+          <div className="stat s2">
+            <div className="stat-top">
+              <span className="stat-label">Tốc độ TB</span>
+              <div className="stat-icon">
+                <Clock className="h-4 w-4" />
+              </div>
+            </div>
+            <div className="stat-val">{avgSpeed} km/h</div>
+            <div className="stat-sub">Trang hiện tại ({telemetryRows.length} điểm)</div>
+          </div>
+          <div className="stat s3">
+            <div className="stat-top">
+              <span className="stat-label">Tốc độ cao nhất</span>
+              <div className="stat-icon">
+                <TrendingUp className="h-4 w-4" />
+              </div>
+            </div>
+            <div className="stat-val">{maxSpeed.toFixed(1)} km/h</div>
+            <div className="stat-sub">Trong trang hiện tại</div>
+          </div>
+          <div className="stat s4">
+            <div className="stat-top">
+              <span className="stat-label">Vị trí hiện tại</span>
+              <div className="stat-icon">
+                <Satellite className="h-4 w-4" />
+              </div>
+            </div>
+            <div className="stat-val" style={{ fontSize: "18px" }}>
+              {latest ? `${Number(latest.lat).toFixed(4)}, ${Number(latest.lng).toFixed(4)}` : "—"}
+            </div>
+            <div className="stat-sub">
+              {latest ? `${(latest.speed ?? 0).toFixed(1)} km/h · ${latest.accuracyStatus ?? "—"}` : "Chưa có dữ liệu"}
+            </div>
+          </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-head">
+            <div className="left">
+              <div className="panel-icon">
+                <Crosshair className="h-4 w-4" />
+              </div>
+              <h2>Bộ lọc dữ liệu</h2>
+            </div>
+          </div>
+          <div className="filter-grid">
+            <div className="filter-field">
+              <div className="flabel">Thiết bị</div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="device-select">
+                    <Cpu className="h-4 w-4" />
+                    {activeDeviceName}
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-[240px]">
+                  {rawDevices.map((d) => (
+                    <DropdownMenuItem
+                      key={d.id}
+                      className="cursor-pointer"
+                      onClick={() => {
+                        setSelectedDeviceId(d.id);
+                        setCurrentPage(1);
+                      }}
                     >
-                      <Cpu className="h-3.5 w-3.5 text-muted-foreground" />
-                      {activeDeviceName}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-[240px]">
-                    {rawDevices.map(
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      (d: any) => (
-                        <DropdownMenuItem
-                          key={d.id}
-                          className="text-xs gap-2"
-                          onClick={() => {
-                            setSelectedDeviceId(d.id);
-                            setCurrentPage(1);
-                          }}
-                        >
-                          <Cpu className="h-3.5 w-3.5" />
-                          <div className="flex flex-col">
-                            <span className="font-medium">{d.name}</span>
-                          </div>
-                        </DropdownMenuItem>
-                      )
-                    )}
-                    {rawDevices.length === 0 && (
-                      <DropdownMenuItem disabled className="text-xs">
-                        Không có thiết bị
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Date From */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground">
-                  Từ ngày
-                </label>
-                <div className="relative">
-                  <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                  <Input
-                    type="date"
-                    value={dateFrom}
-                    onChange={(e) => {
-                      setDateFrom(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="h-9 pl-8 w-[160px] text-xs bg-background/50"
-                  />
-                </div>
-              </div>
-
-              {/* Date To */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground">
-                  Đến ngày
-                </label>
-                <div className="relative">
-                  <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                  <Input
-                    type="date"
-                    value={dateTo}
-                    onChange={(e) => {
-                      setDateTo(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="h-9 pl-8 w-[160px] text-xs bg-background/50"
-                  />
-                </div>
-              </div>
-
-              {/* Search */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground">
-                  Tìm kiếm
-                </label>
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                  <Input
-                    id="telemetry-search"
-                    placeholder="Tọa độ, trạng thái..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="pl-8 h-9 w-[220px] text-xs bg-background/50"
-                  />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Data Table */}
-        <Card className="overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="px-5 pt-4 pb-3 space-y-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
-                  <Activity className="h-4 w-4" />
-                </div>
-                <CardTitle className="text-sm font-semibold">
-                  Dữ liệu Telemetry
-                </CardTitle>
-                <Badge
-                  variant="outline"
-                  className="text-[10px] font-mono px-2 py-0.5 border-muted-foreground/20"
-                >
-                  {totalRows} bản ghi
-                </Badge>
-              </div>
-              <Badge
-                variant="outline"
-                className="text-[10px] px-2 py-0.5 border-indigo-500/30 text-indigo-400"
-              >
-                <Cpu className="h-3 w-3 mr-1" />
-                {activeDeviceName}
-              </Badge>
-            </div>
-          </CardHeader>
-
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-border/30 hover:bg-transparent">
-                    <TableHead className="text-[11px] uppercase tracking-wider font-medium pl-5">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        Thời gian
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-[11px] uppercase tracking-wider font-medium">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        Vĩ độ (Lat)
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-[11px] uppercase tracking-wider font-medium">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        Kinh độ (Lng)
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-[11px] uppercase tracking-wider font-medium">
-                      <div className="flex items-center gap-1">
-                        <Gauge className="h-3 w-3" />
-                        Tốc độ
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-[11px] uppercase tracking-wider font-medium">
-                      <div className="flex items-center gap-1">
-                        <Compass className="h-3 w-3" />
-                        Hướng
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-[11px] uppercase tracking-wider font-medium pr-5">
-                      <div className="flex items-center gap-1">
-                        <Navigation className="h-3 w-3" />
-                        Độ chính xác
-                      </div>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoadingHistory ? (
-                    Array.from({ length: 5 }).map((_, i) => (
-                      <SkeletonRow key={`skeleton-${i}`} />
-                    ))
-                  ) : filtered.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={6}
-                        className="text-center py-16 text-muted-foreground"
-                      >
-                        <div className="flex flex-col items-center gap-2">
-                          <Activity className="h-8 w-8 text-muted-foreground/30" />
-                          <p className="text-sm font-medium">
-                            Không có dữ liệu telemetry
-                          </p>
-                          <p className="text-xs text-muted-foreground/70">
-                            Thử thay đổi khoảng thời gian hoặc chọn thiết bị
-                            khác.
-                          </p>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    filtered.map((row: any) => {
-                      const accuracy = getAccuracyBadge(
-                        row.accuracyStatus ?? ""
-                      );
-                      return (
-                        <TableRow
-                          key={row.id}
-                          className="border-border/30 group transition-colors"
-                        >
-                          {/* Timestamp */}
-                          <TableCell className="pl-5">
-                            <span className="text-xs font-mono">
-                              {formatDateTime(row.timestamp)}
-                            </span>
-                          </TableCell>
-
-                          {/* Latitude */}
-                          <TableCell>
-                            <span className="text-xs font-mono text-muted-foreground">
-                              {formatCoord(row.lat)}
-                            </span>
-                          </TableCell>
-
-                          {/* Longitude */}
-                          <TableCell>
-                            <span className="text-xs font-mono text-muted-foreground">
-                              {formatCoord(row.lng)}
-                            </span>
-                          </TableCell>
-
-                          {/* Speed */}
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={`text-[10px] px-2 py-0.5 font-mono ${getSpeedBg(row.speed)}`}
-                            >
-                              <span className={getSpeedColor(row.speed)}>
-                                {row.speed} km/h
-                              </span>
-                            </Badge>
-                          </TableCell>
-
-                          {/* Heading */}
-                          <TableCell>
-                            <div className="flex items-center gap-1.5">
-                              <div
-                                className="flex h-5 w-5 items-center justify-center rounded-full bg-muted/50"
-                                style={{
-                                  transform: `rotate(${row.heading}deg)`,
-                                }}
-                              >
-                                <Navigation className="h-3 w-3 text-indigo-400" />
-                              </div>
-                              <span className="text-xs font-mono text-muted-foreground">
-                                {row.heading}°{" "}
-                                <span className="text-[10px] text-muted-foreground/70">
-                                  {getHeadingLabel(row.heading)}
-                                </span>
-                              </span>
-                            </div>
-                          </TableCell>
-
-                          {/* Accuracy Status */}
-                          <TableCell className="pr-5">
-                            <Badge
-                              variant="outline"
-                              className={`text-[10px] px-2 py-0.5 ${accuracy.className}`}
-                            >
-                              {accuracy.label}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
+                      {d.name}
+                    </DropdownMenuItem>
+                  ))}
+                  {rawDevices.length === 0 && (
+                    <DropdownMenuItem disabled className="text-xs">
+                      Không có thiết bị
+                    </DropdownMenuItem>
                   )}
-                </TableBody>
-              </Table>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-
-            {/* Pagination Footer */}
-            {!isLoadingHistory && totalRows > 0 && (
-              <div className="flex items-center justify-between border-t border-border/30 px-5 py-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Hiển thị</span>
-                  <select
-                    className="h-8 w-16 rounded border border-input bg-background text-foreground px-2 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    value={limit}
-                    onChange={(e) => {
-                      setLimit(Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                  >
-                    <option className="bg-background text-foreground" value={10}>10</option>
-                    <option className="bg-background text-foreground" value={20}>20</option>
-                    <option className="bg-background text-foreground" value={50}>50</option>
-                    <option className="bg-background text-foreground" value={100}>100</option>
-                  </select>
-                  <span className="text-xs text-muted-foreground">
-                    / trang ({(currentPage - 1) * limit + 1}–{Math.min(currentPage * limit, totalRows)} trong {totalRows})
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    id="telemetry-pagination-prev"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    disabled={currentPage === 1}
-                    onClick={() =>
-                      setCurrentPage((p) => Math.max(1, p - 1))
-                    }
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                    // Show pages around current page
-                    let page: number;
-                    if (totalPages <= 5) {
-                      page = i + 1;
-                    } else if (currentPage <= 3) {
-                      page = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      page = totalPages - 4 + i;
-                    } else {
-                      page = currentPage - 2 + i;
-                    }
-                    return (
-                      <Button
-                        key={page}
-                        variant={page === currentPage ? "default" : "ghost"}
-                        size="icon"
-                        className={`h-8 w-8 text-xs ${
-                          page === currentPage
-                            ? ""
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                        onClick={() => setCurrentPage(page)}
-                      >
-                        {page}
-                      </Button>
-                    );
-                  })}
-                  <Button
-                    id="telemetry-pagination-next"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    disabled={currentPage === totalPages}
-                    onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
-                    }
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+            <div className="filter-field">
+              <div className="flabel">Từ ngày</div>
+              <div className="date-input">
+                <Calendar className="h-4 w-4" />
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => {
+                    setDateFrom(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+            <div className="filter-field">
+              <div className="flabel">Đến ngày</div>
+              <div className="date-input">
+                <Calendar className="h-4 w-4" />
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => {
+                    setDateTo(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
+            </div>
+            <div className="filter-field">
+              <div className="flabel">Tìm kiếm</div>
+              <div className="search-box">
+                <Search className="h-4 w-4" />
+                <input
+                  placeholder="Tọa độ, trạng thái..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-head">
+            <div className="left">
+              <div className="panel-icon">
+                <Activity className="h-4 w-4" />
+              </div>
+              <h2>
+                Dữ liệu Telemetry
+                <span className="count-pill">{totalRows} bản ghi</span>
+              </h2>
+            </div>
+            <div className="panel-actions">
+              <span className="device-tag">
+                <Cpu className="h-3 w-3" />
+                {activeDeviceName}
+              </span>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>
+                    <span className="th-ic">
+                      <Clock className="h-3 w-3" />
+                      Thời gian
+                    </span>
+                  </th>
+                  <th>
+                    <span className="th-ic">
+                      <MapPin className="h-3 w-3" />
+                      Vĩ độ (Lat)
+                    </span>
+                  </th>
+                  <th>
+                    <span className="th-ic">
+                      <MapPin className="h-3 w-3" />
+                      Kinh độ (Lng)
+                    </span>
+                  </th>
+                  <th>
+                    <span className="th-ic">
+                      <Gauge className="h-3 w-3" />
+                      Tốc độ
+                    </span>
+                  </th>
+                  <th>
+                    <span className="th-ic">
+                      <Compass className="h-3 w-3" />
+                      Hướng
+                    </span>
+                  </th>
+                  <th>
+                    <span className="th-ic">
+                      <Navigation className="h-3 w-3" />
+                      Độ chính xác
+                    </span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoadingHistory ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i}>
+                      <td colSpan={6} className="text-center py-6">
+                        <span className="text-sm text-muted-foreground animate-pulse">Đang tải...</span>
+                      </td>
+                    </tr>
+                  ))
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-16 text-muted-foreground">
+                      Không có dữ liệu telemetry cho thiết bị này.
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((row) => {
+                    const status = row.accuracyStatus ?? "gnss_only";
+                    const isLow = row.speed < 50;
+                    const isMid = row.speed >= 50 && row.speed < 80;
+                    const speedClass = isLow ? "low" : isMid ? "mid" : "high";
+                    const heading = row.heading ?? 0;
+                    const headingLabel = getHeadingLabel(heading);
+                    return (
+                      <tr key={row.id}>
+                        <td className="time-cell">{formatDateTime(row.timestamp)}</td>
+                        <td className="coord-cell">{formatCoord(row.lat)}</td>
+                        <td className="coord-cell">{formatCoord(row.lng)}</td>
+                        <td>
+                          <span className={`speed-pill ${speedClass}`}>
+                            {row.speed.toFixed(1)} km/h
+                          </span>
+                        </td>
+                        <td>
+                          <div className="heading-cell">
+                            <Navigation className="h-3.5 w-3.5" style={{ transform: `rotate(${heading}deg)`, color: "#33d2c9" }} />
+                            <b>{heading}°</b> {headingLabel}
+                          </div>
+                        </td>
+                        <td>
+                          <span className="accuracy-tag">
+                            {status === "rtk_fixed" ? "RTK Fixed" : status === "rtk_float" ? "RTK Float" : status === "dgps" ? "DGPS" : "GNSS Only"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Footer */}
+          {!isLoadingHistory && totalRows > 0 && (
+            <div className="flex items-center justify-between border-t border-border/30 px-5 py-3 bg-card/20">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Hiển thị</span>
+                <select
+                  className="h-8 w-16 rounded border border-input bg-background text-foreground px-2 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option className="bg-background text-foreground" value={10}>10</option>
+                  <option className="bg-background text-foreground" value={20}>20</option>
+                  <option className="bg-background text-foreground" value={50}>50</option>
+                  <option className="bg-background text-foreground" value={100}>100</option>
+                </select>
+                <span className="text-xs text-muted-foreground">
+                  / trang ({(currentPage - 1) * limit + 1}–{Math.min(currentPage * limit, totalRows)} trong {totalRows})
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  id="telemetry-pagination-prev"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer"
+                  disabled={currentPage === 1}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.max(1, p - 1))
+                  }
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  let page: number;
+                  if (totalPages <= 5) {
+                    page = i + 1;
+                  } else if (currentPage <= 3) {
+                    page = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    page = totalPages - 4 + i;
+                  } else {
+                    page = currentPage - 2 + i;
+                  }
+                  return (
+                    <Button
+                      key={page}
+                      variant={page === currentPage ? "default" : "ghost"}
+                      size="icon"
+                      className={`h-8 w-8 text-xs cursor-pointer ${
+                        page === currentPage
+                          ? ""
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </Button>
+                  );
+                })}
+                <Button
+                  id="telemetry-pagination-next"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer"
+                  disabled={currentPage === totalPages}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

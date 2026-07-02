@@ -77,7 +77,7 @@ const userNavMain = [
     url: "#",
     icon: Bell,
     items: [
-      { title: "Cảnh báo & Media của tôi", url: "/my-alerts" },
+      { title: "Cảnh báo", url: "/my-alerts" },
       { title: "Quy tắc cảnh báo", url: "/alert-rules" },
     ],
   },

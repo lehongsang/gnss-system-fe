@@ -1,29 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
-import { AlertTriangle, CheckCircle2, Info, ShieldAlert, XCircle } from "lucide-react";
 import type { DashboardAlert as Alert } from "@/types";
 
-const severityConfig = {
-  critical: {
-    icon: XCircle,
-    badge: "bg-red-500/15 text-red-400 border-red-500/20 hover:bg-red-500/20",
-  },
-  warning: {
-    icon: AlertTriangle,
-    badge: "bg-amber-500/15 text-amber-500 border-amber-500/20 hover:bg-amber-500/20",
-  },
-  info: {
-    icon: Info,
-    badge: "bg-blue-500/15 text-blue-400 border-blue-500/20 hover:bg-blue-500/20",
-  },
-};
-
 function timeAgo(ts: string) {
-  const diff = Math.floor((new Date("2026-04-22T15:41:00+07:00").getTime() - new Date(ts).getTime()) / 60000);
+  const diff = Math.floor((new Date().getTime() - new Date(ts).getTime()) / 60000);
   if (diff < 1) return "just now";
   if (diff < 60) return `${diff}m ago`;
   const h = Math.floor(diff / 60);
@@ -38,79 +16,69 @@ export function AlertTable({ alerts }: { alerts: Alert[] }) {
   });
 
   return (
-    <Card className="flex flex-col overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm">
-      <CardHeader className="px-5 pt-4 pb-5 space-y-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
-              <ShieldAlert className="h-4 w-4" />
-            </div>
-            <div>
-              <CardTitle className="text-sm font-semibold">Cảnh báo gần đây</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">Trong 24 giờ qua</p>
-            </div>
-          </div>
-          <div className="flex gap-1.5">
-            <Badge variant="outline" className="text-[10px] font-mono px-2 py-0.5 border-red-500/30 text-red-400">
-              {alerts.filter(a => a.severity === "critical").length} nguy cấp
-            </Badge>
-            <Badge variant="outline" className="text-[10px] font-mono px-2 py-0.5 border-amber-500/30 text-amber-500">
-              {alerts.filter(a => a.severity === "warning").length} cảnh báo
-            </Badge>
+    <div className="panel">
+      <div className="panel-head">
+        <div className="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 2l9 4.5v9L12 22l-9-6.5v-9z" />
+          </svg>
+          <div>
+            <h2>Cảnh báo gần đây</h2>
+            <div className="sub">Trong 24 giờ qua</div>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="flex-1 p-0">
-        <ScrollArea className="h-[280px]">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/30 hover:bg-transparent">
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8 pl-5">Mức độ</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8">Thiết bị</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8">Tin nhắn</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8">Thời gian</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold h-8 pr-5">Trạng thái</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sorted.map(alert => {
-                const cfg = severityConfig[alert.severity];
-                const Icon = cfg.icon;
-                return (
-                  <TableRow key={alert.id} className="border-border/20 hover:bg-accent/30 cursor-pointer transition-colors">
-                    <TableCell className="pl-5 py-2.5">
-                      <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-5 gap-1 ${cfg.badge}`}>
-                        <Icon className="h-3 w-3" />{alert.severity}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="py-2.5">
-                      <p className="text-xs font-medium">{alert.deviceName}</p>
-                      <p className="text-[10px] text-muted-foreground font-mono">{alert.deviceId}</p>
-                    </TableCell>
-                    <TableCell className="py-2.5 max-w-[280px]">
-                      <p className="text-xs text-muted-foreground truncate">{alert.message}</p>
-                    </TableCell>
-                    <TableCell className="py-2.5">
-                      <p className="text-[10px] font-mono text-muted-foreground whitespace-nowrap">{timeAgo(alert.timestamp)}</p>
-                    </TableCell>
-                    <TableCell className="pr-5 py-2.5">
-                      {alert.acknowledged ? (
-                        <div className="flex items-center gap-1 text-emerald-500">
-                          <CheckCircle2 className="h-3.5 w-3.5" /><span className="text-[10px] font-medium">ACK</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1 text-amber-500">
-                          <AlertTriangle className="h-3.5 w-3.5" /><span className="text-[10px] font-medium">OPEN</span>
-                        </div>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+        <div className="alert-tags">
+          <span className="tag critical-count">
+            {alerts.filter(a => a.severity === "critical").length} nguy cấp
+          </span>
+          <span className="tag warning-count">
+            {alerts.filter(a => a.severity === "warning").length} cảnh báo
+          </span>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Mức độ</th>
+              <th>Thiết bị</th>
+              <th>Tin nhắn</th>
+              <th>Thời gian</th>
+              <th>Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((alert) => (
+              <tr key={alert.id}>
+                <td>
+                  <span className={`sev-badge ${alert.severity}`}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 8v4M12 16h.01" />
+                    </svg>
+                    {alert.severity}
+                  </span>
+                </td>
+                <td className="dev-cell">
+                  <div className="name">{alert.deviceName}</div>
+                </td>
+                <td className="msg-cell">{alert.message}</td>
+                <td className="time-cell">{timeAgo(alert.timestamp)}</td>
+                <td>
+                  <span className={`open-badge ${alert.acknowledged ? "resolved" : ""}`}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M12 9v4M12 17h.01" />
+                      <circle cx="12" cy="12" r="10" />
+                    </svg>
+                    {alert.acknowledged ? "ACK" : "OPEN"}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }

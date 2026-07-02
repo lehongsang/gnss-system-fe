@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { AppHeader } from "@/components/app-header";
-import { Clock, Navigation, MapPinned, Cpu } from "lucide-react";
+import { Clock, Navigation, MapPinned, Cpu, Play, Pause, CalendarDays, MapPin } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +16,20 @@ import {
 } from "@/services/apis/gen/queries";
 import type { TelemetryPoint, GeofenceZone } from "@/types";
 
+function getHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 export default function TrackHistory() {
   // Device Selection
   const { data: devicesResponse } = useDevicesControllerFindMine();
@@ -29,11 +43,18 @@ export default function TrackHistory() {
 
   const [focusedPoint, setFocusedPoint] = useState<TelemetryPoint | null>(null);
 
+  // Playback state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
+  const [playIndex, setPlayIndex] = useState(0);
+
   // Track the previous device ID to reset focusedPoint when it changes
   const [prevDeviceId, setPrevDeviceId] = useState<string>("");
   if (selectedDeviceId !== prevDeviceId) {
     setPrevDeviceId(selectedDeviceId);
     setFocusedPoint(null);
+    setPlayIndex(0);
+    setIsPlaying(false);
   }
 
   // Date range
@@ -112,13 +133,62 @@ export default function TrackHistory() {
     (d: { id: string; name: string }) => d.id === selectedDeviceId
   );
 
-  function formatTime(dateStr: string) {
-    return new Date(dateStr).toLocaleString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-  }
+  // Playback timer loop in track-history.tsx
+  useEffect(() => {
+    if (isPlaying) {
+      const interval = setInterval(() => {
+        setPlayIndex((prev) => {
+          if (prev >= telemetry.length - 1) {
+            setIsPlaying(false);
+            return telemetry.length - 1;
+          }
+          const next = prev + 1;
+          setFocusedPoint(telemetry[next]);
+          return next;
+        });
+      }, 1000 / playbackSpeed);
+      return () => clearInterval(interval);
+    }
+  }, [isPlaying, playbackSpeed, telemetry]);
+
+  const togglePlayback = () => {
+    if (isPlaying) {
+      setIsPlaying(false);
+    } else {
+      if (playIndex >= telemetry.length - 1) {
+        setPlayIndex(0);
+        if (telemetry.length > 0) setFocusedPoint(telemetry[0]);
+      }
+      setIsPlaying(true);
+    }
+  };
+
+  // Trip Stats calculations
+  const distanceKm = useMemo(() => {
+    let total = 0;
+    for (let i = 0; i < telemetry.length - 1; i++) {
+      total += getHaversineDistance(telemetry[i].lat, telemetry[i].lng, telemetry[i+1].lat, telemetry[i+1].lng);
+    }
+    return total.toFixed(2);
+  }, [telemetry]);
+
+  const durationStr = useMemo(() => {
+    if (telemetry.length < 2) return "0 giờ 0 phút";
+    const start = new Date(telemetry[0].timestamp).getTime();
+    const end = new Date(telemetry[telemetry.length - 1].timestamp).getTime();
+    const diffMs = end - start;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 60) return `${diffMins} phút`;
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    return `${hours} giờ ${mins} phút`;
+  }, [telemetry]);
+
+  const avgSpeed = useMemo(() => {
+    if (telemetry.length === 0) return "0.0";
+    const sum = telemetry.reduce((acc, p) => acc + p.speed, 0);
+    return (sum / telemetry.length).toFixed(1);
+  }, [telemetry]);
 
   // Reverse the array for the log view so newest is at top
   const logRows = [...telemetry].reverse();
@@ -132,11 +202,11 @@ export default function TrackHistory() {
           { label: "Lịch sử di chuyển" },
         ]}
       />
-      <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
+      <div className="my-devices-page flex flex-1 flex-col gap-5 min-h-full overflow-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Lịch sử di chuyển</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-cyan mt-1 opacity-85">
               Xem lại lịch sử di chuyển của thiết bị theo thời gian.
             </p>
           </div>
@@ -144,13 +214,11 @@ export default function TrackHistory() {
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="flex items-center justify-between px-3 py-2 border rounded-md w-[250px] h-9 bg-card cursor-pointer hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <Cpu className="h-4 w-4 text-blue-500" />
-                    <span className="text-sm truncate">
-                      {selectedDevice ? selectedDevice.name : "Chọn thiết bị..."}
-                    </span>
+                <div className="device-chip cursor-pointer">
+                  <div className="ic">
+                    <Cpu className="h-[13px] w-[13px]" />
                   </div>
+                  {selectedDevice ? selectedDevice.name : "Chọn thiết bị..."}
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-[250px]">
@@ -173,77 +241,164 @@ export default function TrackHistory() {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 min-h-0">
-          <div className="lg:col-span-2 rounded-xl flex flex-col overflow-hidden">
-            {selectedDeviceId ? (
-              <TelemetryMap
-                telemetry={telemetry}
-                geofences={deviceGeofences}
-                deviceName={selectedDevice?.name ?? "Thiết bị"}
-                isLoading={isLoadingHistory}
-                dateFrom={dateFrom}
-                dateTo={dateTo}
-                onDateFromChange={setDateFrom}
-                onDateToChange={setDateTo}
-                focusedPoint={focusedPoint}
-              />
-            ) : (
-               <div className="flex flex-col items-center justify-center h-[520px] bg-muted/20 border rounded-xl">
-                 <MapPinned className="w-16 h-16 mx-auto text-blue-500/30 mb-4" />
-                 <p className="text-muted-foreground font-medium">Chưa chọn thiết bị</p>
-               </div>
-            )}
+        <div className="main-grid">
+          {/* Left Panel */}
+          <div className="panel">
+            <div className="panel-head">
+              <div className="left">
+                <div className="panel-icon">
+                  <Navigation className="h-[17px] w-[17px]" />
+                </div>
+                <div>
+                  <h2>Lịch sử hành trình</h2>
+                  <div className="sub">{selectedDevice ? selectedDevice.name : "Device"} · {telemetry.length} điểm telemetry</div>
+                </div>
+              </div>
+              <span className="polyline-tag">
+                <MapPin className="h-3 w-3" />
+                Polyline
+              </span>
+            </div>
+
+            <div className="controls-row">
+              <div className="date-field">
+                <CalendarDays className="h-[15px] w-[15px]" />
+                TỪ: 
+                <input 
+                  type="date" 
+                  value={dateFrom} 
+                  onChange={(e) => setDateFrom(e.target.value)} 
+                />
+              </div>
+              <span className="arrow-sep">→</span>
+              <div className="date-field">
+                ĐẾN: 
+                <input 
+                  type="date" 
+                  value={dateTo} 
+                  onChange={(e) => setDateTo(e.target.value)} 
+                />
+              </div>
+            </div>
+
+            <div className="summary-row">
+              <div className="summary-stats">
+                <div className="sum-item distance">Quãng đường: <b>{distanceKm} km</b></div>
+                <div className="sum-item time">Thời gian: <b>{durationStr}</b></div>
+                <div className="sum-item speed">Tốc độ TB: <b>{avgSpeed} km/h</b></div>
+              </div>
+              <div className="playback-controls">
+                <div className="speed-pills">
+                  {([1, 2, 4, 8] as const).map((speed) => (
+                    <div
+                      key={speed}
+                      className={`speed-pill ${playbackSpeed === speed ? "active" : ""}`}
+                      onClick={() => setPlaybackSpeed(speed)}
+                    >
+                      {speed}x
+                    </div>
+                  ))}
+                </div>
+                <button className="btn-play" onClick={togglePlayback} disabled={telemetry.length === 0}>
+                  {isPlaying ? (
+                    <>
+                      <Pause className="h-[13px] w-[13px]" />
+                      Tạm dừng
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-[13px] w-[13px] fill-current" />
+                      Phát lại
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="map-area">
+              {selectedDeviceId ? (
+                <TelemetryMap
+                  telemetry={telemetry}
+                  geofences={deviceGeofences}
+                  deviceName={selectedDevice?.name ?? "Thiết bị"}
+                  isLoading={isLoadingHistory}
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  onDateFromChange={setDateFrom}
+                  onDateToChange={setDateTo}
+                  focusedPoint={focusedPoint}
+                  hideHeader={true}
+                  externalIsPlaying={isPlaying}
+                  externalPlayIndex={playIndex}
+                  externalPlaybackSpeed={playbackSpeed}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full bg-muted/20">
+                  <MapPinned className="w-16 h-16 mx-auto text-blue-500/30 mb-4" />
+                  <p className="text-muted-foreground font-medium">Chưa chọn thiết bị</p>
+                </div>
+              )}
+            </div>
           </div>
-          
-          <div className="bg-card border rounded-xl p-5 flex flex-col gap-4 max-h-[520px] lg:max-h-[600px] overflow-hidden">
-            <h3 className="font-semibold text-lg flex items-center gap-2 shrink-0">
-              <Clock className="w-5 h-5 text-blue-500"/> Nhật ký hành trình
-            </h3>
-            
-            <div className="overflow-auto pr-2 flex-1 relative before:absolute before:inset-y-0 before:left-[16px] before:w-0.5 before:bg-border/50 space-y-3">
+
+          {/* Right Panel: Journey Log */}
+          <div className="panel log-panel">
+            <div className="panel-head">
+              <div className="left">
+                <div className="panel-icon" style={{ background: "rgba(51, 210, 201, 0.1)", color: "#33d2c9" }}>
+                  <Clock className="h-[17px] w-[17px]" />
+                </div>
+                <h2>Nhật ký hành trình</h2>
+              </div>
+            </div>
+            <div className="log-list max-h-[600px] overflow-y-auto">
               {isLoadingHistory ? (
-                 <div className="flex justify-center p-4"><span className="text-sm text-muted-foreground">Đang tải...</span></div>
+                <div className="flex justify-center p-8"><span className="text-sm text-muted-foreground">Đang tải...</span></div>
               ) : logRows.length === 0 ? (
-                 <div className="text-center p-4 text-sm text-muted-foreground">Không có dữ liệu trong khoảng thời gian này.</div>
+                <div className="text-center p-8 text-sm text-muted-foreground">Không có dữ liệu trong khoảng thời gian này.</div>
               ) : (
                 logRows.map((item, idx) => {
-                  const status = item.speed > 0 ? "Moving" : "Stopped";
+                  const status = item.speed > 0 ? "Đang di chuyển" : "Đang dừng";
                   const isFocused = focusedPoint && focusedPoint.timestamp === item.timestamp;
+                  
+                  // Compute corresponding index in telemetry array
+                  const origIdx = telemetry.length - 1 - idx;
+                  
                   return (
                     <div 
                       key={idx} 
-                      className="relative flex items-start gap-4 p-1 group cursor-pointer"
-                      onClick={() => setFocusedPoint(item)}
+                      className={`log-item ${isFocused ? 'bg-white/5' : ''}`}
+                      onClick={() => {
+                        setFocusedPoint(item);
+                        setPlayIndex(origIdx);
+                      }}
                     >
-                      <div className={`z-10 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ring-4 ring-card transition-all duration-300 ${
-                        isFocused 
-                          ? 'bg-cyan-500/20 text-cyan-400 ring-cyan-500/30 shadow-lg shadow-cyan-500/20 scale-110' 
-                          : status === 'Moving' 
-                            ? 'bg-blue-500/20 text-blue-500' 
-                            : 'bg-amber-500/20 text-amber-500'
-                      }`}>
-                        <Navigation className={`w-3.5 h-3.5 transition-transform duration-300 ${status === 'Stopped' ? 'rotate-180' : ''} ${isFocused ? 'text-cyan-400 animate-pulse' : ''}`} />
-                      </div>
-                      
-                      <div className={`flex-1 border rounded-lg p-3 transition-all duration-300 ${
-                        isFocused 
-                          ? 'bg-cyan-500/10 border-cyan-500/80 shadow-md shadow-cyan-500/10 scale-[1.01]' 
-                          : 'bg-muted/10 border-border/50 hover:bg-muted/30'
-                      }`}>
-                        <div className="flex justify-between items-center mb-1">
-                          <p className={`font-semibold text-sm transition-colors ${isFocused ? 'text-cyan-400 font-bold' : ''}`}>{formatTime(item.timestamp)}</p>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium transition-colors ${
-                            isFocused 
-                              ? 'bg-cyan-500/20 text-cyan-400'
-                              : status === 'Moving' 
-                                ? 'bg-blue-500/10 text-blue-500' 
-                                : 'bg-amber-500/10 text-amber-500'
-                          }`}>{isFocused ? 'Đang chọn' : status === 'Moving' ? 'Đang di chuyển' : 'Đang dừng'}</span>
+                      <div className="log-rail">
+                        <div className="log-dot" style={isFocused ? { background: "rgba(51, 210, 201, 0.15)", color: "#33d2c9" } : undefined}>
+                          <Navigation className={`w-3.5 h-3.5 ${status === 'Đang dừng' ? 'rotate-180' : ''}`} />
                         </div>
-                        <p className={`text-[11px] font-mono truncate transition-colors ${isFocused ? 'text-cyan-300/80' : 'text-muted-foreground'}`}>
-                          {item.lat.toFixed(6)}, {item.lng.toFixed(6)}
-                        </p>
-                        <p className={`text-[11px] font-medium mt-1 transition-colors ${isFocused ? 'text-cyan-200/90' : 'text-foreground/80'}`}>Vận tốc: {item.speed.toFixed(1)} km/h</p>
+                      </div>
+                      <div className="log-content">
+                        <div className="log-top">
+                          <span className="log-time" style={isFocused ? { color: "#33d2c9" } : undefined}>
+                            {new Date(item.timestamp).toLocaleTimeString("vi-VN", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              second: "2-digit",
+                            })}
+                          </span>
+                          <span className="log-status" style={
+                            isFocused 
+                              ? { background: "rgba(51, 210, 201, 0.15)", color: "#33d2c9" } 
+                              : status === 'Đang dừng' 
+                                ? { background: "rgba(240, 169, 63, 0.15)", color: "#f0a93f" } 
+                                : undefined
+                          }>
+                            {status}
+                          </span>
+                        </div>
+                        <div className="log-coords">{item.lat.toFixed(6)}, {item.lng.toFixed(6)}</div>
+                        <div className="log-speed">Vận tốc: <b>{item.speed.toFixed(1)} km/h</b></div>
                       </div>
                     </div>
                   );

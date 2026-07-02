@@ -328,7 +328,7 @@ export default function VisionFeed() {
         title="Luồng Video"
         breadcrumbs={[{ label: "Nhật ký Media" }, { label: "Luồng Video" }]}
       />
-      <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
+      <div className="my-devices-page flex flex-1 flex-col gap-5 min-h-full overflow-auto">
         {/* Top Bar */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -340,8 +340,8 @@ export default function VisionFeed() {
                 <h1 className="text-2xl font-bold tracking-tight">
                   Luồng Video
                 </h1>
-                <p className="text-sm text-muted-foreground">
-                  Giám sát hình ảnh mới nhất từ các thiết bị
+                <p className="text-sm text-cyan mt-1 opacity-85">
+                  Giám sát hình ảnh mới nhất từ các thiết bị.
                 </p>
               </div>
             </div>

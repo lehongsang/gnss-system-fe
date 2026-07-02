@@ -1,14 +1,15 @@
 import type { LucideIcon } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 
 interface StatsCardProps {
   title: string;
   value: string | number;
   subtitle: string;
   icon: LucideIcon;
-  iconColor: string;
-  iconBg: string;
+  iconColor?: string;
+  iconBg?: string;
   trend?: { value: string; positive: boolean };
+  statClass?: string;
+  iconClass?: string;
 }
 
 export function StatsCard({
@@ -16,43 +17,27 @@ export function StatsCard({
   value,
   subtitle,
   icon: Icon,
-  iconColor,
-  iconBg,
   trend,
+  statClass = "s1",
+  iconClass = "ic-blue",
 }: StatsCardProps) {
   return (
-    <Card className="group relative overflow-hidden border border-border/45 bg-card/70 backdrop-blur-md transition-all duration-500 hover:border-primary/40 hover:shadow-[0_0_25px_rgba(99,102,241,0.12)] dark:hover:shadow-[0_0_30px_rgba(99,102,241,0.08)]">
-      {/* Decorative gradient accent */}
-      <div className={`absolute -right-4 -top-4 h-24 w-24 rounded-full ${iconBg} opacity-15 blur-2xl transition-all duration-700 group-hover:opacity-35 group-hover:blur-3xl group-hover:scale-125`} />
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {title}
-            </p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold tracking-tight">{value}</span>
-              {trend && (
-                <span
-                  className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-semibold border ${
-                    trend.positive
-                      ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                      : "bg-red-500/10 text-red-400 border-red-500/20"
-                  }`}
-                >
-                  {trend.value}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">{subtitle}</p>
-          </div>
-          <div
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconBg} ${iconColor} transition-transform duration-300 group-hover:scale-110`}
-          >
-            <Icon className="h-5 w-5" />
-          </div>
+    <div className={`stat ${statClass}`}>
+      <div className="stat-top">
+        <span className="stat-label">{title}</span>
+        <div className={`stat-icon ${iconClass}`}>
+          <Icon />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="stat-val">{value}</div>
+      <div className="stat-sub">
+        {trend && (
+          <span className={`pill ${trend.value.includes("↓") ? "down" : trend.value.includes("0%") ? "flat" : "up"}`}>
+            {trend.value}
+          </span>
+        )}
+      </div>
+      <div className="stat-sub" style={{ marginTop: "6px" }}>{subtitle}</div>
+    </div>
   );
 }

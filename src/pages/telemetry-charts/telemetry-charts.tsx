@@ -256,7 +256,7 @@ export default function TelemetryCharts() {
         title="Biểu đồ viễn trắc"
         breadcrumbs={[{ label: "Viễn trắc" }, { label: "Biểu đồ" }]}
       />
-      <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
+      <div className="my-devices-page flex flex-1 flex-col gap-5 min-h-full overflow-auto">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-3">
@@ -267,8 +267,8 @@ export default function TelemetryCharts() {
               <h1 className="text-2xl font-bold tracking-tight">
                 Biểu đồ viễn trắc
               </h1>
-              <p className="text-sm text-muted-foreground">
-                Trực quan hóa dữ liệu GNSS telemetry theo thời gian
+              <p className="text-sm text-cyan mt-1 opacity-85">
+                Trực quan hóa dữ liệu GNSS telemetry theo thời gian.
               </p>
             </div>
           </div>

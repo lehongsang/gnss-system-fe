@@ -167,9 +167,9 @@ export default function AdminResourcesPage() {
   }), [allAlerts, ownerFilter, deviceIdFilter]);
 
   const stats = [
-    { title: "Thiết bị", value: allDevices.length, subtitle: `${allDevices.filter((d) => d.status === "online").length} online`, icon: Cpu, iconColor: "text-blue-500", iconBg: "bg-blue-500/10" },
-    { title: "Geofences", value: allGeofences.length, subtitle: `${allGeofences.reduce((s, g) => s + g.deviceCount, 0)} thiết bị đã gán`, icon: Pentagon, iconColor: "text-emerald-500", iconBg: "bg-emerald-500/10" },
-    { title: "Cảnh báo", value: allAlerts.length, subtitle: `${allAlerts.filter((a) => !a.isResolved).length} chưa xử lý`, icon: ShieldAlert, iconColor: "text-red-400", iconBg: "bg-red-500/10" },
+    { title: "Thiết bị", value: allDevices.length, subtitle: `${allDevices.filter((d) => d.status === "online").length} online`, icon: Cpu, statClass: "s1" },
+    { title: "Geofences", value: allGeofences.length, subtitle: `${allGeofences.reduce((s, g) => s + g.deviceCount, 0)} thiết bị đã gán`, icon: Pentagon, statClass: "s2" },
+    { title: "Cảnh báo", value: allAlerts.length, subtitle: `${allAlerts.filter((a) => !a.isResolved).length} chưa xử lý`, icon: ShieldAlert, statClass: "s3" },
   ];
 
   const handleRefresh = () => {
@@ -181,35 +181,35 @@ export default function AdminResourcesPage() {
   return (
     <>
       <AppHeader title="Tài nguyên" breadcrumbs={[{ label: "Admin", href: "/" }, { label: "Tài nguyên" }]} />
-      <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
+      <div className="my-devices-page flex flex-1 flex-col gap-5 min-h-full overflow-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Quản trị tài nguyên</h1>
-            <p className="text-sm text-muted-foreground mt-1">Thiết bị, Geofences và Cảnh báo — với cột Chủ sở hữu và bộ lọc mạnh mẽ.</p>
+            <p className="text-sm text-cyan mt-1 opacity-85">Thiết bị, Geofences và Cảnh báo — với cột Chủ sở hữu và bộ lọc mạnh mẽ.</p>
           </div>
-          <Button
+          <button
             id="refresh-resources-btn"
-            variant="outline"
-            size="sm"
             onClick={handleRefresh}
-            className="gap-2 text-sm"
+            className="btn-primary"
+            style={{ padding: "8px 16px", fontSize: "13px" }}
           >
             <RefreshCw className="h-4 w-4" />
             Làm mới
-          </Button>
+          </button>
         </div>
 
         {/* Stats cards */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+        <div className="stats">
           {(loadingDevices || loadingAlerts || loadingGeofences) ? (
             Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i} className="border-border/50 bg-card/80 backdrop-blur-sm">
-                <CardContent className="p-5 space-y-3">
+              <div key={i} className="stat s1">
+                <div className="stat-top">
                   <Skeleton className="h-3 w-20" />
-                  <Skeleton className="h-7 w-16" />
-                  <Skeleton className="h-3 w-28" />
-                </CardContent>
-              </Card>
+                  <Skeleton className="h-8 w-8 rounded-lg" />
+                </div>
+                <Skeleton className="h-7 w-16 mb-2" />
+                <Skeleton className="h-3 w-28" />
+              </div>
             ))
           ) : (
             stats.map((s) => <DeviceStatsCard key={s.title} {...s} />)

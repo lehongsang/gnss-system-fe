@@ -308,12 +308,12 @@ export default function MyGeofencesPage() {
         ]}
       />
 
-      <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
+      <div className="my-devices-page flex flex-1 flex-col gap-5 min-h-full overflow-auto">
         {/* Page title + Draw button */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Vùng giám sát của tôi</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-cyan mt-1 opacity-85">
               Tạo và quản lý các vùng giám sát trên bản đồ.
             </p>
           </div>

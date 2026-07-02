@@ -111,21 +111,21 @@ export default function AdminUsersPage() {
   };
 
   const stats = [
-    { title: "Tổng người dùng", value: total, subtitle: `${adminCount} admin · ${total - adminCount} user`, icon: Users, iconColor: "text-blue-500", iconBg: "bg-blue-500/10" },
-    { title: "Đang hoạt động", value: activeCount, subtitle: `${total > 0 ? Math.round((activeCount / total) * 100) : 0}% tài khoản active`, icon: ShieldCheck, iconColor: "text-emerald-500", iconBg: "bg-emerald-500/10" },
-    { title: "Đã bị ban", value: bannedCount, subtitle: "Tài khoản bị khóa", icon: ShieldOff, iconColor: "text-red-400", iconBg: "bg-red-500/10" },
-    { title: "Quản trị viên", value: adminCount, subtitle: "Có toàn quyền hệ thống", icon: UserCog, iconColor: "text-violet-500", iconBg: "bg-violet-500/10" },
+    { title: "Tổng người dùng", value: total, subtitle: `${adminCount} admin · ${total - adminCount} user`, icon: Users, statClass: "s1" },
+    { title: "Đang hoạt động", value: activeCount, subtitle: `${total > 0 ? Math.round((activeCount / total) * 100) : 0}% tài khoản active`, icon: ShieldCheck, statClass: "s2" },
+    { title: "Đã bị ban", value: bannedCount, subtitle: "Tài khoản bị khóa", icon: ShieldOff, statClass: "s3" },
+    { title: "Quản trị viên", value: adminCount, subtitle: "Có toàn quyền hệ thống", icon: UserCog, statClass: "s4" },
   ];
 
   return (
     <>
       <AppHeader title="Quản lý người dùng" breadcrumbs={[{ label: "Admin", href: "/" }, { label: "Quản lý người dùng" }]} />
-      <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
+      <div className="my-devices-page flex flex-1 flex-col gap-5 min-h-full overflow-auto">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Quản lý người dùng</h1>
-          <p className="text-sm text-muted-foreground mt-1">Xem, ban/unban và đổi vai trò cho tất cả người dùng trong hệ thống.</p>
+          <p className="text-sm text-cyan mt-1 opacity-85">Xem, ban/unban và đổi vai trò cho tất cả người dùng trong hệ thống.</p>
         </div>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="stats">
           {stats.map((s) => <DeviceStatsCard key={s.title} {...s} />)}
         </div>
         <UsersTable users={users} isLoading={isLoading} onBanToggle={handleBanToggle} onRoleChange={handleRoleChange} />

@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { AppHeader } from "@/components/app-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -89,32 +88,25 @@ function GroupStatsCard({
   value,
   subtitle,
   icon: Icon,
-  iconColor,
-  iconBg,
+  statClass = "s1",
 }: {
   title: string;
   value: string | number;
   subtitle: string;
   icon: typeof Folder;
-  iconColor: string;
-  iconBg: string;
+  statClass?: string;
 }) {
   return (
-    <Card className="group relative overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:border-primary/30">
-      <div className={`absolute top-0 right-0 h-16 w-16 rounded-full ${iconBg} opacity-20 blur-xl transition-all duration-500`} />
-      <CardContent className="p-4 flex items-center justify-between">
-        <div className="space-y-1">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-            {title}
-          </p>
-          <p className="text-xl font-bold tracking-tight">{value}</p>
-          <p className="text-[10px] text-muted-foreground">{subtitle}</p>
+    <div className={`stat ${statClass}`}>
+      <div className="stat-top">
+        <span className="stat-label">{title}</span>
+        <div className="stat-icon">
+          <Icon className="h-[17px] w-[17px]" />
         </div>
-        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${iconBg} ${iconColor}`}>
-          <Icon className="h-4.5 w-4.5" />
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="stat-val">{value}</div>
+      <div className="stat-sub">{subtitle}</div>
+    </div>
   );
 }
 
@@ -604,83 +596,69 @@ export default function DeviceGroupsPage() {
         ]}
       />
 
-      <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
+      <div className="my-devices-page flex flex-1 flex-col gap-5 min-h-full overflow-auto">
         {/* Page title */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
               Nhóm thiết bị
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-violet mt-1 opacity-90">
               Quản lý và phân nhóm các thiết bị GNSS để dễ dàng theo dõi.
             </p>
           </div>
-          <Button className="gap-2" onClick={openCreate}>
+          <button className="btn-violet" onClick={openCreate}>
             <Plus className="h-4 w-4" />
             Tạo nhóm mới
-          </Button>
+          </button>
         </div>
 
         {/* Row 1: Mini Stats Cards */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+        <div className="stats" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
           <GroupStatsCard
             title="Tổng số nhóm"
             value={totalRows}
             subtitle="Phân loại theo khu vực/loại xe"
             icon={Folder}
-            iconColor="text-indigo-500"
-            iconBg="bg-indigo-500/10"
+            statClass="s1"
           />
           <GroupStatsCard
             title="Thiết bị đã phân nhóm"
             value={totalAssignedDevices}
             subtitle={`${allDevices.length} tổng thiết bị`}
             icon={Cpu}
-            iconColor="text-emerald-500"
-            iconBg="bg-emerald-500/10"
+            statClass="s2"
           />
           <GroupStatsCard
             title="Thiết bị chưa phân nhóm"
             value={totalUnassignedDevices}
             subtitle="Cần gán vào nhóm để quản lý"
             icon={Unlink}
-            iconColor="text-amber-500"
-            iconBg="bg-amber-500/10"
+            statClass="s3"
           />
         </div>
 
         {/* Tree Card */}
-        <Card className="overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="px-5 pt-4 pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
-                  <Folder className="h-4 w-4" />
-                </div>
-                <CardTitle className="text-sm font-semibold">
-                  Danh sách nhóm
-                </CardTitle>
-                <Badge
-                  variant="outline"
-                  className="text-[10px] font-mono px-2 py-0.5 border-muted-foreground/20"
-                >
-                  {totalRows} nhóm
-                </Badge>
+        <div className="panel violet">
+          <div className="panel-head">
+            <div className="left">
+              <div className="panel-icon">
+                <Folder className="h-[17px] w-[17px]" />
               </div>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                <Input
-                  placeholder="Tìm kiếm nhóm..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-8 w-[250px] pl-8 text-xs bg-background/50"
-                />
-              </div>
+              <h2>Danh sách nhóm <span className="count-pill">{totalRows} nhóm</span></h2>
             </div>
-          </CardHeader>
+            <div className="search-box">
+              <Search className="h-3.5 w-3.5" />
+              <input
+                placeholder="Tìm kiếm nhóm..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
 
-          <CardContent className="px-2 pb-2">
-            <div className="flex flex-col gap-0.5">
+          <div className="px-3 pb-3">
+            <div className="flex flex-col gap-0.5 mt-2">
               {isLoading ? (
                 Array.from({ length: 4 }).map((_, i) => (
                   <SkeletonGroupItem key={`skel-${i}`} />
@@ -697,22 +675,16 @@ export default function DeviceGroupsPage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-4 py-16 text-muted-foreground max-w-md mx-auto text-center">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-500 shadow-md">
-                      <Folder className="h-8 w-8" />
+                  <div className="empty-state">
+                    <div className="empty-icon">
+                      <Folder className="h-[32px] w-[32px]" />
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-base font-semibold text-foreground">
-                        Chưa có nhóm thiết bị nào được tạo
-                      </p>
-                      <p className="text-xs text-muted-foreground max-w-[280px]">
-                        Tạo nhóm mới ngay để bắt đầu tổ chức và quản lý các thiết bị GNSS của bạn một cách dễ dàng.
-                      </p>
-                    </div>
-                    <Button onClick={openCreate} className="mt-2 gap-2 shadow-lg shadow-primary/20 cursor-pointer">
+                    <h3>Chưa có nhóm thiết bị nào được tạo</h3>
+                    <p>Tạo nhóm mới ngay để bắt đầu tổ chức và quản lý các thiết bị GNSS của bạn một cách dễ dàng.</p>
+                    <button className="btn-violet" style={{ margin: "0 auto" }} onClick={openCreate}>
                       <Plus className="h-4 w-4" />
                       Tạo nhóm thiết bị đầu tiên
-                    </Button>
+                    </button>
                   </div>
                 )
               ) : (
@@ -792,8 +764,8 @@ export default function DeviceGroupsPage() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* ============ CREATE DIALOG ============ */}

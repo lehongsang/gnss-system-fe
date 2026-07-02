@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { AppHeader } from "@/components/app-header";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Cpu, Wifi, WifiOff, Wrench } from "lucide-react";
 import { DeviceStatsCard } from "@/pages/my-devices/components/device-stats-card";
@@ -59,30 +58,31 @@ export default function AdminMonitoringPage() {
   const owners = new Set(devices.map((d) => d.ownerId)).size;
 
   const stats = [
-    { title: "Tổng thiết bị", value: devices.length, subtitle: `Của ${owners} chủ sở hữu`, icon: Cpu, iconColor: "text-blue-500", iconBg: "bg-blue-500/10" },
-    { title: "Online", value: online, subtitle: `${devices.length > 0 ? Math.round((online / devices.length) * 100) : 0}% đang hoạt động`, icon: Wifi, iconColor: "text-emerald-500", iconBg: "bg-emerald-500/10" },
-    { title: "Offline", value: offline, subtitle: "Cần kiểm tra", icon: WifiOff, iconColor: "text-red-400", iconBg: "bg-red-500/10" },
-    { title: "Bảo trì", value: maintenance, subtitle: "Đang bảo dưỡng", icon: Wrench, iconColor: "text-amber-500", iconBg: "bg-amber-500/10" },
+    { title: "Tổng thiết bị", value: devices.length, subtitle: `Của ${owners} chủ sở hữu`, icon: Cpu, statClass: "s1" },
+    { title: "Online", value: online, subtitle: `${devices.length > 0 ? Math.round((online / devices.length) * 100) : 0}% đang hoạt động`, icon: Wifi, statClass: "s2" },
+    { title: "Offline", value: offline, subtitle: "Cần kiểm tra", icon: WifiOff, statClass: "s3" },
+    { title: "Bảo trì", value: maintenance, subtitle: "Đang bảo dưỡng", icon: Wrench, statClass: "s4" },
   ];
 
   return (
     <>
       <AppHeader title="Giám sát toàn cầu" breadcrumbs={[{ label: "Admin", href: "/" }, { label: "Giám sát toàn cầu" }]} />
-      <div className="flex flex-1 flex-col gap-5 p-5 min-h-full overflow-auto">
+      <div className="my-devices-page flex flex-1 flex-col gap-5 min-h-full overflow-auto">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Giám sát tổng thể</h1>
-          <p className="text-sm text-muted-foreground mt-1">Xem tất cả thiết bị của mọi người dùng trên bản đồ và tìm kiếm lân cận.</p>
+          <p className="text-sm text-cyan mt-1 opacity-85">Xem tất cả thiết bị của mọi người dùng trên bản đồ và tìm kiếm lân cận.</p>
         </div>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="stats">
           {isLoading ? (
             Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="border-border/50 bg-card/80 backdrop-blur-sm">
-                <CardContent className="p-5 space-y-3">
+              <div key={i} className="stat s1">
+                <div className="stat-top">
                   <Skeleton className="h-3 w-20" />
-                  <Skeleton className="h-7 w-16" />
-                  <Skeleton className="h-3 w-28" />
-                </CardContent>
-              </Card>
+                  <Skeleton className="h-8 w-8 rounded-lg" />
+                </div>
+                <Skeleton className="h-7 w-16 mb-2" />
+                <Skeleton className="h-3 w-28" />
+              </div>
             ))
           ) : (
             stats.map((s) => <DeviceStatsCard key={s.title} {...s} />)

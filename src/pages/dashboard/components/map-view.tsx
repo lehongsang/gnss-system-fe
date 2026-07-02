@@ -10,9 +10,6 @@ import Map, {
 } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Navigation as NavIcon, Layers } from "lucide-react";
 import type { DashboardDevice as Device, DashboardGeofence as Geofence } from "@/types";
 
 // --------------- config ---------------
@@ -76,39 +73,26 @@ export function MapView({ devices, geofences }: MapViewProps) {
   }, [devices]);
 
   return (
-    <Card className="flex flex-col overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm">
+    <div className="panel">
       {/* Header */}
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 px-5 pt-4">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
-            <NavIcon className="h-4 w-4" />
-          </div>
+      <div className="panel-head">
+        <div className="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M3 11l19-9-9 19-2-8-8-2z" />
+          </svg>
           <div>
-            <CardTitle className="text-sm font-semibold">
-              Bản đồ trực tiếp
-            </CardTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <h2>Bản đồ trực tiếp</h2>
+            <div className="sub">
               {onlineCount} đang hoạt động · {offlineCount} ngoại tuyến
-            </p>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Badge
-            variant="outline"
-            className="text-[10px] gap-1 px-2 py-0.5 font-mono border-emerald-500/30 text-emerald-500"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            TRỰC TIẾP
-          </Badge>
-          <button className="h-7 w-7 rounded-md border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors">
-            <Layers className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </CardHeader>
+        <span className="live-badge">TRỰC TIẾP</span>
+      </div>
 
       {/* Map body */}
-      <CardContent className="flex-1 p-0 relative">
-        <div className="h-[420px] w-full">
+      <div className="relative">
+        <div className="h-[430px] w-full">
           <Map
             ref={mapRef}
             initialViewState={INITIAL_VIEW}
@@ -139,100 +123,96 @@ export function MapView({ devices, geofences }: MapViewProps) {
                   }}
                 />
                 <Layer
-                  id={`geofence-line-${geo.id}`}
+                  id={`geofence-border-${geo.id}`}
                   type="line"
                   paint={{
                     "line-color": geo.color,
                     "line-width": 2,
-                    "line-dasharray": [4, 2],
+                    "line-opacity": 0.7,
                   }}
                 />
               </Source>
             ))}
 
-            {/* Device markers */}
+            {/* Device Markers */}
             {devices.map((device) => {
               const isOnline = device.status === "online";
-              const size = device.type === "base" ? 20 : 16;
               return (
                 <Marker
                   key={device.id}
                   latitude={device.lat}
                   longitude={device.lng}
-                  anchor="center"
+                  anchor="bottom"
                   onClick={(e) => {
                     e.originalEvent.stopPropagation();
                     setSelectedDevice(device);
                   }}
-                  style={{ cursor: "pointer" }}
                 >
-                  {/* Pulse ring */}
-                  {isOnline && (
-                    <span
-                      className="absolute rounded-full bg-emerald-500/25 animate-ping"
-                      style={{
-                        width: size + 12,
-                        height: size + 12,
-                        top: -(size + 12 - size) / 2,
-                        left: -(size + 12 - size) / 2,
-                        animationDuration: "2.5s",
-                      }}
-                    />
-                  )}
-                  <div
-                    className="rounded-full border-2 shadow-lg flex items-center justify-center"
-                    style={{
-                      width: size,
-                      height: size,
-                      backgroundColor: isOnline ? "#10b981" : "#ef4444",
-                      borderColor: isOnline ? "#34d399" : "#f87171",
-                      boxShadow: isOnline
-                        ? "0 0 8px rgba(16,185,129,0.4)"
-                        : "0 0 8px rgba(239,68,68,0.3)",
-                    }}
-                  >
-                    <span
-                      className="text-white font-bold"
-                      style={{ fontSize: device.type === "base" ? 8 : 7 }}
-                    >
-                      {device.type === "base" ? "B" : device.type === "relay" ? "R" : "●"}
-                    </span>
+                  <div className="flex flex-col items-center cursor-pointer group">
+                    {/* Device Label */}
+                    <div className="bg-slate-950/90 text-white text-[10px] font-bold px-1.5 py-0.5 rounded border border-white/10 shadow-lg mb-1 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity">
+                      {device.name}
+                    </div>
+                    {/* Pin Graphic */}
+                    <div className="relative flex items-center justify-center">
+                      <div
+                        className={`absolute w-5 h-5 rounded-full animate-ping opacity-60 ${
+                          isOnline ? "bg-emerald-400" : "bg-rose-400"
+                        }`}
+                        style={{ animationDuration: "2s" }}
+                      />
+                      <div
+                        className={`w-3.5 h-3.5 rounded-full border-2 border-white flex items-center justify-center shadow-md relative z-10 ${
+                          isOnline ? "bg-emerald-500" : "bg-rose-500"
+                        }`}
+                      />
+                    </div>
                   </div>
                 </Marker>
               );
             })}
 
-            {/* Popup for selected device */}
+            {/* Device Info Popup */}
             {selectedDevice && (
               <Popup
                 latitude={selectedDevice.lat}
                 longitude={selectedDevice.lng}
-                anchor="bottom"
+                anchor="top"
                 onClose={() => setSelectedDevice(null)}
                 closeOnClick={false}
-                className="mapbox-device-popup"
-                maxWidth="240px"
+                maxWidth="260px"
               >
-                <div style={{ fontFamily: "system-ui, sans-serif", padding: "2px 0" }}>
-                  <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: "#e2e8f0" }}>
-                    {selectedDevice.name}
-                  </p>
-                  <p
+                <div style={{ padding: 4 }}>
+                  <div
                     style={{
-                      margin: "2px 0 8px",
-                      fontSize: 11,
-                      color: "#94a3b8",
-                      fontFamily: "monospace",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 8,
+                      borderBottom: "1px solid rgba(255,255,255,0.1)",
+                      paddingBottom: 4,
                     }}
                   >
-                    {selectedDevice.id} · {selectedDevice.type}
-                  </p>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
+                      {selectedDevice.name}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 600,
+                        opacity: 0.6,
+                        color: "#94a3b8",
+                      }}
+                    >
+                      {selectedDevice.type.toUpperCase()}
+                    </span>
+                  </div>
 
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "4px 12px",
+                      gridTemplateColumns: "80px 1fr",
+                      gap: "4px 8px",
                       fontSize: 11,
                       color: "#94a3b8",
                     }}
@@ -248,17 +228,13 @@ export function MapView({ devices, geofences }: MapViewProps) {
                     </span>
 
                     <span>Vệ tinh</span>
-                    <span style={{ fontFamily: "monospace", fontWeight: 600, color: "#e2e8f0" }}>
-                      {selectedDevice.satellites}
-                    </span>
+                    <span style={{ color: "#e2e8f0" }}>{selectedDevice.satellites}</span>
 
                     <span>Pin</span>
-                    <span style={{ fontFamily: "monospace", fontWeight: 600, color: "#e2e8f0" }}>
-                      {selectedDevice.battery}%
-                    </span>
+                    <span style={{ color: "#e2e8f0" }}>{selectedDevice.battery}%</span>
 
                     <span>Tọa độ</span>
-                    <span style={{ fontFamily: "monospace", fontSize: 10, color: "#cbd5e1" }}>
+                    <span style={{ color: "#cbd5e1" }}>
                       {selectedDevice.lat.toFixed(4)}, {selectedDevice.lng.toFixed(4)}
                     </span>
                   </div>
@@ -267,7 +243,7 @@ export function MapView({ devices, geofences }: MapViewProps) {
             )}
           </Map>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
